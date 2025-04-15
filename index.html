@@ -8,89 +8,128 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
       background-color: #f9f9f9;
-      color: #333;
+      color: #1c1c1e;
       margin: 0;
-      padding: 20px;
+      padding: 40px 20px;
     }
     .container {
       display: flex;
-      flex-direction: column;
-      gap: 20px;
+      flex-wrap: wrap;
+      gap: 40px;
       max-width: 1200px;
       margin: auto;
-    }
-    .flex {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
     }
     .card {
       background: #fff;
       border-radius: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      padding: 30px;
       flex: 1;
-      min-width: 300px;
+      min-width: 320px;
+      max-width: 550px;
+      box-sizing: border-box;
     }
     label {
       display: block;
-      margin-top: 10px;
-      font-weight: 500;
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 16px;
     }
     input {
       width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 6px;
+      border: 1px solid #d1d1d6;
+      border-radius: 12px;
       font-size: 16px;
+      background-color: #f2f2f7;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-align: center;
     }
     h2 {
-      margin-bottom: 10px;
+      margin-bottom: 20px;
+      font-size: 22px;
     }
-    .resultado span {
-      display: block;
-      margin: 5px 0;
-      font-size: 18px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 16px;
+    }
+    th {
+      border-bottom: 2px solid #e5e5ea;
+      font-weight: 600;
+      background-color: #f2f2f7;
+    }
+    tr:not(:last-child) td {
+      border-bottom: 1px solid #e5e5ea;
+    }
+    .valor {
+      text-align: right;
+      font-weight: 500;
     }
     footer {
       margin-top: 40px;
       font-size: 14px;
+      text-align: center;
     }
     footer a {
       color: #007aff;
+      text-decoration: none;
+    }
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        padding: 10px;
+      }
     }
   </style>
 </head>
 <body>
+  <h1>Calculadora de Preço - Mercado Livre</h1>
   <div class="container">
-    <h1>Calculadora de Preço - Mercado Livre</h1>
-    <div class="flex">
-      <div class="card">
-        <h2>Preencha os dados</h2>
-        <label>Custo do Produto (R$)<input type="number" id="produto" /></label>
-        <label>Frete (R$)<input type="number" id="frete" /></label>
-        <label>Impostos (%)<input type="number" id="impostos" /></label>
-        <label>Custo fixo adicional (R$)<input type="number" id="fixo" /></label>
-        <label>Custos variáveis (R$)<input type="number" id="variavel" /></label>
-        <label>Taxa - Anúncio Clássico (%)<input type="number" id="taxaClassico" /></label>
-        <label>Taxa - Anúncio Premium (%)<input type="number" id="taxaPremium" /></label>
-        <label>Margem de Lucro (%)<input type="number" id="lucro" /></label>
-      </div>
-      <div class="card resultado">
-        <h2>Resultado</h2>
-        <span id="custoTotal">Custo total da operação: R$ 0,00</span>
-        <span id="precoClassico">Preço final - Clássico: R$ 0,00</span>
-        <span id="lucroClassico">Lucro estimado - Clássico: R$ 0,00</span>
-        <span id="precoPremium">Preço final - Premium: R$ 0,00</span>
-        <span id="lucroPremium">Lucro estimado - Premium: R$ 0,00</span>
-      </div>
+    <div class="card">
+      <h2>Preencha os dados</h2>
+      <label>Custo do Produto (R$)<input type="number" id="produto" /></label>
+      <label>Frete (R$)<input type="number" id="frete" /></label>
+      <label>Impostos (%)<input type="number" id="impostos" /></label>
+      <label>Custo fixo adicional (R$)<input type="number" id="fixo" /></label>
+      <label>Custos variáveis (R$)<input type="number" id="variavel" /></label>
+      <label>Taxa - Anúncio Clássico (%)<input type="number" id="taxaClassico" /></label>
+      <label>Taxa - Anúncio Premium (%)<input type="number" id="taxaPremium" /></label>
+      <label>Margem de Lucro (%)<input type="number" id="lucro" /></label>
     </div>
-    <footer>
-      <p><strong>Como preencher:</strong> Digite os valores com atenção. Se não souber algum, deixe em branco (será considerado 0).</p>
-      <p><a href="https://www.mercadolivre.com.br/landing/custos-de-venda" target="_blank">Veja aqui os custos de venda do Mercado Livre</a></p>
-    </footer>
+    <div class="card">
+      <h2>Resultado</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Descrição</th>
+            <th class="valor">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Custo total da operação</td><td class="valor" id="custoTotal">R$ 0,00</td></tr>
+          <tr><td>Preço final - Clássico</td><td class="valor" id="precoClassico">R$ 0,00</td></tr>
+          <tr><td>Lucro estimado - Clássico</td><td class="valor" id="lucroClassico">R$ 0,00</td></tr>
+          <tr><td>Preço final - Premium</td><td class="valor" id="precoPremium">R$ 0,00</td></tr>
+          <tr><td>Lucro estimado - Premium</td><td class="valor" id="lucroPremium">R$ 0,00</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
+  <footer>
+    <p><strong>Como preencher:</strong> Digite os valores com atenção. Se não souber algum, deixe em branco (será considerado 0).</p>
+    <p><a href="https://www.mercadolivre.com.br/landing/custos-de-venda" target="_blank">Veja aqui os custos de venda do Mercado Livre</a></p>
+  </footer>
 
   <script>
     const inputs = document.querySelectorAll("input");
@@ -116,11 +155,11 @@
       const lucroClassico = precoClassico - (custoTotal + (custoTotal * (impostos / 100 + taxaClassico / 100)));
       const lucroPremium = precoPremium - (custoTotal + (custoTotal * (impostos / 100 + taxaPremium / 100)));
 
-      document.getElementById("custoTotal").innerText = `Custo total da operação: R$ ${custoTotal.toFixed(2)}`;
-      document.getElementById("precoClassico").innerText = `Preço final - Clássico: R$ ${precoClassico.toFixed(2)}`;
-      document.getElementById("lucroClassico").innerText = `Lucro estimado - Clássico: R$ ${lucroClassico.toFixed(2)}`;
-      document.getElementById("precoPremium").innerText = `Preço final - Premium: R$ ${precoPremium.toFixed(2)}`;
-      document.getElementById("lucroPremium").innerText = `Lucro estimado - Premium: R$ ${lucroPremium.toFixed(2)}`;
+      document.getElementById("custoTotal").innerText = `R$ ${custoTotal.toFixed(2)}`;
+      document.getElementById("precoClassico").innerText = `R$ ${precoClassico.toFixed(2)}`;
+      document.getElementById("lucroClassico").innerText = `R$ ${lucroClassico.toFixed(2)}`;
+      document.getElementById("precoPremium").innerText = `R$ ${precoPremium.toFixed(2)}`;
+      document.getElementById("lucroPremium").innerText = `R$ ${lucroPremium.toFixed(2)}`;
     }
   </script>
 </body>
