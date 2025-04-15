@@ -6,11 +6,15 @@
   <title>Calculadora de Preço - Mercado Livre</title>
   <style>
     :root {
-      --cinza-claro: #f5f5f7;
+      --cinza-claro: #f2f4f8;
       --cinza-medio: #e5e5ea;
       --cinza-escuro: #8e8e93;
       --azul-apple: #007aff;
-      --verde-apple: #34c759;
+      --azul-gradiente-inicio: #4facfe;
+      --azul-gradiente-fim: #00f2fe;
+      --verde-suave: #e6f4ea;
+      --azul-suave: #e6f0fa;
+      --cinza-suave: #f0f0f0;
       --fundo: #ffffff;
       --texto: #1c1c1e;
     }
@@ -97,7 +101,6 @@
     }
 
     .resultado-card {
-      background-color: #ffffff;
       border-radius: 20px;
       padding: 20px 24px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -108,8 +111,15 @@
       font-weight: 500;
     }
 
+    .card-cinza { background-color: var(--cinza-suave); }
+    .card-verde { background-color: var(--verde-suave); }
+    .card-azul { background-color: var(--azul-suave); }
+
     .resultado-card .label {
       color: #444;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .resultado-card .valor {
@@ -121,19 +131,19 @@
       display: inline-block;
       margin-top: 30px;
       padding: 12px 24px;
-      background-color: var(--azul-apple);
+      background: linear-gradient(135deg, var(--azul-gradiente-inicio), var(--azul-gradiente-fim));
       color: white;
       border: none;
       border-radius: 16px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.2s;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
     .btn:hover {
-      background-color: #005ecb;
       transform: scale(1.03);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     footer {
@@ -174,11 +184,11 @@
     <div class="card">
       <h2>Resultado</h2>
       <div class="resultados">
-        <div class="resultado-card"><span class="label">Custo total da operação</span><span class="valor" id="custoTotal">R$ 0,00</span></div>
-        <div class="resultado-card"><span class="label">Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
-        <div class="resultado-card"><span class="label">Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
-        <div class="resultado-card"><span class="label">Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
-        <div class="resultado-card"><span class="label">Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
+        <div class="resultado-card card-cinza"><span class="label">📦 Custo total da operação</span><span class="valor" id="custoTotal">R$ 0,00</span></div>
+        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
       </div>
     </div>
   </div>
