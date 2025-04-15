@@ -41,10 +41,15 @@
     ul {
       list-style: none;
       padding-left: 0;
+      margin-left: 0;
     }
+
     ul li::before {
-      content: '• ';
-      margin-right: 4px;
+      content: '•';
+      margin-right: 8px;
+      color: #444;
+      display: inline-block;
+      width: 1em;
     }
 
     .container {
@@ -96,12 +101,6 @@
       box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
     }
 
-    h2 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-
     .resultados {
       display: flex;
       flex-direction: column;
@@ -124,21 +123,8 @@
     .card-verde { background-color: var(--verde-suave); }
     .card-azul { background-color: var(--azul-suave); }
 
-    .resultado-card .label {
-      color: #444;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .resultado-card .valor {
-      color: #111;
-      font-weight: 600;
-    }
-
     .btn {
-      display: inline-block;
-      margin-top: 30px;
+      margin-top: 24px;
       padding: 12px 24px;
       background: linear-gradient(135deg, var(--azul-gradiente-inicio), var(--azul-gradiente-fim));
       color: white;
@@ -155,39 +141,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .composicao {
-      margin-top: -10px;
-      padding: 12px 18px;
-      background-color: #fff;
-      border: 1px solid #d0d0d0;
-      border-radius: 14px;
-      font-size: 14px;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-      display: none;
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    .composicao.ativa {
-      display: block;
-    }
-
-    .ver-composicao {
-      font-size: 13px;
-      text-align: right;
-      margin-top: -8px;
-      margin-bottom: 8px;
-      color: var(--azul-apple);
-      background: none;
-      border: none;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     footer {
       margin-top: 60px;
       font-size: 14px;
@@ -195,16 +148,92 @@
       color: var(--cinza-escuro);
     }
 
-    footer a {
-      color: var(--azul-apple);
-      text-decoration: none;
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        flex-direction: column;
-        padding: 10px;
-      }
+    .composicao {
+      margin-top: 20px;
+      padding: 24px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+      font-size: 16px;
     }
   </style>
 </head>
+<body>
+  <h1>Calculadora de Preço - Mercado Livre</h1>
+  <div class="container">
+    <div class="card">
+      <label>Custo do Produto (R$)<input type="number" id="produto"></label>
+      <label>Frete (R$)<input type="number" id="frete"></label>
+      <label>Impostos (%)<input type="number" id="impostos"></label>
+      <label>Custo fixo adicional (R$)<input type="number" id="fixo"></label>
+      <label>Custos variáveis (R$)<input type="number" id="variavel"></label>
+      <label>Taxa - Anúncio Clássico (%)<input type="number" id="taxaClassico"></label>
+      <label>Taxa - Anúncio Premium (%)<input type="number" id="taxaPremium"></label>
+      <label>Margem de Lucro (%)<input type="number" id="lucro"></label>
+      <button class="btn" onclick="limparCampos()">Limpar campos</button>
+    </div>
+    <div class="card">
+      <div class="resultados">
+        <div class="resultado-card card-verde"><span>💰 Preço final - Clássico</span><span id="precoClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span>📈 Lucro estimado - Clássico</span><span id="lucroClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-verde"><span>💰 Preço final - Premium</span><span id="precoPremium">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span>📈 Lucro estimado - Premium</span><span id="lucroPremium">R$ 0,00</span></div>
+        <div class="resultado-card card-cinza"><span>📦 Custo total da operação</span><span id="custoTotal">R$ 0,00</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="composicao">
+    <strong>Este valor soma:</strong>
+    <ul>
+      <li>Custo do Produto</li>
+      <li>Frete</li>
+      <li>Custo fixo adicional</li>
+      <li>Custos variáveis</li>
+    </ul>
+    <p>Não inclui impostos, taxas ou margem de lucro.</p>
+  </div>
+  <footer>
+    <p><strong>Como preencher:</strong> Digite os valores com atenção. Se não souber algum, deixe em branco (será considerado 0).</p>
+    <p><a href="https://www.mercadolivre.com.br/landing/custos-de-venda" target="_blank">Veja aqui os custos de venda do Mercado Livre</a></p>
+  </footer>
+  <script>
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach(input => input.addEventListener("input", calcular));
+
+    function valor(id) {
+      return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function calcular() {
+      const produto = valor("produto");
+      const frete = valor("frete");
+      const impostos = valor("impostos");
+      const fixo = valor("fixo");
+      const variavel = valor("variavel");
+      const taxaClassico = valor("taxaClassico");
+      const taxaPremium = valor("taxaPremium");
+      const lucroDesejado = valor("lucro");
+
+      const custoTotal = produto + frete + fixo + variavel;
+      const precoClassico = custoTotal * (1 + impostos / 100 + taxaClassico / 100 + lucroDesejado / 100);
+      const precoPremium = custoTotal * (1 + impostos / 100 + taxaPremium / 100 + lucroDesejado / 100);
+      const lucroClassico = precoClassico - (custoTotal + custoTotal * (impostos / 100 + taxaClassico / 100));
+      const lucroPremium = precoPremium - (custoTotal + custoTotal * (impostos / 100 + taxaPremium / 100));
+
+      document.getElementById("custoTotal").innerText = `R$ ${custoTotal.toFixed(2)}`;
+      document.getElementById("precoClassico").innerText = `R$ ${precoClassico.toFixed(2)}`;
+      document.getElementById("lucroClassico").innerText = `R$ ${lucroClassico.toFixed(2)}`;
+      document.getElementById("precoPremium").innerText = `R$ ${precoPremium.toFixed(2)}`;
+      document.getElementById("lucroPremium").innerText = `R$ ${lucroPremium.toFixed(2)}`;
+    }
+
+    function limparCampos() {
+      inputs.forEach(input => input.value = "");
+      calcular();
+    }
+  </script>
+</body>
+</html>
