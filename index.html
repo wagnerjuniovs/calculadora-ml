@@ -89,29 +89,32 @@
       font-weight: 600;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .resultados {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
       margin-top: 20px;
     }
 
-    th, td {
-      padding: 14px 12px;
-      font-size: 16px;
-    }
-
-    th {
-      background-color: var(--cinza-medio);
-      font-weight: 600;
-    }
-
-    td.valor {
-      text-align: right;
+    .resultado-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 20px 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 17px;
       font-weight: 500;
     }
 
-    tr:not(:last-child) td {
-      border-bottom: 1px solid #dedede;
+    .resultado-card .label {
+      color: #444;
+    }
+
+    .resultado-card .valor {
+      color: #111;
+      font-weight: 600;
     }
 
     .btn {
@@ -170,21 +173,13 @@
     </div>
     <div class="card">
       <h2>Resultado</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Descrição</th>
-            <th class="valor">Valor</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>Custo total da operação</td><td class="valor" id="custoTotal">R$ 0,00</td></tr>
-          <tr><td>Preço final - Clássico</td><td class="valor" id="precoClassico">R$ 0,00</td></tr>
-          <tr><td>Lucro estimado - Clássico</td><td class="valor" id="lucroClassico">R$ 0,00</td></tr>
-          <tr><td>Preço final - Premium</td><td class="valor" id="precoPremium">R$ 0,00</td></tr>
-          <tr><td>Lucro estimado - Premium</td><td class="valor" id="lucroPremium">R$ 0,00</td></tr>
-        </tbody>
-      </table>
+      <div class="resultados">
+        <div class="resultado-card"><span class="label">Custo total da operação</span><span class="valor" id="custoTotal">R$ 0,00</span></div>
+        <div class="resultado-card"><span class="label">Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
+        <div class="resultado-card"><span class="label">Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
+        <div class="resultado-card"><span class="label">Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
+        <div class="resultado-card"><span class="label">Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
+      </div>
     </div>
   </div>
   <footer>
