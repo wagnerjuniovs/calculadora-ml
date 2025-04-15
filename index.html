@@ -10,8 +10,8 @@
       --cinza-medio: #e5e5ea;
       --cinza-escuro: #8e8e93;
       --azul-apple: #007aff;
-      --azul-gradiente-inicio: #4facfe;
-      --azul-gradiente-fim: #00f2fe;
+      --azul-gradiente-inicio: #007aff;
+      --azul-gradiente-fim: #005ecb;
       --verde-suave: #e6f4ea;
       --azul-suave: #e6f0fa;
       --cinza-suave: #f0f0f0;
@@ -36,6 +36,8 @@
       text-align: center;
       margin-bottom: 40px;
       font-weight: 600;
+      color: var(--azul-apple);
+      letter-spacing: 0.5px;
     }
 
     .container {
@@ -56,6 +58,7 @@
       min-width: 320px;
       max-width: 500px;
       transition: box-shadow 0.3s ease, transform 0.3s ease;
+      position: relative;
     }
 
     .card:hover {
@@ -146,6 +149,34 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
+    .info-btn {
+      background: none;
+      border: none;
+      color: var(--azul-apple);
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .tooltip {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 16px;
+      position: absolute;
+      bottom: -200px;
+      left: 0;
+      width: 100%;
+      font-size: 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .tooltip.active {
+      display: block;
+    }
+
     footer {
       margin-top: 60px;
       font-size: 14px;
@@ -184,7 +215,21 @@
     <div class="card">
       <h2>Resultado</h2>
       <div class="resultados">
-        <div class="resultado-card card-cinza"><span class="label">📦 Custo total da operação</span><span class="valor" id="custoTotal">R$ 0,00</span></div>
+        <div class="resultado-card card-cinza">
+          <span class="label">📦 Custo total da operação</span>
+          <span class="valor" id="custoTotal">R$ 0,00</span>
+        </div>
+        <button class="info-btn" onclick="toggleInfo()">Ver composição do custo</button>
+        <div class="tooltip" id="tooltip">
+          Este valor soma:
+          <ul>
+            <li>• Custo do Produto</li>
+            <li>• Frete</li>
+            <li>• Custo fixo adicional</li>
+            <li>• Custos variáveis</li>
+          </ul>
+          Não inclui impostos, taxas ou margem de lucro.
+        </div>
         <div class="resultado-card card-verde"><span class="label">💰 Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
         <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
         <div class="resultado-card card-verde"><span class="label">💰 Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
@@ -231,6 +276,11 @@
     function limparCampos() {
       inputs.forEach(input => input.value = "");
       calcular();
+    }
+
+    function toggleInfo() {
+      const tooltip = document.getElementById("tooltip");
+      tooltip.classList.toggle("active");
     }
   </script>
 </body>
