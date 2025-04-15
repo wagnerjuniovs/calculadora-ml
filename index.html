@@ -51,11 +51,12 @@
       flex: 1;
       min-width: 320px;
       max-width: 500px;
-      transition: box-shadow 0.3s ease;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
 
     .card:hover {
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+      transform: translateY(-4px);
     }
 
     label {
@@ -73,12 +74,13 @@
       border-radius: 12px;
       background-color: #fdfdfd;
       font-size: 16px;
-      transition: border 0.2s;
+      transition: border 0.2s, box-shadow 0.2s;
     }
 
     input:focus {
       outline: none;
       border-color: var(--azul-apple);
+      box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
     }
 
     h2 {
@@ -110,6 +112,25 @@
 
     tr:not(:last-child) td {
       border-bottom: 1px solid #dedede;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 12px 24px;
+      background-color: var(--azul-apple);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #005ecb;
+      transform: scale(1.03);
     }
 
     footer {
@@ -145,6 +166,7 @@
       <label>Taxa - Anúncio Clássico (%)<input type="number" id="taxaClassico" /></label>
       <label>Taxa - Anúncio Premium (%)<input type="number" id="taxaPremium" /></label>
       <label>Margem de Lucro (%)<input type="number" id="lucro" /></label>
+      <button class="btn" onclick="limparCampos()">Limpar campos</button>
     </div>
     <div class="card">
       <h2>Resultado</h2>
@@ -199,6 +221,11 @@
       document.getElementById("lucroClassico").innerText = `R$ ${lucroClassico.toFixed(2)}`;
       document.getElementById("precoPremium").innerText = `R$ ${precoPremium.toFixed(2)}`;
       document.getElementById("lucroPremium").innerText = `R$ ${lucroPremium.toFixed(2)}`;
+    }
+
+    function limparCampos() {
+      inputs.forEach(input => input.value = "");
+      calcular();
     }
   </script>
 </body>
