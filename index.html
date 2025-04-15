@@ -36,8 +36,6 @@
       text-align: center;
       margin-bottom: 40px;
       font-weight: 600;
-      color: var(--azul-apple);
-      letter-spacing: 0.5px;
     }
 
     .container {
@@ -58,7 +56,6 @@
       min-width: 320px;
       max-width: 500px;
       transition: box-shadow 0.3s ease, transform 0.3s ease;
-      position: relative;
     }
 
     .card:hover {
@@ -149,32 +146,37 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    .info-btn {
+    .composicao {
+      margin-top: -10px;
+      padding: 12px 18px;
+      background-color: #fff;
+      border: 1px solid #d0d0d0;
+      border-radius: 14px;
+      font-size: 14px;
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+      display: none;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .composicao.ativa {
+      display: block;
+    }
+
+    .ver-composicao {
+      font-size: 13px;
+      text-align: right;
+      margin-top: -8px;
+      margin-bottom: 8px;
+      color: var(--azul-apple);
       background: none;
       border: none;
-      color: var(--azul-apple);
-      font-size: 13px;
-      text-decoration: underline;
       cursor: pointer;
-      margin-top: 16px;
+      text-decoration: underline;
     }
 
-    .tooltip {
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 12px;
-      padding: 16px;
-      position: absolute;
-      bottom: -200px;
-      left: 0;
-      width: 100%;
-      font-size: 14px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      display: none;
-    }
-
-    .tooltip.active {
-      display: block;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     footer {
@@ -215,25 +217,25 @@
     <div class="card">
       <h2>Resultado</h2>
       <div class="resultados">
+        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
+        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
+        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
         <div class="resultado-card card-cinza">
           <span class="label">📦 Custo total da operação</span>
           <span class="valor" id="custoTotal">R$ 0,00</span>
         </div>
-        <button class="info-btn" onclick="toggleInfo()">Ver composição do custo</button>
-        <div class="tooltip" id="tooltip">
-          Este valor soma:
+        <button class="ver-composicao" onclick="toggleComposicao()">Ver composição do custo</button>
+        <div class="composicao" id="composicao">
+          <strong>Este valor soma:</strong>
           <ul>
             <li>• Custo do Produto</li>
             <li>• Frete</li>
             <li>• Custo fixo adicional</li>
             <li>• Custos variáveis</li>
           </ul>
-          Não inclui impostos, taxas ou margem de lucro.
+          <p>Não inclui impostos, taxas ou margem de lucro.</p>
         </div>
-        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
-        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
-        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
-        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
       </div>
     </div>
   </div>
@@ -278,9 +280,9 @@
       calcular();
     }
 
-    function toggleInfo() {
-      const tooltip = document.getElementById("tooltip");
-      tooltip.classList.toggle("active");
+    function toggleComposicao() {
+      const comp = document.getElementById("composicao");
+      comp.classList.toggle("ativa");
     }
   </script>
 </body>
