@@ -10,8 +10,7 @@
       --cinza-medio: #e5e5ea;
       --cinza-escuro: #8e8e93;
       --azul-apple: #007aff;
-      --azul-gradiente-inicio: #007aff;
-      --azul-gradiente-fim: #005ecb;
+      --azul-fixo: #007aff;
       --verde-suave: #e6f4ea;
       --azul-suave: #e6f0fa;
       --cinza-suave: #f0f0f0;
@@ -119,14 +118,25 @@
       font-weight: 500;
     }
 
-    .card-cinza { background-color: var(--cinza-suave); }
+    .card-cinza {
+      background-color: var(--cinza-suave);
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .card-cinza .info-top {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
     .card-verde { background-color: var(--verde-suave); }
     .card-azul { background-color: var(--azul-suave); }
 
     .btn {
       margin-top: 24px;
       padding: 12px 24px;
-      background: linear-gradient(135deg, var(--azul-gradiente-inicio), var(--azul-gradiente-fim));
+      background: var(--azul-fixo);
       color: white;
       border: none;
       border-radius: 16px;
@@ -146,18 +156,6 @@
       font-size: 14px;
       text-align: center;
       color: var(--cinza-escuro);
-    }
-
-    .composicao {
-      margin-top: 20px;
-      padding: 24px;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-      font-size: 16px;
     }
   </style>
 </head>
@@ -181,19 +179,22 @@
         <div class="resultado-card card-azul"><span>📈 Lucro estimado - Clássico</span><span id="lucroClassico">R$ 0,00</span></div>
         <div class="resultado-card card-verde"><span>💰 Preço final - Premium</span><span id="precoPremium">R$ 0,00</span></div>
         <div class="resultado-card card-azul"><span>📈 Lucro estimado - Premium</span><span id="lucroPremium">R$ 0,00</span></div>
-        <div class="resultado-card card-cinza"><span>📦 Custo total da operação</span><span id="custoTotal">R$ 0,00</span></div>
+        <div class="resultado-card card-cinza">
+          <div class="info-top">
+            <span>📦 Custo total da operação</span>
+            <span id="custoTotal">R$ 0,00</span>
+          </div>
+          <strong style="margin-bottom: 8px;">Este valor soma:</strong>
+          <ul>
+            <li>Custo do Produto</li>
+            <li>Frete</li>
+            <li>Custo fixo adicional</li>
+            <li>Custos variáveis</li>
+          </ul>
+          <p style="font-size: 14px; margin-top: 8px;">Não inclui impostos, taxas ou margem de lucro.</p>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="composicao">
-    <strong>Este valor soma:</strong>
-    <ul>
-      <li>Custo do Produto</li>
-      <li>Frete</li>
-      <li>Custo fixo adicional</li>
-      <li>Custos variáveis</li>
-    </ul>
-    <p>Não inclui impostos, taxas ou margem de lucro.</p>
   </div>
   <footer>
     <p><strong>Como preencher:</strong> Digite os valores com atenção. Se não souber algum, deixe em branco (será considerado 0).</p>
