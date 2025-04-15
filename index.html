@@ -38,6 +38,15 @@
       font-weight: 600;
     }
 
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    ul li::before {
+      content: '• ';
+      margin-right: 4px;
+    }
+
     .container {
       display: flex;
       flex-wrap: wrap;
@@ -199,91 +208,3 @@
     }
   </style>
 </head>
-<body>
-  <h1>Calculadora de Preço - Mercado Livre</h1>
-  <div class="container">
-    <div class="card">
-      <h2>Preencha os dados</h2>
-      <label>Custo do Produto (R$)<input type="number" id="produto" /></label>
-      <label>Frete (R$)<input type="number" id="frete" /></label>
-      <label>Impostos (%)<input type="number" id="impostos" /></label>
-      <label>Custo fixo adicional (R$)<input type="number" id="fixo" /></label>
-      <label>Custos variáveis (R$)<input type="number" id="variavel" /></label>
-      <label>Taxa - Anúncio Clássico (%)<input type="number" id="taxaClassico" /></label>
-      <label>Taxa - Anúncio Premium (%)<input type="number" id="taxaPremium" /></label>
-      <label>Margem de Lucro (%)<input type="number" id="lucro" /></label>
-      <button class="btn" onclick="limparCampos()">Limpar campos</button>
-    </div>
-    <div class="card">
-      <h2>Resultado</h2>
-      <div class="resultados">
-        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Clássico</span><span class="valor" id="precoClassico">R$ 0,00</span></div>
-        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Clássico</span><span class="valor" id="lucroClassico">R$ 0,00</span></div>
-        <div class="resultado-card card-verde"><span class="label">💰 Preço final - Premium</span><span class="valor" id="precoPremium">R$ 0,00</span></div>
-        <div class="resultado-card card-azul"><span class="label">📈 Lucro estimado - Premium</span><span class="valor" id="lucroPremium">R$ 0,00</span></div>
-        <div class="resultado-card card-cinza">
-          <span class="label">📦 Custo total da operação</span>
-          <span class="valor" id="custoTotal">R$ 0,00</span>
-        </div>
-        <button class="ver-composicao" onclick="toggleComposicao()">Ver composição do custo</button>
-        <div class="composicao" id="composicao">
-          <strong>Este valor soma:</strong>
-          <ul>
-            <li>• Custo do Produto</li>
-            <li>• Frete</li>
-            <li>• Custo fixo adicional</li>
-            <li>• Custos variáveis</li>
-          </ul>
-          <p>Não inclui impostos, taxas ou margem de lucro.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-  <footer>
-    <p><strong>Como preencher:</strong> Digite os valores com atenção. Se não souber algum, deixe em branco (será considerado 0).</p>
-    <p><a href="https://www.mercadolivre.com.br/landing/custos-de-venda" target="_blank">Veja aqui os custos de venda do Mercado Livre</a></p>
-  </footer>
-
-  <script>
-    const inputs = document.querySelectorAll("input");
-    inputs.forEach(input => input.addEventListener("input", calcular));
-
-    function valor(id) {
-      return parseFloat(document.getElementById(id).value) || 0;
-    }
-
-    function calcular() {
-      const produto = valor("produto");
-      const frete = valor("frete");
-      const impostos = valor("impostos");
-      const fixo = valor("fixo");
-      const variavel = valor("variavel");
-      const taxaClassico = valor("taxaClassico");
-      const taxaPremium = valor("taxaPremium");
-      const lucroDesejado = valor("lucro");
-
-      const custoTotal = produto + frete + fixo + variavel;
-      const precoClassico = custoTotal * (1 + impostos / 100 + taxaClassico / 100 + lucroDesejado / 100);
-      const precoPremium = custoTotal * (1 + impostos / 100 + taxaPremium / 100 + lucroDesejado / 100);
-      const lucroClassico = precoClassico - (custoTotal + (custoTotal * (impostos / 100 + taxaClassico / 100)));
-      const lucroPremium = precoPremium - (custoTotal + (custoTotal * (impostos / 100 + taxaPremium / 100)));
-
-      document.getElementById("custoTotal").innerText = `R$ ${custoTotal.toFixed(2)}`;
-      document.getElementById("precoClassico").innerText = `R$ ${precoClassico.toFixed(2)}`;
-      document.getElementById("lucroClassico").innerText = `R$ ${lucroClassico.toFixed(2)}`;
-      document.getElementById("precoPremium").innerText = `R$ ${precoPremium.toFixed(2)}`;
-      document.getElementById("lucroPremium").innerText = `R$ ${lucroPremium.toFixed(2)}`;
-    }
-
-    function limparCampos() {
-      inputs.forEach(input => input.value = "");
-      calcular();
-    }
-
-    function toggleComposicao() {
-      const comp = document.getElementById("composicao");
-      comp.classList.toggle("ativa");
-    }
-  </script>
-</body>
-</html>
