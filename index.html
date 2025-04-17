@@ -1127,3 +1127,22 @@ function updateDashboard() {
 <!-- ===== FIM: BLOCO JS 14 - PREENCHIMENTO TABELA ============ -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 15 - TAXA DE REATIVAÇÃO ACUMULADA ========= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+function pintarTaxaReativacao(dados) {
+  const totalInativos = dados.filter(x => x.Status === 'Inativo' || x.Status === 'Ex-cliente').length;
+  const totalReativados = dados.filter(x => x.Ativo === 'Reativado').length;
+  const taxa = totalInativos > 0 ? Math.round((totalReativados / totalInativos) * 100) : 0;
+
+  const alvo = document.getElementById('taxa-reativacao');
+  if (alvo) alvo.textContent = taxa + '%';
+}
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 15 - TAXA DE REATIVAÇÃO ACUMULADA ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
