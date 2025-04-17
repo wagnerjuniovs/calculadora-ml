@@ -90,12 +90,17 @@
 <!-- ========================================================== -->
 <script>
 function parseMonth(m) {
-  return {Janeiro:1,Fevereiro:2,Março:3,Abril:4,Maio:5,Junho:6,Julho:7,Agosto:8,Setembro:9,Outubro:10,Novembro:11,Dezembro:12}[m]||1;
+  return {
+    Janeiro: 1, Fevereiro: 2, Março: 3, Abril: 4, Maio: 5, Junho: 6,
+    Julho: 7, Agosto: 8, Setembro: 9, Outubro: 10, Novembro: 11, Dezembro: 12
+  }[m] || 1;
 }
 
 function renderLine(data) {
   const canvas = document.getElementById('lineChart');
+  if (!canvas) return console.warn('Canvas lineChart não encontrado.');
   const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para lineChart.');
 
   const cn = {}, cr = {};
   nameMaps.lineNew = {};
@@ -134,6 +139,7 @@ function renderLine(data) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom' } }
     }
   });
@@ -150,7 +156,9 @@ function renderLine(data) {
 
 function renderBar(data) {
   const canvas = document.getElementById('barChart');
+  if (!canvas) return console.warn('Canvas barChart não encontrado.');
   const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para barChart.');
 
   const cnt = { 'Inativo': 0, 'Ex-cliente': 0, 'Reativado': 0 };
   nameMaps.bar = {};
@@ -172,7 +180,11 @@ function renderBar(data) {
   window.chartBar = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets: [{ data: vals, backgroundColor: cols }] },
-    options: { responsive: true }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
   });
 
   canvas.onclick = e => {
