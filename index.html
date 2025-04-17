@@ -198,17 +198,39 @@
     }
       
     function renderBar(data) {
-      const ctx = document.getElementById('barChart');
-      const cnt = {'Inativo':0,'Ex-cliente':0,'Reativado':0}; nameMaps.bar = {};
-      data.forEach(x => { ['Inativo','Ex-cliente','Reativado'].forEach(k => {
-        if ((k==='Reativado' && x.Ativo==='Reativado') || (k!=='Reativado' && x.Status===k)) {
-          cnt[k]++; (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
-        }
-      }); });
-      const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-      const cols  = ['#4caf50','#007aff','#ff9800'];
-      if (window.chartBar && typeof window.chartBar.destroy==='function') window.chartBar.destroy();
-      window.chartBar = new Chart(ctx, { type:'bar', data:{labels,datasets:[{data:vals,backgroundColor:
+  const ctx = document.getElementById('barChart');
+  const cnt = {'Inativo':0,'Ex-cliente':0,'Reativado':0}; 
+  nameMaps.bar = {};
+  data.forEach(x => { 
+    ['Inativo','Ex-cliente','Reativado'].forEach(k => {
+      if ((k==='Reativado' && x.Ativo==='Reativado') || (k!=='Reativado' && x.Status===k)) {
+        cnt[k]++; 
+        (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
+      }
+    }); 
+  });
+  const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
+  const cols  = ['#4caf50','#007aff','#ff9800'];
+  if (window.chartBar && typeof window.chartBar.destroy==='function') window.chartBar.destroy();
+  window.chartBar = new Chart(ctx, { 
+    type:'bar', 
+    data:{
+      labels,
+      datasets:[{
+        data:vals,
+        backgroundColor:cols
+      }]
+    }, 
+    options:{responsive:true}
+  });
+  ctx.onclick = e => { 
+    const pts = window.chartBar.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
+    if(!pts.length) return; 
+    const label = labels[pts[0].index]; 
+    showModal(label, nameMaps.bar[label]||[]); 
+  };
+}
+
 function renderPie(data) {
   const ctx = document.getElementById('pieChart');
   const cnt = {}, nm = {}; 
@@ -220,8 +242,17 @@ function renderPie(data) {
   nameMaps.pie = nm;
   const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
   if (window.chartPie && typeof window.chartPie.destroy==='function') window.chartPie.destroy();
-  window.chartPie = new Chart(ctx, { type:'pie', data:{labels,datasets:[{data:vals}]}, options:{responsive:true,plugins:{legend:{position:'right'}}}});
-  ctx.onclick = e => { const pts = window.chartPie.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i=pts[0].index; showModal(labels[i], nm[labels[i]]||[]); };
+  window.chartPie = new Chart(ctx, { 
+    type:'pie', 
+    data:{labels,datasets:[{data:vals}]}, 
+    options:{responsive:true,plugins:{legend:{position:'right'}}}
+  });
+  ctx.onclick = e => { 
+    const pts = window.chartPie.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
+    if(!pts.length) return; 
+    const i=pts[0].index; 
+    showModal(labels[i], nm[labels[i]]||[]); 
+  };
 }
 
 function renderDoughnut(data) {
@@ -236,10 +267,19 @@ function renderDoughnut(data) {
   const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
   const cols  = ['#2196f3','#4caf50','#ffeb3b','#ff5722']; 
   if (window.chartDough && typeof window.chartDough.destroy==='function') window.chartDough.destroy();
-  window.chartDough = new Chart(ctx, { type:'doughnut', data:{labels,datasets:[{data:vals,backgroundColor:cols}]}, options:{responsive:true,plugins:{legend:{position:'right'}}}});
-  ctx.onclick = e => { const pts = window.chartDough.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i=pts[0].index; showModal(labels[i], nm[labels[i]]||[]); };
+  window.chartDough = new Chart(ctx, { 
+    type:'doughnut', 
+    data:{labels,datasets:[{data:vals,backgroundColor:cols}]}, 
+    options:{responsive:true,plugins:{legend:{position:'right'}}}
+  });
+  ctx.onclick = e => { 
+    const pts = window.chartDough.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
+    if(!pts.length) return; 
+    const i=pts[0].index; 
+    showModal(labels[i], nm[labels[i]]||[]); 
+  };
 }
-  
+
 function showModal(title, list) {
   const modal = document.getElementById('detail-modal');
   document.getElementById('modal-title').textContent = title;
