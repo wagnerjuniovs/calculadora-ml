@@ -1225,3 +1225,64 @@ function pintarTaxaReativacao(dados) {
 <!-- ===== FIM: BLOCO JS 17 - CONTATOS DO DIA (HOJE) ========== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 18 - TEMPO MÉDIO SEM CONTATO ======= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function renderDiasMediosSemContato() {
+    const container = document.getElementById("tempo-medio-contato");
+    if (!container || !window.allData) return;
+
+    const agrupado = {};
+
+    // Agrupa clientes por status atual e soma os dias desde o último contato
+    window.allData.forEach((item) => {
+      const status = item.Ativo || "Sem status";
+      if (!item.Data || isNaN(item.Data)) return;
+
+      const dias = Math.floor((Date.now() - item.Data.getTime()) / (1000 * 60 * 60 * 24));
+      if (!agrupado[status]) agrupado[status] = { soma: 0, qtd: 0 };
+
+      agrupado[status].soma += dias;
+      agrupado[status].qtd += 1;
+    });
+
+    // Limpa conteúdo anterior
+    container.innerHTML = "";
+
+    // Cria linhas da tabela
+    Object.entries(agrupado).forEach(([status, { soma, qtd }]) => {
+      const media = Math.round(soma / qtd);
+
+      const row = document.createElement("div");
+      row.className = "flex justify-between px-4 py-2 text-sm";
+
+      row.innerHTML = `
+        <span class="text-gray-300">${status}</span>
+        <span class="text-gray-100 font-semibold">${media} dias</span>
+      `;
+
+      container.appendChild(row);
+    });
+  }
+
+  // Executa quando o DOM estiver pronto e os dados carregados
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.allData?.length) renderDiasMediosSemContato();
+    else {
+      // Garante que execute quando os dados forem carregados
+      const intervalo = setInterval(() => {
+        if (window.allData?.length) {
+          clearInterval(intervalo);
+          renderDiasMediosSemContato();
+        }
+      }, 300);
+    }
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 18 - TEMPO MÉDIO SEM CONTATO =========== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
