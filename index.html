@@ -1424,58 +1424,57 @@ function pintarTaxaReativacao(dados) {
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - FILTROS DE DATA CORRIGIDOS ===== -->
+<!-- ===== INÍCIO: BLOCO JS 21 - AJUSTE FILTROS DE DATAS ====== -->
 <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
 <!-- ========================================================== -->
 <script>
-  function isValidDate(d) {
-    return d instanceof Date && !isNaN(d);
-  }
-
-  function atualizarKpisComFiltros() {
-    const statusFiltro = document.getElementById('filtro-status')?.value || '';
-    const ufFiltro = document.getElementById('filtro-uf')?.value || '';
-    const dataDe = parseDate(document.getElementById('filtro-de')?.value);
-    const dataAte = parseDate(document.getElementById('filtro-ate')?.value);
-
-    let filtrados = window.allData || [];
-
-    // Aplicar os filtros com segurança
-    if (statusFiltro) filtrados = filtrados.filter(r => r.Status === statusFiltro);
-    if (ufFiltro) filtrados = filtrados.filter(r => r.UF === ufFiltro);
-    if (isValidDate(dataDe)) filtrados = filtrados.filter(r => isValidDate(r.Data) && r.Data >= dataDe);
-    if (isValidDate(dataAte)) filtrados = filtrados.filter(r => isValidDate(r.Data) && r.Data <= dataAte);
-
-    console.log('[DASHBOARD] Registros filtrados:', filtrados.length);
-
-    // Atualiza os valores dos cartões principais
-    const inativos = filtrados.filter(r => r.Status === 'Inativo');
-    const exClientes = filtrados.filter(r => r.Status === 'Ex-Cliente');
-    const reativados = filtrados.filter(r => r.Ativo === 'Reativado');
-    const total = inativos.length + exClientes.length;
-    const taxa = total > 0 ? (reativados.length / total) * 100 : 0;
-
-    if (document.getElementById('kpi-inativos')) {
-      document.getElementById('kpi-inativos').innerText = inativos.length;
+  function atualizarNegociacoesComPrevisao(dataFiltrada) {
+    // Protege contra array indefinido
+    if (!Array.isArray(dataFiltrada)) {
+      console.warn("[JS21] Dados filtrados não são um array.");
+      return;
     }
-    if (document.getElementById('kpi-ex')) {
-      document.getElementById('kpi-ex').innerText = exClientes.length;
+
+    const container = document.getElementById("negociacoes-proximas");
+
+    // Verifica se o container existe
+    if (!container) {
+      console.warn("[JS21] Container 'negociacoes-proximas' não encontrado.");
+      return;
     }
-    if (document.getElementById('kpi-reativados')) {
-      document.getElementById('kpi-reativados').innerText = reativados.length;
-    }
-    if (document.getElementById('kpi-retencao')) {
-      document.getElementById('kpi-retencao').innerText = `${Math.round(taxa)}%`;
+
+    const hoje = new Date();
+    const proximos = [];
+
+    dataFiltrada.forEach(item => {
+      if (
+        item.Ativo === "Em negociação" &&
+        item.Recompra instanceof Date &&
+        !isNaN(item.Recompra) &&
+        item.Recompra > hoje &&
+        (item.Recompra - hoje) / (1000 * 60 * 60 * 24) <= 15
+      ) {
+        proximos.push(item);
+      }
+    });
+
+    // Atualiza visualmente
+    if (proximos.length === 0) {
+      container.innerHTML = '<p class="text-gray-400">Nenhum cliente com previsão próxima</p>';
+    } else {
+      container.innerHTML = `<p class="text-yellow-400 font-semibold">${proximos.length} negociações com previsão próxima</p>`;
     }
   }
 
-  // Listeners com fallback para evitar erros
-  document.getElementById('filtro-status')?.addEventListener('change', atualizarKpisComFiltros);
-  document.getElementById('filtro-uf')?.addEventListener('change', atualizarKpisComFiltros);
-  document.getElementById('filtro-de')?.addEventListener('change', atualizarKpisComFiltros);
-  document.getElementById('filtro-ate')?.addEventListener('change', atualizarKpisComFiltros);
+  document.addEventListener("DOMContentLoaded", () => {
+    if (typeof window.allData !== "undefined") {
+      atualizarNegociacoesComPrevisao(window.allData);
+    } else {
+      console.warn("[JS21] Dados ainda não carregados");
+    }
+  });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - FILTROS DE DATA CORRIGIDOS ====== -->
+<!-- ===== FIM: BLOCO JS 21 - AJUSTE FILTROS DE DATAS ========== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
