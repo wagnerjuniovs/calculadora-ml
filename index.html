@@ -126,6 +126,7 @@ function renderLine(data) {
 
   const newV = labels.map(l => cn[l] || 0);
   const reV = labels.map(l => cr[l] || 0);
+  console.log('[LINE] Labels:', labels, 'Inativos:', newV, 'Reativados:', reV);
 
   if (window.chartLine && typeof window.chartLine.destroy === 'function') window.chartLine.destroy();
   window.chartLine = new Chart(ctx, {
@@ -175,6 +176,7 @@ function renderBar(data) {
   const labels = Object.keys(cnt);
   const vals = labels.map(l => cnt[l]);
   const cols = ['#4caf50', '#007aff', '#ff9800'];
+  console.log('[BAR] Labels:', labels, 'Valores:', vals);
 
   if (window.chartBar && typeof window.chartBar.destroy === 'function') window.chartBar.destroy();
   window.chartBar = new Chart(ctx, {
@@ -192,6 +194,87 @@ function renderBar(data) {
     if (!pts.length) return;
     const label = labels[pts[0].index];
     showModal(label, nameMaps.bar[label] || []);
+  };
+}
+
+function renderPie(data) {
+  const canvas = document.getElementById('pieChart');
+  if (!canvas) return console.warn('Canvas pieChart não encontrado.');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para pieChart.');
+
+  const cnt = {}, nm = {};
+  data.forEach(x => {
+    if (!x.Motivo) return;
+    cnt[x.Motivo] = (cnt[x.Motivo] || 0) + 1;
+    (nm[x.Motivo] ||= []).push(x.Cliente);
+  });
+
+  nameMaps.pie = nm;
+  const labels = Object.keys(cnt);
+  const vals = labels.map(l => cnt[l]);
+  console.log('[PIE] Labels:', labels, 'Valores:', vals);
+
+  if (window.chartPie && typeof window.chartPie.destroy === 'function') window.chartPie.destroy();
+  window.chartPie = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{ data: vals }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right' } }
+    }
+  });
+
+  canvas.onclick = e => {
+    const pts = window.chartPie.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+    if (!pts.length) return;
+    const i = pts[0].index;
+    showModal(labels[i], nm[labels[i]] || []);
+  };
+}
+
+function renderDoughnut(data) {
+  const canvas = document.getElementById('doughnutChart');
+  if (!canvas) return console.warn('Canvas doughnutChart não encontrado.');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para doughnutChart.');
+
+  const cnt = {}, nm = {};
+  data.forEach(x => {
+    if (!x.Ativo) return;
+    cnt[x.Ativo] = (cnt[x.Ativo] || 0) + 1;
+    (nm[x.Ativo] ||= []).push(x.Cliente);
+  });
+
+  nameMaps.doughnut = nm;
+  const labels = Object.keys(cnt);
+  const vals = labels.map(l => cnt[l]);
+  const cols = ['#2196f3', '#4caf50', '#ffeb3b', '#ff5722'];
+  console.log('[DOUGHNUT] Labels:', labels, 'Valores:', vals);
+
+  if (window.chartDough && typeof window.chartDough.destroy === 'function') window.chartDough.destroy();
+  window.chartDough = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: cols }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right' } }
+    }
+  });
+
+  canvas.onclick = e => {
+    const pts = window.chartDough.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+    if (!pts.length) return;
+    const i = pts[0].index;
+    showModal(labels[i], nm[labels[i]] || []);
   };
 }
 </script>
