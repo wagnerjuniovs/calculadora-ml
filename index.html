@@ -1360,121 +1360,45 @@ function pintarTaxaReativacao(dados) {
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - EVOLUÇÃO DA BASE INATIVA ======== -->
+<!-- ===== INÍCIO: BLOCO JS 21 - AJUSTE FILTRO DE DATAS ========= -->
 <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
 <!-- ========================================================== -->
 <script>
-  function atualizarGraficoEvolucaoBase() {
-    const container = document.getElementById('grafico-evolucao-inativos');
-    if (!container || !window.allData?.length) return;
+  function updateDashboard() {
+    const status = document.getElementById('status-filter').value;
+    const uf = document.getElementById('uf-filter').value;
+    const dataDe = document.getElementById('data-inicio').value;
+    const dataAte = document.getElementById('data-fim').value;
 
-    const meses = [
-      'Abril_2025', 'Maio_2025', 'Junho_2025',
-      'Julho_2025', 'Agosto_2025', 'Setembro_2025',
-      'Outubro_2025', 'Novembro_2025', 'Dezembro_2025'
-    ];
+    const inicioValido = dataDe && !isNaN(new Date(dataDe));
+    const fimValido = dataAte && !isNaN(new Date(dataAte));
 
-    const contagemPorMes = {};
-    meses.forEach(mes => contagemPorMes[mes] = 0);
+    const dadosFiltrados = window.allData.filter(d => {
+      const dentroStatus = status === '' || d.Status === status;
+      const dentroUF = uf === '' || d.UF === uf;
 
-    window.allData.forEach(item => {
-      if (item.Status === 'Inativo' && contagemPorMes[item.sheet] !== undefined) {
-        contagemPorMes[item.sheet]++;
+      let dentroPeriodo = true;
+
+      if (inicioValido && fimValido) {
+        dentroPeriodo = d.Data >= new Date(dataDe) && d.Data <= new Date(dataAte);
       }
+
+      return dentroStatus && dentroUF && dentroPeriodo;
     });
 
-    const labels = Object.keys(contagemPorMes).map(m => m.replace('_2025', ''));
-    const dados = Object.values(contagemPorMes);
-
-    if (window.graficoEvolucaoBase) window.graficoEvolucaoBase.destroy();
-
-    const ctx = document.getElementById('grafico-evolucao-inativos').getContext('2d');
-    window.graficoEvolucaoBase = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Inativos por Mês',
-          data: dados,
-          fill: false,
-          borderColor: '#a855f7',
-          backgroundColor: '#a855f7',
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1 }
-          }
-        }
-      }
-    });
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - EVOLUÇÃO DA BASE INATIVA ========== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - AJUSTE FILTROS DE DATAS ====== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function atualizarNegociacoesComPrevisao(dataFiltrada) {
-    // Protege contra array indefinido
-    if (!Array.isArray(dataFiltrada)) {
-      console.warn("[JS21] Dados filtrados não são um array.");
-      return;
-    }
-
-    const container = document.getElementById("negociacoes-proximas");
-
-    // Verifica se o container existe
-    if (!container) {
-      console.warn("[JS21] Container 'negociacoes-proximas' não encontrado.");
-      return;
-    }
-
-    const hoje = new Date();
-    const proximos = [];
-
-    dataFiltrada.forEach(item => {
-      if (
-        item.Ativo === "Em negociação" &&
-        item.Recompra instanceof Date &&
-        !isNaN(item.Recompra) &&
-        item.Recompra > hoje &&
-        (item.Recompra - hoje) / (1000 * 60 * 60 * 24) <= 15
-      ) {
-        proximos.push(item);
-      }
-    });
-
-    // Atualiza visualmente
-    if (proximos.length === 0) {
-      container.innerHTML = '<p class="text-gray-400">Nenhum cliente com previsão próxima</p>';
-    } else {
-      container.innerHTML = `<p class="text-yellow-400 font-semibold">${proximos.length} negociações com previsão próxima</p>`;
-    }
+    console.log('[DASHBOARD] Registros filtrados:', dadosFiltrados.length);
+    atualizarKPIs(dadosFiltrados);
+    atualizarTabela(dadosFiltrados);
+    atualizarGraficos(dadosFiltrados);
+    atualizarIndicadores(dadosFiltrados);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    if (typeof window.allData !== "undefined") {
-      atualizarNegociacoesComPrevisao(window.allData);
-    } else {
-      console.warn("[JS21] Dados ainda não carregados");
-    }
-  });
+  document.getElementById('status-filter').addEventListener('change', updateDashboard);
+  document.getElementById('uf-filter').addEventListener('change', updateDashboard);
+  document.getElementById('data-inicio').addEventListener('change', updateDashboard);
+  document.getElementById('data-fim').addEventListener('change', updateDashboard);
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - AJUSTE FILTROS DE DATAS ========== -->
+<!-- ===== FIM: BLOCO JS 21 - AJUSTE FILTRO DE DATAS =========== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
