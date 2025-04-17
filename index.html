@@ -1071,3 +1071,59 @@
 <!-- ===== FIM: BLOCO_JS_13_FUNCOES_UTILITARIAS ============== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 14 - PREENCHIMENTO TABELA ======= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+function preencherTabelaDetalhada(data) {
+  const corpo = document.getElementById('corpo-tabela-clientes');
+  corpo.innerHTML = ''; // limpa tabela
+
+  data.forEach(x => {
+    const linha = document.createElement('tr');
+    linha.innerHTML = `
+      <td class="px-2 py-1">${x.Cliente}</td>
+      <td class="px-2 py-1">${x.UF}</td>
+      <td class="px-2 py-1">${x.Status}</td>
+      <td class="px-2 py-1">${x.Ativo}</td>
+      <td class="px-2 py-1">${x.Motivo}</td>
+      <td class="px-2 py-1">${x.Data instanceof Date && !isNaN(x.Data) ? x.Data.toLocaleDateString() : '-'}</td>
+      <td class="px-2 py-1">${x.Recompra instanceof Date && !isNaN(x.Recompra) ? x.Recompra.toLocaleDateString() : '-'}</td>
+    `;
+    corpo.appendChild(linha);
+  });
+}
+
+// Encaixa na chamada do updateDashboard()
+function updateDashboard() {
+  const fsV = document.getElementById('filter-status').value;
+  const fuV = document.getElementById('filter-uf').value;
+  const from = new Date(document.getElementById('filter-from').value);
+  const to   = new Date(document.getElementById('filter-to').value);
+  const filt = allData.filter(x =>
+    (!fsV || x.Status === fsV) &&
+    (!fuV || x.UF === fuV) &&
+    (isNaN(from) || x.Data >= from) &&
+    (isNaN(to)   || x.Data <= to)
+  );
+  console.log('[DASHBOARD] Registros filtrados:', filt.length);
+
+  document.getElementById('count-inativos').textContent    = filt.filter(x => x.Status === 'Inativo').length;
+  document.getElementById('count-exclientes').textContent  = filt.filter(x => x.Status === 'Ex-cliente').length;
+  document.getElementById('count-reativacoes').textContent = filt.filter(x => x.Ativo === 'Reativado').length;
+  const churn = filt.filter(x => ['Inativo','Ex-cliente'].includes(x.Status)).length || 1;
+  document.getElementById('count-retencao').textContent    = Math.round(filt.filter(x => x.Ativo === 'Reativado').length / churn * 100) + '%';
+
+  renderLine(filt);
+  renderBar(filt);
+  renderPie(filt);
+  renderDoughnut(filt);
+  preencherTabelaDetalhada(filt); // aqui pintamos a tabela ;)
+}
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 14 - PREENCHIMENTO TABELA ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
