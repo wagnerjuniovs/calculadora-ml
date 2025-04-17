@@ -116,11 +116,15 @@
 <!-- ========================================================== -->
 <script>
 function renderLine(data) {
-  const ctx = document.getElementById('lineChart').getContext('2d');
-  if (!ctx) return console.warn('Canvas lineChart não encontrado.');
+  const canvas = document.getElementById('lineChart');
+  if (!canvas) return console.warn('Canvas lineChart não encontrado.');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para lineChart.');
+
   const cn = {}, cr = {};
   nameMaps.lineNew = {};
   nameMaps.lineRe  = {};
+
   data.forEach(x => {
     if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
     const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
@@ -133,12 +137,15 @@ function renderLine(data) {
       (nameMaps.lineRe[lbl] ||= []).push(x.Cliente);
     }
   });
+
   const labels = Object.keys({ ...cn, ...cr }).sort((a, b) => {
     const [ma, ya] = a.split('/'), [mb, yb] = b.split('/');
     return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
   });
+
   const newV = labels.map(l => cn[l] || 0);
   const reV = labels.map(l => cr[l] || 0);
+
   if (window.chartLine && typeof window.chartLine.destroy === 'function') window.chartLine.destroy();
   window.chartLine = new Chart(ctx, {
     type: 'line',
@@ -149,9 +156,14 @@ function renderLine(data) {
         { label: 'Reativados', data: reV, borderColor: primaryColor, fill: false }
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
   });
-  document.getElementById('lineChart').onclick = e => {
+
+  canvas.onclick = e => {
     const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
     if (!pts.length) return;
     const { index, datasetIndex } = pts[0];
@@ -162,10 +174,14 @@ function renderLine(data) {
 }
 
 function renderBar(data) {
-  const ctx = document.getElementById('barChart').getContext('2d');
-  if (!ctx) return console.warn('Canvas barChart não encontrado.');
+  const canvas = document.getElementById('barChart');
+  if (!canvas) return console.warn('Canvas barChart não encontrado.');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para barChart.');
+
   const cnt = { 'Inativo': 0, 'Ex-cliente': 0, 'Reativado': 0 };
   nameMaps.bar = {};
+
   data.forEach(x => {
     ['Inativo', 'Ex-cliente', 'Reativado'].forEach(k => {
       if ((k === 'Reativado' && x.Ativo === 'Reativado') || (k !== 'Reativado' && x.Status === k)) {
@@ -174,16 +190,23 @@ function renderBar(data) {
       }
     });
   });
+
   const labels = Object.keys(cnt);
   const vals = labels.map(l => cnt[l]);
   const cols = ['#4caf50', '#007aff', '#ff9800'];
+
   if (window.chartBar && typeof window.chartBar.destroy === 'function') window.chartBar.destroy();
   window.chartBar = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets: [{ data: vals, backgroundColor: cols }] },
-    options: { responsive: true }
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } }
+    }
   });
-  document.getElementById('barChart').onclick = e => {
+
+  canvas.onclick = e => {
     const pts = window.chartBar.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
     if (!pts.length) return;
     const label = labels[pts[0].index];
