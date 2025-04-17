@@ -100,8 +100,11 @@
 
     function parseDate(s) {
       if (!s) return NaN;
-      const [d,m,y] = s.split('/');
-      return new Date(+y, +m-1, +d);
+      if (s.includes('/')) {
+        const [d,m,y] = s.split('/');
+        return new Date(+y, +m-1, +d);
+      }
+      return new Date(s);
     }
 
     async function fetchAllSheets() {
@@ -122,7 +125,7 @@
         Cliente: (r.Cliente||'').trim(),
         UF:      (r.UF||'').trim(),
         Status:  (r['Status Principal']||'').trim(),
-        Ativo:   (r['Status Atual']||'').trim(), 
+        Ativo:   (r['Status Atual']||'').trim(),
         Motivo:  (r['Motivo do Status']||'').trim(),
         Data:    parseDate(r['Último Contato']),
         sheet:   r.sheet
@@ -130,29 +133,33 @@
       console.log('Dados carregados:', allData.length);
       populateFilters();
       updateDashboard();
-      document.querySelector('.close').onclick = () => document.getElementById('detail-modal').style.display = 'none'; 
+      document.querySelector('.close').onclick = () => document.getElementById('detail-modal').style.display = 'none';
+      document.getElementById('detail-modal')
+        .addEventListener('click', e => {
+          if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+        });
     }
 
     function populateFilters() {
       const fs = document.getElementById('filter-status'), fu = document.getElementById('filter-uf');
-      new Set(allData.map(x=>x.Status)).forEach(v=>fs.add(new Option(v,v)));  
+      new Set(allData.map(x=>x.Status)).forEach(v=>fs.add(new Option(v,v)));
       new Set(allData.map(x=>x.UF)).forEach(v=>fu.add(new Option(v,v)));
       ['change','input'].forEach(evt => {
         fs.addEventListener(evt, updateDashboard);
         fu.addEventListener(evt, updateDashboard);
         document.getElementById('filter-from').addEventListener(evt, updateDashboard);
         document.getElementById('filter-to').addEventListener(evt, updateDashboard);
-      });  
+      });
     }
 
     function updateDashboard() {
       const fsV = document.getElementById('filter-status').value;
       const fuV = document.getElementById('filter-uf').value;
-      const from = new Date(document.getElementById('filter-from').value);  
+      const from = new Date(document.getElementById('filter-from').value);
       const to   = new Date(document.getElementById('filter-to').value);
-      const filt = allData.filter(x => 
+      const filt = allData.filter(x =>
         (!fsV || x.Status === fsV) &&
-        (!fuV || x.UF === fuV) && 
+        (!fuV || x.UF === fuV) &&
         (isNaN(from) || x.Data >= from) &&
         (isNaN(to)   || x.Data <= to)
       );
@@ -160,8 +167,10 @@
       document.getElementById('count-inativos').textContent    = filt.filter(x=>x.Status==='Inativo').length;
       document.getElementById('count-exclientes').textContent = filt.filter(x=>x.Status==='Ex-cliente').length;
       document.getElementById('count-reativacoes').textContent= filt.filter(x=>x.Ativo==='Reativado').length;
-      const churn = filt.filter(x=>['Inativo','Ex-cliente'].includes(x.Status)).length || 1;
-      document.getElementById('count-retencao').textContent   = Math.round(filt.filter(x=>x.Ativo==='Reativado').length/churn*100)+'%';
+      const totalChurn = filt.filter(x=>['Inativo','Ex-cliente'].includes(x.Status)).length;
+      const reats      = filt.filter(x=>x.Ativo==='Reativado').length;
+      const taxa       = totalChurn>0 ? Math.round(reats/totalChurn*100)+'%' : '0%';
+      document.getElementById('count-retencao').textContent    = taxa;
       renderLine(filt);
       renderBar(filt);
       renderPie(filt);
@@ -172,7 +181,7 @@
       const ctx = document.getElementById('lineChart');
       const cn = {}, cr = {};
       nameMaps.lineNew = {};
-      nameMaps.lineRe  = {};  
+      nameMaps.lineRe  = {};
       data.forEach(x => {
         if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
         const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
@@ -188,104 +197,85 @@
       if (window.chartLine && typeof window.chartLine.destroy==='function') window.chartLine.destroy();
       window.chartLine = new Chart(ctx, { type:'line', data:{labels,datasets:[
         {label:'Inativos',data:newV,borderColor:'#4caf50',fill:false},
-        {label:'Reativados',data:reV,borderColor:primaryColor,fill:false} 
+        {label:'Reativados',data:reV,borderColor:primaryColor,fill:false}
       ]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
-      ctx.onclick = e => { const pts = window.chartLine.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const {index, datasetIndex} = pts[0]; const month = labels[index]; const list = datasetIndex===0?nameMaps.lineNew[month]:nameMaps.lineRe[month]; showModal((datasetIndex===0?'Inativos':'Reativados')+` (${month})`, list||[]); };
+      ctx.onclick = e => { const pts = window.chartLine.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const {index,datasetIndex} = pts[0]; const month = labels[index]; const list = datasetIndex===0?nameMaps.lineNew[month]:nameMaps.lineRe[month]; showModal((datasetIndex===0?'Inativos':'Reativados')+` (${month})`, list||[]); };
     }
-      
+
     function parseMonth(m) {
       return {Janeiro:1,Fevereiro:2,Março:3,Abril:4,Maio:5,Junho:6,Julho:7,Agosto:8,Setembro:9,Outubro:10,Novembro:11,Dezembro:12}[m]||1;
     }
-      
+
     function renderBar(data) {
-  const ctx = document.getElementById('barChart');
-  const cnt = {'Inativo':0,'Ex-cliente':0,'Reativado':0}; 
-  nameMaps.bar = {};
-  data.forEach(x => { 
-    ['Inativo','Ex-cliente','Reativado'].forEach(k => {
-      if ((k==='Reativado' && x.Ativo==='Reativado') || (k!=='Reativado' && x.Status===k)) {
-        cnt[k]++; 
-        (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
-      }
-    }); 
-  });
-  const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-  const cols  = ['#4caf50','#007aff','#ff9800'];
-  if (window.chartBar && typeof window.chartBar.destroy==='function') window.chartBar.destroy();
-  window.chartBar = new Chart(ctx, { 
-    type:'bar', 
-    data:{
-      labels,
-      datasets:[{
-        data:vals,
-        backgroundColor:cols
-      }]
-    }, 
-    options:{responsive:true}
-  });
-  ctx.onclick = e => { 
-    const pts = window.chartBar.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
-    if(!pts.length) return; 
-    const label = labels[pts[0].index]; 
-    showModal(label, nameMaps.bar[label]||[]); 
-  };
-}
+      const ctx = document.getElementById('barChart');
+      const cnt = {'Inativo':0,'Ex-cliente':0,'Reativado':0};
+      nameMaps.bar = {};
+      data.forEach(x => {
+        ['Inativo','Ex-cliente','Reativado'].forEach(k => {
+          if ((k==='Reativado' && x.Ativo==='Reativado') || (k!=='Reativado' && x.Status===k)) {
+            cnt[k]++;
+            (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
+          }
+        });
+      });
+      const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
+      const cols  = ['#4caf50','#007aff','#ff9800'];
+      if (window.chartBar && typeof window.chartBar.destroy==='function') window.chartBar.destroy();
+      window.chartBar = new Chart(ctx, {
+        type:'bar',
+        data:{labels,datasets:[{data:vals,backgroundColor:cols}]},
+        options:{responsive:true}
+      });
+      ctx.onclick = e => { const pts = window.chartBar.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const label = labels[pts[0].index]; showModal(label, nameMaps.bar[label]||[]); };
+    }
 
-function renderPie(data) {
-  const ctx = document.getElementById('pieChart');
-  const cnt = {}, nm = {}; 
-  data.forEach(x => {
-    if (!x.Motivo) return;
-    cnt[x.Motivo] = (cnt[x.Motivo]||0)+1;
-    (nm[x.Motivo]||(nm[x.Motivo]=[])).push(x.Cliente);
-  });
-  nameMaps.pie = nm;
-  const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-  if (window.chartPie && typeof window.chartPie.destroy==='function') window.chartPie.destroy();
-  window.chartPie = new Chart(ctx, { 
-    type:'pie', 
-    data:{labels,datasets:[{data:vals}]}, 
-    options:{responsive:true,plugins:{legend:{position:'right'}}}
-  });
-  ctx.onclick = e => { 
-    const pts = window.chartPie.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
-    if(!pts.length) return; 
-    const i=pts[0].index; 
-    showModal(labels[i], nm[labels[i]]||[]); 
-  };
-}
+    function renderPie(data) {
+      const ctx = document.getElementById('pieChart');
+      const cnt = {};
+      nameMaps.pie = {};
+      data.forEach(x => {
+        if (!x.Motivo) return;
+        cnt[x.Motivo] = (cnt[x.Motivo]||0)+1;
+        (nameMaps.pie[x.Motivo]||(nameMaps.pie[x.Motivo]=[])).push(x.Cliente);
+      });
+      const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
+      if (window.chartPie && typeof window.chartPie.destroy==='function') window.chartPie.destroy();
+      window.chartPie = new Chart(ctx, {
+        type:'pie',
+        data:{labels,datasets:[{data:vals}]}, 
+        options:{responsive:true,plugins:{legend:{position:'right'}}}
+      });
+      ctx.onclick = e => { const pts = window.chartPie.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i = pts[0].index; showModal(labels[i], nameMaps.pie[labels[i]]||[]); };
+    }
 
-function renderDoughnut(data) {
-  const ctx = document.getElementById('doughnutChart');
-  const cnt = {}, nm = {};
-  data.forEach(x => {
-    if (!x.Ativo) return;  
-    cnt[x.Ativo] = (cnt[x.Ativo]||0)+1;
-    (nm[x.Ativo]||(nm[x.Ativo]=[])).push(x.Cliente);
-  });
-  nameMaps.doughnut = nm;
-  const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-  const cols  = ['#2196f3','#4caf50','#ffeb3b','#ff5722']; 
-  if (window.chartDough && typeof window.chartDough.destroy==='function') window.chartDough.destroy();
-  window.chartDough = new Chart(ctx, { 
-    type:'doughnut', 
-    data:{labels,datasets:[{data:vals,backgroundColor:cols}]}, 
-    options:{responsive:true,plugins:{legend:{position:'right'}}}
-  });
-  ctx.onclick = e => { 
-    const pts = window.chartDough.getElementsAtEventForMode(e,'nearest',{intersect:true},false); 
-    if(!pts.length) return; 
-    const i=pts[0].index; 
-    showModal(labels[i], nm[labels[i]]||[]); 
-  };
-}
+    function renderDoughnut(data) {
+      const ctx = document.getElementById('doughnutChart');
+      const cnt = {};
+      nameMaps.doughnut = {};
+      data.forEach(x => {
+        if (!x.Ativo) return;
+        cnt[x.Ativo] = (cnt[x.Ativo]||0)+1;
+        (nameMaps.doughnut[x.Ativo]||(nameMaps.doughnut[x.Ativo]=[])).push(x.Cliente);
+      });
+      const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
+      if (window.chartDoughnut && typeof window.chartDoughnut.destroy==='function') window.chartDoughnut.destroy();
+      window.chartDoughnut = new Chart(ctx, {
+        type:'doughnut',
+        data:{labels,datasets:[{data:vals}]},
+        options:{responsive:true,plugins:{legend:{position:'right'}}}
+      });
+      ctx.onclick = e => { const pts = window.chartDoughnut.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i = pts[0].index; showModal(labels[i], nameMaps.doughnut[labels[i]]||[]); };
+    }
 
-function showModal(title, list) {
-  const modal = document.getElementById('detail-modal');
-  document.getElementById('modal-title').textContent = title;
-  const ul = document.getElementById('modal-list'); ul.innerHTML = '';
-  list.forEach(name => { const li=document.createElement('li'); li.textContent=name; ul.appendChild(li); });
-  modal.style.display = 'flex';
-}
+    function showModal(title, list) {
+      const modal = document.getElementById('detail-modal');
+      document.getElementById('modal-title').textContent = title;
+      const ul = document.getElementById('modal-list'); ul.innerHTML = '';
+      list.forEach(name => { const li = document.createElement('li'); li.textContent = name; ul.appendChild(li); });
+      modal.style.display = 'flex';
+    }
 
-init();
+    init();
+  </script>
+</body>
+</html>
