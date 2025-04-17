@@ -1,399 +1,998 @@
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_ESTRUTURA_BASE ========================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Radar de Retenção</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- ===== INÍCIO: BLOCO_ESTILOS_CSS ===== -->
-  <style>
-    :root {
-      --bg-light: #f9f9f9;
-      --bg-dark: #1c1c1e;
-      --text-light: #1c1c1e;
-      --text-dark: #f9f9f9;
-      --primary: #007aff;
-      --card-bg-light: #ffffff;
-      --card-bg-dark: #2c2c2e;
-      --shadow: rgba(0,0,0,0.1);
-      --border-light: #ccc;
-      --border-dark: #444;
-    }
-    [data-theme="light"] { background: var(--bg-light); color: var(--text-light); }
-    [data-theme="dark"]  { background: var(--bg-dark);  color: var(--text-dark); }
-    *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Inter', sans-serif; }
-    header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; }
-    h1 { margin: 0; font-size: 1.75rem; color: var(--primary); }
-    #theme-toggle { background: none; border: 1px solid var(--primary); border-radius: 1rem; padding: .5rem 1rem; cursor: pointer; color: var(--primary); }
-    .filters { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem 2rem; }
-    .filters select, .filters input[type="date"] {
-      flex: 1; min-width: 150px; padding: .5rem 1rem;
-      border: 1px solid var(--border-light); border-radius: 1rem;
-      background: var(--card-bg-light); color: var(--text-light);
-    }
-    [data-theme="dark"] .filters select,
-    [data-theme="dark"] .filters input[type="date"] {
-      background: var(--card-bg-dark);
-      border-color: var(--border-dark);
-      color: var(--text-dark);
-    }
-    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem; padding: 0 2rem; }
-    .card { background: var(--card-bg-light); padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 10px 30px var(--shadow); }
-    [data-theme="dark"] .card { background: var(--card-bg-dark); }
-    .card h2 { margin: 0 0 .5rem; color: #8e8e93; font-size: .95rem; }
-    .card p { margin: 0; font-size: 1.75rem; font-weight: 600; }
-    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; }
-    canvas { width: 100% !important; height: auto !important; }
-    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
-    .modal-content { background: var(--card-bg-light); padding:2rem; border-radius:1.5rem; max-width:400px; width:90%; max-height:80%; overflow:auto; position:relative; }
-    [data-theme="dark"] .modal-content { background: var(--card-bg-dark); }
-    .modal-content h2 { margin-top:0; font-size:1.25rem; color: var(--primary); }
-    .modal-content ul { list-style:none; padding:0; margin:1rem 0; }
-    .modal-content ul li { padding:.25rem 0; border-bottom:1px solid var(--border-light); }
-    .modal-content button.close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--primary); }
-  </style>
-  <!-- ===== FIM: BLOCO_ESTILOS_CSS ===== -->
-</head>
-<body>
-
-  <!-- ===== INÍCIO: BLOCO_CABEÇALHO ===== -->  
-  <header>
-    <h1>Radar de Retenção</h1>
-    <button id="theme-toggle">Dark Mode</button>
-  </header>
-  <!-- ===== FIM: BLOCO_CABEÇALHO ===== -->
-
-  <!-- ===== INÍCIO: BLOCO_FILTROS ===== -->
-  <div class="filters">
-    <select id="filter-status"><option value="">Status</option></select>
-    <select id="filter-uf"><option value="">UF</option></select>
-    <input type="date" id="filter-from" />
-    <input type="date" id="filter-to" />
-  </div>
-  <!-- ===== FIM: BLOCO_FILTROS ===== -->
-
-  <!-- ===== INÍCIO: BLOCO_CARDS_DASHBOARD ===== -->
-  <section class="dashboard">
-    <div class="card"><h2>Inativos</h2><p id="count-inativos">0</p></div>
-    <div class="card"><h2>Ex-Clientes</h2><p id="count-exclientes">0</p></div>
-    <div class="card"><h2>Reativações</h2><p id="count-reativacoes">0</p></div>
-    <div class="card"><h2>Taxa de Retenção</h2><p id="count-retencao">0%</p></div>
-  </section>
-  <!-- ===== FIM: BLOCO_CARDS_DASHBOARD ===== -->
-
-  <!-- ========================================================== -->
-  <!-- ===== INÍCIO: BLOCO_FUNÇÕES_GRÁFICOS ==================== -->
-  <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-  <!-- ========================================================== -->
-
-<script>
-function parseMonth(m) {
-  return {
-    Janeiro: 1, Fevereiro: 2, Março: 3, Abril: 4, Maio: 5, Junho: 6,
-    Julho: 7, Agosto: 8, Setembro: 9, Outubro: 10, Novembro: 11, Dezembro: 12
-  }[m] || 1;
-}
-
-function renderLine(data) {
-  const canvas = document.getElementById('lineChart');
-  if (!canvas) return console.warn('Canvas lineChart não encontrado.');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para lineChart.');
-
-  const cn = {}, cr = {};
-  nameMaps.lineNew = {};
-  nameMaps.lineRe  = {};
-
-  data.forEach(x => {
-    if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
-    const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
-    if (x.Status === 'Inativo') {
-      cn[lbl] = (cn[lbl] || 0) + 1;
-      (nameMaps.lineNew[lbl] ||= []).push(x.Cliente);
-    }
-    if (x.Ativo === 'Reativado') {
-      cr[lbl] = (cr[lbl] || 0) + 1;
-      (nameMaps.lineRe[lbl] ||= []).push(x.Cliente);
-    }
-  });
-
-  const labels = Object.keys({ ...cn, ...cr }).sort((a, b) => {
-    const [ma, ya] = a.split('/'), [mb, yb] = b.split('/');
-    return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
-  });
-
-  const newV = labels.map(l => cn[l] || 0);
-  const reV = labels.map(l => cr[l] || 0);
-  console.log('[LINE] Labels:', labels, 'Inativos:', newV, 'Reativados:', reV);
-
-  if (window.chartLine && typeof window.chartLine.destroy === 'function') window.chartLine.destroy();
-  window.chartLine = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Inativos', data: newV, borderColor: '#4caf50', fill: false },
-        { label: 'Reativados', data: reV, borderColor: primaryColor, fill: false }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom' } }
-    }
-  });
-
-  canvas.onclick = e => {
-    const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    const { index, datasetIndex } = pts[0];
-    const month = labels[index];
-    const list = datasetIndex === 0 ? nameMaps.lineNew[month] : nameMaps.lineRe[month];
-    showModal((datasetIndex === 0 ? 'Inativos' : 'Reativados') + ` (${month})`, list || []);
-  };
-}
-
-function renderBar(data) {
-  const canvas = document.getElementById('barChart');
-  if (!canvas) return console.warn('Canvas barChart não encontrado.');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para barChart.');
-
-  const cnt = { 'Inativo': 0, 'Ex-cliente': 0, 'Reativado': 0 };
-  nameMaps.bar = {};
-
-  data.forEach(x => {
-    ['Inativo', 'Ex-cliente', 'Reativado'].forEach(k => {
-      if ((k === 'Reativado' && x.Ativo === 'Reativado') || (k !== 'Reativado' && x.Status === k)) {
-        cnt[k]++;
-        (nameMaps.bar[k] ||= []).push(x.Cliente);
+  <!-- Tailwind CSS (via CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007aff',
+            bgLight: '#f9f9f9',
+            bgDark: '#1c1c1e',
+            cardLight: '#ffffff',
+            cardDark: '#2c2c2e',
+            textLight: '#1c1c1e',
+            textDark: '#f9f9f9',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.1)'
+          },
+          borderRadius: {
+            xl: '1.5rem',
+            full: '9999px'
+          }
+        }
       }
+    }
+  </script>
+
+  <!-- Estilo customizado para Dark Mode -->
+  <style>
+    [data-theme="dark"] body { background-color: #1c1c1e; color: #f9f9f9; }
+    [data-theme="light"] body { background-color: #f9f9f9; color: #1c1c1e; }
+  </style>
+</head>
+<body class="font-sans">
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_ESTRUTURA_BASE ============================ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_CABEÇALHO_E_CONTROLE_TEMA ============ -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<header class="flex justify-between items-center px-6 py-4">
+  <h1 class="text-2xl font-bold text-primary">Radar de Retenção</h1>
+  <button id="theme-toggle" class="border border-primary text-primary px-4 py-1 rounded-full transition hover:bg-primary hover:text-white">
+    Modo Claro
+  </button>
+</header>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_CABEÇALHO_E_CONTROLE_TEMA =============== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_FILTROS_INTERATIVOS ================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 py-4 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4 bg-white dark:bg-cardDark rounded-xl shadow-soft mb-4">
+  <div class="flex-1">
+    <label for="filter-status" class="block text-sm font-medium mb-1">Status</label>
+    <select id="filter-status" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="flex-1">
+    <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
+    <select id="filter-uf" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
+      <option value="">Todas</option>
+    </select>
+  </div>
+  <div class="flex-1">
+    <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
+    <input type="date" id="filter-from" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
+  </div>
+  <div class="flex-1">
+    <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
+    <input type="date" id="filter-to" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_FILTROS_INTERATIVOS ===================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_INDICADORES_KPIS ===================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
+    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Inativos</h2>
+    <p id="count-inativos" class="text-2xl font-bold text-primary">0</p>
+  </div>
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
+    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Ex-Clientes</h2>
+    <p id="count-exclientes" class="text-2xl font-bold text-primary">0</p>
+  </div>
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
+    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Reativações</h2>
+    <p id="count-reativacoes" class="text-2xl font-bold text-primary">0</p>
+  </div>
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
+    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Taxa de Retenção</h2>
+    <p id="count-retencao" class="text-2xl font-bold text-primary">0%</p>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_INDICADORES_KPIS ======================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_GRÁFICO_LINHA_INATIVOS_REATIVADOS ==== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Novos Inativos vs Reativados</h2>
+    </div>
+    <div class="relative h-72">
+      <canvas id="lineChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_GRÁFICO_LINHA_INATIVOS_REATIVADOS ====== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_GRÁFICO_BARRAS_STATUS_TIPO ========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Movimento por Status</h2>
+    </div>
+    <div class="relative h-72">
+      <canvas id="barChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_GRÁFICO_BARRAS_STATUS_TIPO ============= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_GRÁFICO_PIZZA_MOTIVOS_EVASAO ========= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Motivos de Evasão</h2>
+    </div>
+    <div class="relative h-72">
+      <canvas id="pieChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_GRÁFICO_PIZZA_MOTIVOS_EVASAO ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_GRÁFICO_ROSCA_STATUS_ATUAL ========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Status Atual</h2>
+    </div>
+    <div class="relative h-72">
+      <canvas id="doughnutChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_GRÁFICO_ROSCA_STATUS_ATUAL ============= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_MODAL_DETALHES_CLIENTES ============= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 w-full max-w-md max-h-[80vh] overflow-y-auto relative">
+    <button class="absolute top-3 right-4 text-2xl text-primary font-bold hover:text-red-500" onclick="document.getElementById('detail-modal').style.display = 'none'">×</button>
+    <h2 id="modal-title" class="text-xl font-semibold mb-4 text-primary"></h2>
+    <ul id="modal-list" class="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-100"></ul>
+  </div>
+</div>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_MODAL_DETALHES_CLIENTES ================ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_LOADER_CARREGAMENTO_INICIAL ========= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<div id="loader" class="fixed inset-0 bg-white dark:bg-bgDark flex items-center justify-center z-50">
+  <div class="flex flex-col items-center space-y-4">
+    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-sm text-primary font-medium">Carregando dados...</p>
+  </div>
+</div>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_LOADER_CARREGAMENTO_INICIAL ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_TABELA_DETALHADA_CLIENTES =========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-10">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 overflow-auto">
+    <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-white">Análise Detalhada de Clientes</h2>
+    <table id="tabela-clientes" class="min-w-full text-sm text-left border-separate border-spacing-y-2">
+      <thead class="text-xs uppercase text-gray-500 dark:text-gray-300">
+        <tr>
+          <th class="px-2 py-1">Cliente</th>
+          <th class="px-2 py-1">UF</th>
+          <th class="px-2 py-1">Status Principal</th>
+          <th class="px-2 py-1">Status Atual</th>
+          <th class="px-2 py-1">Motivo</th>
+          <th class="px-2 py-1">Último Contato</th>
+          <th class="px-2 py-1">Previsão de Recompra</th>
+        </tr>
+      </thead>
+      <tbody id="corpo-tabela-clientes" class="text-gray-800 dark:text-gray-100">
+        <!-- Os dados serão inseridos via JS -->
+      </tbody>
+    </table>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_TABELA_DETALHADA_CLIENTES ============== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_INDICADOR_REATIVACAO_ACUMULADA ====== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 text-center">
+    <h2 class="text-base font-medium text-gray-500 dark:text-gray-300 mb-2">Taxa de Reativação Acumulada</h2>
+    <p id="indicador-reativacao" class="text-4xl font-bold text-primary">0%</p>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_INDICADOR_REATIVACAO_ACUMULADA ========= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_ALERTA_30DIAS_SEM_CONTATO =========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
+    <h2 class="text-base font-semibold text-red-500 mb-3">Clientes com mais de 30 dias sem contato</h2>
+    <ul id="lista-alerta-30dias" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
+      <!-- Lista preenchida via JavaScript -->
+    </ul>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_ALERTA_30DIAS_SEM_CONTATO ============== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_CONTATOS_DO_DIA ====================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
+    <h2 class="text-base font-semibold text-green-600 mb-3">Contatos do Dia (Hoje)</h2>
+    <ul id="lista-contatos-dia" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
+      <!-- Itens serão inseridos dinamicamente via JavaScript -->
+    </ul>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_CONTATOS_DO_DIA ========================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_RADAR_RESPONSIVIDADE_STATUS ========= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
+    <h2 class="text-base font-semibold text-blue-600 mb-4">Tempo Médio Sem Contato por Status Atual</h2>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border-separate border-spacing-y-2">
+        <thead class="text-xs uppercase text-gray-500 dark:text-gray-300">
+          <tr>
+            <th class="px-2 py-1">Status Atual</th>
+            <th class="px-2 py-1">Dias Médios sem Contato</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-responsividade-status" class="text-gray-800 dark:text-gray-100">
+          <!-- Dados preenchidos dinamicamente via JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_RADAR_RESPONSIVIDADE_STATUS ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_PREVISOES_VENCIDAS ================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 border-l-4 border-red-500">
+    <h2 class="text-base font-semibold text-red-600 mb-3">Previsões de Recompra Vencidas</h2>
+    <ul id="lista-previsoes-vencidas" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
+      <!-- Preenchido via JavaScript com clientes cuja previsão passou e ainda estão inativos -->
+    </ul>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_PREVISOES_VENCIDAS ====================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_PRIORIDADES_NEGOCIACAO ============== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 mb-6">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 border-l-4 border-yellow-400">
+    <h2 class="text-base font-semibold text-yellow-600 mb-3">Negociações com Previsão Próxima</h2>
+    <ul id="lista-negociacoes-prioritarias" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
+      <!-- Será preenchido via JavaScript com clientes "Em negociação" + previsão nos próximos 7 dias -->
+    </ul>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_PRIORIDADES_NEGOCIACAO ================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_EVOLUCAO_BASE_INATIVA =============== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 pb-10">
+  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
+    <h2 class="text-base font-semibold text-purple-600 mb-4">Evolução da Base Inativa</h2>
+    <canvas id="chartEvolucaoInativos" class="w-full h-72"></canvas>
+  </div>
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_EVOLUCAO_BASE_INATIVA ================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_FUNÇÕES_INICIAIS ===================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
+  const tabs = [
+    'Abril_2025','Maio_2025','Junho_2025',
+    'Julho_2025','Agosto_2025','Setembro_2025',
+    'Outubro_2025','Novembro_2025','Dezembro_2025'
+  ];
+  let allData = [];
+
+  const nameMaps = {
+    lineNew: {}, lineRe: {}, bar: {}, pie: {}, doughnut: {}
+  };
+
+  // Utilitário: Converte data "dd/mm/yyyy" para objeto Date
+  function parseDate(s) {
+    if (!s || typeof s !== 'string') return NaN;
+    const [d, m, y] = s.split('/');
+    return new Date(+y, +m - 1, +d);
+  }
+
+  // Busca dados de todas as abas (ignora vazias)
+  async function fetchAllSheets() {
+    let combined = [];
+    for (const tab of tabs) {
+      try {
+        const res = await fetch(`${apiBase}?sheet=${tab}`);
+        const arr = await res.json();
+        if (arr && arr.length > 0) {
+          const formatado = arr.map(r => ({
+            Cliente: (r.Cliente || '').trim(),
+            UF: (r.UF || '').trim(),
+            Status: (r['Status Principal'] || '').trim(),
+            Ativo: (r['Status Atual'] || '').trim(),
+            Motivo: (r['Motivo do Status'] || '').trim(),
+            Categoria: (r['Categoria'] || '').trim(),
+            Data: parseDate(r['Último Contato']),
+            Proxima: parseDate(r['Próximo Contato']),
+            Recompra: parseDate(r['Previsão de Recompra']),
+            sheet: tab
+          }));
+          combined.push(...formatado);
+        }
+      } catch (err) {
+        console.warn(`Erro ao carregar aba ${tab}:`, err);
+      }
+    }
+    return combined;
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_FUNÇÕES_INICIAIS ======================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_CONTROLE_TEMA ======================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  // Tema escuro por padrão ao carregar
+  document.documentElement.dataset.theme = 'dark';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Atualiza texto do botão com base no tema atual
+    function atualizarTextoBotao() {
+      toggleBtn.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
+    }
+
+    atualizarTextoBotao(); // Ao iniciar
+
+    toggleBtn.addEventListener('click', () => {
+      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+      atualizarTextoBotao();
     });
   });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_CONTROLE_TEMA =========================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
 
-  const labels = Object.keys(cnt);
-  const vals = labels.map(l => cnt[l]);
-  const cols = ['#4caf50', '#007aff', '#ff9800'];
-  console.log('[BAR] Labels:', labels, 'Valores:', vals);
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_FILTROS_INTERATIVOS ================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function populateFilters() {
+    const filtroStatus = document.getElementById('filter-status');
+    const filtroUF     = document.getElementById('filter-uf');
 
-  if (window.chartBar && typeof window.chartBar.destroy === 'function') window.chartBar.destroy();
-  window.chartBar = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ data: vals, backgroundColor: cols }] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } }
-    }
-  });
+    // Garante que os filtros fiquem limpos antes de popular
+    filtroStatus.innerHTML = '<option value="">Status</option>';
+    filtroUF.innerHTML = '<option value="">UF</option>';
 
-  canvas.onclick = e => {
-    const pts = window.chartBar.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    const label = labels[pts[0].index];
-    showModal(label, nameMaps.bar[label] || []);
-  };
-}
+    const statusSet = new Set();
+    const ufSet = new Set();
 
-function renderPie(data) {
-  const canvas = document.getElementById('pieChart');
-  if (!canvas) return console.warn('Canvas pieChart não encontrado.');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para pieChart.');
+    allData.forEach(item => {
+      if (item.Status) statusSet.add(item.Status);
+      if (item.UF)     ufSet.add(item.UF);
+    });
 
-  const cnt = {}, nm = {};
-  data.forEach(x => {
-    if (!x.Motivo) return;
-    cnt[x.Motivo] = (cnt[x.Motivo] || 0) + 1;
-    (nm[x.Motivo] ||= []).push(x.Cliente);
-  });
+    [...statusSet].sort().forEach(status => {
+      filtroStatus.appendChild(new Option(status, status));
+    });
 
-  nameMaps.pie = nm;
-  const labels = Object.keys(cnt);
-  const vals = labels.map(l => cnt[l]);
-  console.log('[PIE] Labels:', labels, 'Valores:', vals);
+    [...ufSet].sort().forEach(uf => {
+      filtroUF.appendChild(new Option(uf, uf));
+    });
 
-  if (window.chartPie && typeof window.chartPie.destroy === 'function') window.chartPie.destroy();
-  window.chartPie = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels,
-      datasets: [{ data: vals }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right' } }
-    }
-  });
+    // Adiciona eventos para atualizar o dashboard ao usar os filtros
+    ['change', 'input'].forEach(evt => {
+      filtroStatus.addEventListener(evt, updateDashboard);
+      filtroUF.addEventListener(evt, updateDashboard);
+      document.getElementById('filter-from').addEventListener(evt, updateDashboard);
+      document.getElementById('filter-to').addEventListener(evt, updateDashboard);
+    });
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_FILTROS_INTERATIVOS ===================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
 
-  canvas.onclick = e => {
-    const pts = window.chartPie.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    const i = pts[0].index;
-    showModal(labels[i], nm[labels[i]] || []);
-  };
-}
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_KPIS_INDICADORES ===================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function updateDashboard() {
+    const fsV = document.getElementById('filter-status').value;
+    const fuV = document.getElementById('filter-uf').value;
+    const from = new Date(document.getElementById('filter-from').value);
+    const to   = new Date(document.getElementById('filter-to').value);
 
-function renderDoughnut(data) {
-  const canvas = document.getElementById('doughnutChart');
-  if (!canvas) return console.warn('Canvas doughnutChart não encontrado.');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return console.warn('Contexto 2D não pôde ser obtido para doughnutChart.');
+    const filtrado = allData.filter(x =>
+      (!fsV || x.Status === fsV) &&
+      (!fuV || x.UF === fuV) &&
+      (isNaN(from) || x.Data >= from) &&
+      (isNaN(to)   || x.Data <= to)
+    );
 
-  const cnt = {}, nm = {};
-  data.forEach(x => {
-    if (!x.Ativo) return;
-    cnt[x.Ativo] = (cnt[x.Ativo] || 0) + 1;
-    (nm[x.Ativo] ||= []).push(x.Cliente);
-  });
+    console.log('[DASHBOARD] Registros filtrados:', filtrado.length);
 
-  nameMaps.doughnut = nm;
-  const labels = Object.keys(cnt);
-  const vals = labels.map(l => cnt[l]);
-  const cols = ['#2196f3', '#4caf50', '#ffeb3b', '#ff5722'];
-  console.log('[DOUGHNUT] Labels:', labels, 'Valores:', vals);
+    const totalInativos    = filtrado.filter(x => x.Status === 'Inativo').length;
+    const totalExClientes  = filtrado.filter(x => x.Status === 'Ex-cliente').length;
+    const totalReativados  = filtrado.filter(x => x.Ativo === 'Reativado').length;
+    const baseChurn        = filtrado.filter(x => ['Inativo', 'Ex-cliente'].includes(x.Status)).length || 1;
+    const taxaRetencao     = Math.round((totalReativados / baseChurn) * 100);
 
-  if (window.chartDough && typeof window.chartDough.destroy === 'function') window.chartDough.destroy();
-  window.chartDough = new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{ data: vals, backgroundColor: cols }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right' } }
-    }
-  });
+    document.getElementById('count-inativos').textContent     = totalInativos;
+    document.getElementById('count-exclientes').textContent   = totalExClientes;
+    document.getElementById('count-reativacoes').textContent  = totalReativados;
+    document.getElementById('count-retencao').textContent     = `${taxaRetencao}%`;
 
-  canvas.onclick = e => {
-    const pts = window.chartDough.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    const i = pts[0].index;
-    showModal(labels[i], nm[labels[i]] || []);
-  };
-}
+    // Atualiza gráficos e componentes reativos
+    renderLine(filtrado);
+    renderBar(filtrado);
+    renderPie(filtrado);
+    renderDoughnut(filtrado);
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_KPIS_INDICADORES ======================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_FUNÇÕES_GRÁFICOS ==================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function parseMonth(m) {
+    return {
+      Janeiro: 1, Fevereiro: 2, Março: 3, Abril: 4, Maio: 5, Junho: 6,
+      Julho: 7, Agosto: 8, Setembro: 9, Outubro: 10, Novembro: 11, Dezembro: 12
+    }[m] || 1;
+  }
+
+  function renderLine(data) {
+    const canvas = document.getElementById('lineChart');
+    if (!canvas) return console.warn('❌ lineChart não encontrado.');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return console.warn('❌ Contexto 2D ausente em lineChart.');
+
+    const cn = {}, cr = {};
+    nameMaps.lineNew = {};
+    nameMaps.lineRe = {};
+
+    data.forEach(x => {
+      if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
+      const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
+      if (x.Status === 'Inativo') {
+        cn[lbl] = (cn[lbl] || 0) + 1;
+        (nameMaps.lineNew[lbl] ||= []).push(x.Cliente);
+      }
+      if (x.Ativo === 'Reativado') {
+        cr[lbl] = (cr[lbl] || 0) + 1;
+        (nameMaps.lineRe[lbl] ||= []).push(x.Cliente);
+      }
+    });
+
+    const labels = Object.keys({ ...cn, ...cr }).sort((a, b) => {
+      const [ma, ya] = a.split('/'), [mb, yb] = b.split('/');
+      return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
+    });
+
+    const newV = labels.map(l => cn[l] || 0);
+    const reV = labels.map(l => cr[l] || 0);
+
+    if (window.chartLine?.destroy) window.chartLine.destroy();
+    window.chartLine = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Inativos', data: newV, borderColor: '#4caf50', fill: false },
+          { label: 'Reativados', data: reV, borderColor: primaryColor, fill: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } }
+      }
+    });
+
+    canvas.onclick = e => {
+      const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+      if (!pts.length) return;
+      const { index, datasetIndex } = pts[0];
+      const label = labels[index];
+      const lista = datasetIndex === 0 ? nameMaps.lineNew[label] : nameMaps.lineRe[label];
+      showModal(`${datasetIndex === 0 ? 'Inativos' : 'Reativados'} (${label})`, lista);
+    };
+  }
+
+  function renderBar(data) {
+    const canvas = document.getElementById('barChart');
+    if (!canvas) return console.warn('❌ barChart não encontrado.');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const tipos = ['Inativo', 'Ex-cliente', 'Reativado'];
+    const contagem = { Inativo: 0, 'Ex-cliente': 0, Reativado: 0 };
+    nameMaps.bar = {};
+
+    data.forEach(x => {
+      tipos.forEach(tipo => {
+        const cond = tipo === 'Reativado' ? x.Ativo === tipo : x.Status === tipo;
+        if (cond) {
+          contagem[tipo]++;
+          (nameMaps.bar[tipo] ||= []).push(x.Cliente);
+        }
+      });
+    });
+
+    const labels = Object.keys(contagem);
+    const valores = labels.map(l => contagem[l]);
+    const cores = ['#4caf50', '#007aff', '#ff9800'];
+
+    if (window.chartBar?.destroy) window.chartBar.destroy();
+    window.chartBar = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: true } }
+      }
+    });
+
+    canvas.onclick = e => {
+      const pts = window.chartBar.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+      if (!pts.length) return;
+      const i = pts[0].index;
+      showModal(labels[i], nameMaps.bar[labels[i]]);
+    };
+  }
+
+  function renderPie(data) {
+    const canvas = document.getElementById('pieChart');
+    if (!canvas) return console.warn('❌ pieChart não encontrado.');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const motivos = {};
+    const mapas = {};
+    data.forEach(x => {
+      if (!x.Motivo) return;
+      motivos[x.Motivo] = (motivos[x.Motivo] || 0) + 1;
+      (mapas[x.Motivo] ||= []).push(x.Cliente);
+    });
+
+    const labels = Object.keys(motivos);
+    const valores = labels.map(m => motivos[m]);
+    nameMaps.pie = mapas;
+
+    if (window.chartPie?.destroy) window.chartPie.destroy();
+    window.chartPie = new Chart(ctx, {
+      type: 'pie',
+      data: { labels, datasets: [{ data: valores }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' }, tooltip: { enabled: true } }
+      }
+    });
+
+    canvas.onclick = e => {
+      const pts = window.chartPie.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+      if (!pts.length) return;
+      const i = pts[0].index;
+      showModal(labels[i], mapas[labels[i]]);
+    };
+  }
+
+  function renderDoughnut(data) {
+    const canvas = document.getElementById('doughnutChart');
+    if (!canvas) return console.warn('❌ doughnutChart não encontrado.');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const status = {};
+    const mapas = {};
+    data.forEach(x => {
+      if (!x.Ativo) return;
+      status[x.Ativo] = (status[x.Ativo] || 0) + 1;
+      (mapas[x.Ativo] ||= []).push(x.Cliente);
+    });
+
+    const labels = Object.keys(status);
+    const valores = labels.map(k => status[k]);
+    const cores = ['#2196f3', '#4caf50', '#ffeb3b', '#ff5722'];
+    nameMaps.doughnut = mapas;
+
+    if (window.chartDough?.destroy) window.chartDough.destroy();
+    window.chartDough = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' }, tooltip: { enabled: true } }
+      }
+    });
+
+    canvas.onclick = e => {
+      const pts = window.chartDough.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+      if (!pts.length) return;
+      const i = pts[0].index;
+      showModal(labels[i], mapas[labels[i]]);
+    };
+  }
 </script>
 <!-- ========================================================== -->
 <!-- ===== FIM: BLOCO_FUNÇÕES_GRÁFICOS ======================= -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
 
-  <!-- ===== INÍCIO: BLOCO_MODAL_DETALHES ===== -->
-  <div class="modal" id="detail-modal">
-    <div class="modal-content">
-      <button class="close">×</button>
-      <h2 id="modal-title"></h2>
-      <ul id="modal-list"></ul>
-    </div>
-  </div>
-  <!-- ===== FIM: BLOCO_MODAL_DETALHES ===== -->
-
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_FUNÇÕES_JS =========================== -->
+<!-- ===== INÍCIO: BLOCO_JS_6_MODAL_DETALHES ================== -->
 <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
 <!-- ========================================================== -->
 <script>
-  // Ativa o modo escuro ao iniciar
-  document.documentElement.dataset.theme = 'dark';
+  function showModal(titulo, lista) {
+    const modal = document.getElementById('detail-modal');
+    const tituloElem = document.getElementById('modal-title');
+    const ul = document.getElementById('modal-list');
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    const toggleBtn = document.getElementById('theme-toggle');
-    const html = document.documentElement;
+    tituloElem.textContent = titulo;
+    ul.innerHTML = '';
 
-    // Função para atualizar o texto do botão
-    const atualizarTextoBotao = () => {
-      toggleBtn.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
-    };
-
-    atualizarTextoBotao(); // define o texto correto ao carregar
-
-    toggleBtn.addEventListener('click', () => {
-      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
-      atualizarTextoBotao();
+    lista.forEach(nome => {
+      const li = document.createElement('li');
+      li.textContent = nome;
+      ul.appendChild(li);
     });
 
-    const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-    const tabs = ['Abril_2025', 'Maio_2025', 'Junho_2025', 'Julho_2025', 'Agosto_2025', 'Setembro_2025', 'Outubro_2025', 'Novembro_2025', 'Dezembro_2025'];
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-    let allData = [];
-    const nameMaps = { lineNew: {}, lineRe: {}, bar: {}, pie: {}, doughnut: {} };
+    modal.style.display = 'flex';
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_6_MODAL_DETALHES ===================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
 
-    function parseDate(s) {
-      if (!s) return NaN;
-      const [d, m, y] = s.split('/');
-      return new Date(+y, +m - 1, +d);
-    }
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_7_FECHAR_MODAL ==================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnFechar = document.querySelector('.modal .close');
+    const modal = document.getElementById('detail-modal');
 
-    async function fetchAllSheets() {
-      let combined = [];
-      for (const tab of tabs) {
-        const res = await fetch(`${apiBase}?sheet=${tab}`);
-        const arr = await res.json();
-        if (arr.length > 0) {
-          combined.push(...arr.map(r => ({ ...r, sheet: tab })));
-        }
-      }
-      return combined;
-    }
-
-    function populateFilters() {
-      const fs = document.getElementById('filter-status'), fu = document.getElementById('filter-uf');
-      new Set(allData.map(x => x.Status)).forEach(v => fs.add(new Option(v, v)));
-      new Set(allData.map(x => x.UF)).forEach(v => fu.add(new Option(v, v)));
-      ['change', 'input'].forEach(evt => {
-        fs.addEventListener(evt, updateDashboard);
-        fu.addEventListener(evt, updateDashboard);
-        document.getElementById('filter-from').addEventListener(evt, updateDashboard);
-        document.getElementById('filter-to').addEventListener(evt, updateDashboard);
+    if (btnFechar && modal) {
+      btnFechar.addEventListener('click', () => {
+        modal.style.display = 'none';
       });
     }
-
-    function updateDashboard() {
-      const fsV = document.getElementById('filter-status').value;
-      const fuV = document.getElementById('filter-uf').value;
-      const from = new Date(document.getElementById('filter-from').value);
-      const to = new Date(document.getElementById('filter-to').value);
-      const filt = allData.filter(x =>
-        (!fsV || x.Status === fsV) &&
-        (!fuV || x.UF === fuV) &&
-        (isNaN(from) || x.Data >= from) &&
-        (isNaN(to) || x.Data <= to)
-      );
-      console.log('Filtrados:', filt.length);
-      document.getElementById('count-inativos').textContent = filt.filter(x => x.Status === 'Inativo').length;
-      document.getElementById('count-exclientes').textContent = filt.filter(x => x.Status === 'Ex-cliente').length;
-      document.getElementById('count-reativacoes').textContent = filt.filter(x => x.Ativo === 'Reativado').length;
-      const churn = filt.filter(x => ['Inativo', 'Ex-cliente'].includes(x.Status)).length || 1;
-      document.getElementById('count-retencao').textContent = Math.round(filt.filter(x => x.Ativo === 'Reativado').length / churn * 100) + '%';
-      renderLine(filt);
-      renderBar(filt);
-      renderPie(filt);
-      renderDoughnut(filt);
-    }
-
-    const raw = await fetchAllSheets();
-    allData = raw.map(r => ({
-      Cliente: (r.Cliente || '').trim(),
-      UF: (r.UF || '').trim(),
-      Status: (r['Status Principal'] || '').trim(),
-      Ativo: (r['Status Atual'] || '').trim(),
-      Motivo: (r['Motivo do Status'] || '').trim(),
-      Data: parseDate(r['Último Contato']),
-      sheet: r.sheet
-    }));
-    console.log('Dados carregados:', allData.length);
-    populateFilters();
-    updateDashboard();
-    document.querySelector('.close').onclick = () => document.getElementById('detail-modal').style.display = 'none';
   });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_FUNÇÕES_JS ============================== -->
+<!-- ===== FIM: BLOCO_JS_7_FECHAR_MODAL ======================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_8_CONTROLE_DE_TEMA =============== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnTema = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    // Ativa o modo escuro por padrão
+    html.dataset.theme = 'dark';
+
+    const atualizarTexto = () => {
+      btnTema.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
+    };
+
+    atualizarTexto();
+
+    btnTema.addEventListener('click', () => {
+      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+      atualizarTexto();
+    });
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_8_CONTROLE_DE_TEMA ================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_9_LOADER_VISUAL =================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const loader = document.getElementById('loader');
+
+    if (loader) {
+      // Exibe o loader antes de buscar os dados
+      loader.style.display = 'flex';
+
+      // Aguarda até os dados serem carregados
+      fetchAllSheets().then(raw => {
+        allData = raw.map(r => ({
+          Cliente: (r.Cliente || '').trim(),
+          UF: (r.UF || '').trim(),
+          Status: (r['Status Principal'] || '').trim(),
+          Ativo: (r['Status Atual'] || '').trim(),
+          Motivo: (r['Motivo do Status'] || '').trim(),
+          Data: parseDate(r['Último Contato']),
+          Recompra: (r['Previsão de Recompra'] || '').trim(),
+          sheet: r.sheet
+        }));
+
+        console.log('✅ Dados carregados:', allData.length);
+        populateFilters();
+        updateDashboard();
+        loader.style.display = 'none'; // esconde o loader ao finalizar
+      });
+    }
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_9_LOADER_VISUAL ====================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_10_INIT_SEGURO ==================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const loader = document.getElementById('loader');
+
+    if (!loader) {
+      // Caso o loader não esteja presente, carrega diretamente
+      const raw = await fetchAllSheets();
+      allData = raw.map(r => ({
+        Cliente: (r.Cliente || '').trim(),
+        UF: (r.UF || '').trim(),
+        Status: (r['Status Principal'] || '').trim(),
+        Ativo: (r['Status Atual'] || '').trim(),
+        Motivo: (r['Motivo do Status'] || '').trim(),
+        Data: parseDate(r['Último Contato']),
+        Recompra: (r['Previsão de Recompra'] || '').trim(),
+        sheet: r.sheet
+      }));
+
+      console.log('✅ Dados carregados (modo direto):', allData.length);
+      populateFilters();
+      updateDashboard();
+    }
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_10_INIT_SEGURO ======================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_11_EXTRA (RESERVADO) ============== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  // Este bloco está reservado para funcionalidades futuras ou testes adicionais
+
+  // Exemplo de ação extra:
+  // console.log('🧪 BLOCO_JS_11_EXTRA ativo');
+
+  // Você pode criar interações aqui no futuro
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_11_EXTRA (RESERVADO) ================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_12_CHARTJS_GLOBAL_CONFIG ========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  Chart.defaults.font.family = 'Inter, sans-serif';
+  Chart.defaults.font.size = 14;
+  Chart.defaults.color = '#555';
+
+  Chart.defaults.plugins.tooltip.backgroundColor = '#1f2937'; // cinza escuro
+  Chart.defaults.plugins.tooltip.titleFont = { weight: '600' };
+  Chart.defaults.plugins.tooltip.cornerRadius = 8;
+  Chart.defaults.plugins.tooltip.padding = 10;
+
+  Chart.defaults.plugins.legend.labels.boxWidth = 12;
+  Chart.defaults.plugins.legend.labels.boxHeight = 12;
+  Chart.defaults.plugins.legend.labels.padding = 20;
+
+  Chart.defaults.elements.line.tension = 0.35; // suaviza as linhas
+  Chart.defaults.elements.point.radius = 4;
+  Chart.defaults.elements.point.hoverRadius = 6;
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_12_CHARTJS_GLOBAL_CONFIG ============ -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_JS_13_FUNCOES_UTILITARIAS ============ -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  // Converte datas do formato DD/MM/AAAA para objeto Date
+  function parseDate(s) {
+    if (!s) return NaN;
+    const [d, m, y] = s.split('/');
+    return new Date(+y, +m - 1, +d);
+  }
+
+  // Converte datas do formato AAAA-MM-DD para objeto Date
+  function parseISO(s) {
+    if (!s) return NaN;
+    const [y, m, d] = s.split('-');
+    return new Date(+y, +m - 1, +d);
+  }
+
+  // Converte string tipo "01/04/2025" em "Abril/2025"
+  function labelMesAno(dataStr) {
+    const [dia, mes, ano] = dataStr.split('/');
+    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    return `${meses[parseInt(mes) - 1]}/${ano}`;
+  }
+
+  // Converte objeto Date em string formatada (DD/MM/AAAA)
+  function formatarData(date) {
+    const d = date.getDate().toString().padStart(2, '0');
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const y = date.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+
+  // Calcula diferença de dias entre uma data e hoje
+  function diasDesde(data) {
+    const hoje = new Date();
+    const diff = hoje - data;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_JS_13_FUNCOES_UTILITARIAS ============== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
