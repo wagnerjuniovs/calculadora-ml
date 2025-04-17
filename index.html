@@ -393,60 +393,85 @@
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_FUNÇÕES_INICIAIS ===================== -->
+<!-- ===== INÍCIO: BLOCO JS 1 - TEMA E DADOS INICIAIS ========= -->
 <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
 <!-- ========================================================== -->
 <script>
-  const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-  const tabs = [
-    'Abril_2025','Maio_2025','Junho_2025',
-    'Julho_2025','Agosto_2025','Setembro_2025',
-    'Outubro_2025','Novembro_2025','Dezembro_2025'
-  ];
-  let allData = [];
+  // Ativa modo escuro por padrão
+  document.documentElement.dataset.theme = 'dark';
 
-  const nameMaps = {
-    lineNew: {}, lineRe: {}, bar: {}, pie: {}, doughnut: {}
-  };
+  // Torna a cor primária acessível globalmente
+  window.primaryColor = getComputedStyle(document.documentElement)
+    .getPropertyValue('--primary')
+    .trim();
 
-  // Utilitário: Converte data "dd/mm/yyyy" para objeto Date
-  function parseDate(s) {
-    if (!s || typeof s !== 'string') return NaN;
-    const [d, m, y] = s.split('/');
-    return new Date(+y, +m - 1, +d);
-  }
+  document.addEventListener('DOMContentLoaded', async () => {
+    const toggleBtn = document.getElementById('theme-toggle');
+    const html = document.documentElement;
 
-  // Busca dados de todas as abas (ignora vazias)
-  async function fetchAllSheets() {
-    let combined = [];
-    for (const tab of tabs) {
-      try {
+    const atualizarTextoBotao = () => {
+      toggleBtn.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
+    };
+
+    atualizarTextoBotao(); // Aplica o texto inicial no botão
+
+    toggleBtn.addEventListener('click', () => {
+      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+      atualizarTextoBotao();
+    });
+
+    const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
+    const tabs = [
+      'Abril_2025', 'Maio_2025', 'Junho_2025',
+      'Julho_2025', 'Agosto_2025', 'Setembro_2025',
+      'Outubro_2025', 'Novembro_2025', 'Dezembro_2025'
+    ];
+
+    window.allData = []; // global para outros blocos
+    window.nameMaps = { lineNew:{}, lineRe:{}, bar:{}, pie:{}, doughnut:{} };
+
+    function parseDate(s) {
+      if (!s) return NaN;
+      const [d, m, y] = s.split('/');
+      return new Date(+y, +m - 1, +d);
+    }
+
+    async function fetchAllSheets() {
+      let combined = [];
+      for (const tab of tabs) {
         const res = await fetch(`${apiBase}?sheet=${tab}`);
         const arr = await res.json();
-        if (arr && arr.length > 0) {
-          const formatado = arr.map(r => ({
-            Cliente: (r.Cliente || '').trim(),
-            UF: (r.UF || '').trim(),
-            Status: (r['Status Principal'] || '').trim(),
-            Ativo: (r['Status Atual'] || '').trim(),
-            Motivo: (r['Motivo do Status'] || '').trim(),
-            Categoria: (r['Categoria'] || '').trim(),
-            Data: parseDate(r['Último Contato']),
-            Proxima: parseDate(r['Próximo Contato']),
-            Recompra: parseDate(r['Previsão de Recompra']),
-            sheet: tab
-          }));
-          combined.push(...formatado);
+        if (arr.length > 0) {
+          combined.push(...arr.map(r => ({ ...r, sheet: tab })));
         }
-      } catch (err) {
-        console.warn(`Erro ao carregar aba ${tab}:`, err);
       }
+      return combined;
     }
-    return combined;
-  }
+
+    // Coleta e organiza os dados iniciais
+    const raw = await fetchAllSheets();
+    window.allData = raw.map(r => ({
+      Cliente: (r.Cliente || '').trim(),
+      UF: (r.UF || '').trim(),
+      Status: (r['Status Principal'] || '').trim(),
+      Ativo: (r['Status Atual'] || '').trim(),
+      Motivo: (r['Motivo do Status'] || '').trim(),
+      Data: parseDate(r['Último Contato']),
+      ProxContato: parseDate(r['Próximo Contato']),
+      Recompra: parseDate(r['Previsão de Recompra']),
+      sheet: r.sheet
+    }));
+
+    console.log('[DASHBOARD] Dados carregados:', window.allData.length);
+
+    populateFilters();
+    updateDashboard();
+    document.querySelector('.close').onclick = () =>
+      document.getElementById('detail-modal').style.display = 'none';
+  });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_FUNÇÕES_INICIAIS ======================== -->
+<!-- ===== FIM: BLOCO JS 1 - TEMA E DADOS INICIAIS ============ -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
 
