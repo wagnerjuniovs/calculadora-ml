@@ -84,25 +84,117 @@
   </section>
   <!-- ===== FIM: BLOCO_CARDS_DASHBOARD ===== -->
 
-  <!-- ===== INÍCIO: BLOCO_GRÁFICOS ===== -->
-  <section class="charts">
-    <!-- INÍCIO: GRÁFICO_LINHAS -->
-    <div class="card"><h2>Novos vs. Reativados</h2><canvas id="lineChart"></canvas></div>
-    <!-- FIM: GRÁFICO_LINHAS -->
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_GRÁFICOS =========================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="charts">
+  <!-- INÍCIO: GRÁFICO_LINHAS -->
+  <div class="card"><h2>Novos vs. Reativados</h2><canvas id="lineChart"></canvas></div>
+  <!-- FIM: GRÁFICO_LINHAS -->
 
-    <!-- INÍCIO: GRÁFICO_BARRAS -->  
-    <div class="card"><h2>Movimento por Status</h2><canvas id="barChart"></canvas></div>
-    <!-- FIM: GRÁFICO_BARRAS -->
+  <!-- INÍCIO: GRÁFICO_BARRAS -->  
+  <div class="card"><h2>Movimento por Status</h2><canvas id="barChart"></canvas></div>
+  <!-- FIM: GRÁFICO_BARRAS -->
 
-    <!-- INÍCIO: GRÁFICO_PIZZA -->
-    <div class="card"><h2>Motivos de Evasão</h2><canvas id="pieChart"></canvas></div>
-    <!-- FIM: GRÁFICO_PIZZA -->
+  <!-- INÍCIO: GRÁFICO_PIZZA -->
+  <div class="card"><h2>Motivos de Evasão</h2><canvas id="pieChart"></canvas></div>
+  <!-- FIM: GRÁFICO_PIZZA -->
 
-    <!-- INÍCIO: GRÁFICO_ROSCA -->
-    <div class="card"><h2>Status Atual</h2><canvas id="doughnutChart"></canvas></div>
-    <!-- FIM: GRÁFICO_ROSCA -->
-  </section>
-  <!-- ===== FIM: BLOCO_GRÁFICOS ===== -->
+  <!-- INÍCIO: GRÁFICO_ROSCA -->
+  <div class="card"><h2>Status Atual</h2><canvas id="doughnutChart"></canvas></div>
+  <!-- FIM: GRÁFICO_ROSCA -->
+</section>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_GRÁFICOS =============================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_FUNÇÕES_GRÁFICOS ==================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+function renderLine(data) {
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  if (!ctx) return console.warn('Canvas lineChart não encontrado.');
+  const cn = {}, cr = {};
+  nameMaps.lineNew = {};
+  nameMaps.lineRe  = {};
+  data.forEach(x => {
+    if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
+    const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
+    if (x.Status === 'Inativo') {
+      cn[lbl] = (cn[lbl] || 0) + 1;
+      (nameMaps.lineNew[lbl] ||= []).push(x.Cliente);
+    }
+    if (x.Ativo === 'Reativado') {
+      cr[lbl] = (cr[lbl] || 0) + 1;
+      (nameMaps.lineRe[lbl] ||= []).push(x.Cliente);
+    }
+  });
+  const labels = Object.keys({ ...cn, ...cr }).sort((a, b) => {
+    const [ma, ya] = a.split('/'), [mb, yb] = b.split('/');
+    return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
+  });
+  const newV = labels.map(l => cn[l] || 0);
+  const reV = labels.map(l => cr[l] || 0);
+  if (window.chartLine && typeof window.chartLine.destroy === 'function') window.chartLine.destroy();
+  window.chartLine = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Inativos', data: newV, borderColor: '#4caf50', fill: false },
+        { label: 'Reativados', data: reV, borderColor: primaryColor, fill: false }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+  });
+  document.getElementById('lineChart').onclick = e => {
+    const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+    if (!pts.length) return;
+    const { index, datasetIndex } = pts[0];
+    const month = labels[index];
+    const list = datasetIndex === 0 ? nameMaps.lineNew[month] : nameMaps.lineRe[month];
+    showModal((datasetIndex === 0 ? 'Inativos' : 'Reativados') + ` (${month})`, list || []);
+  };
+}
+
+function renderBar(data) {
+  const ctx = document.getElementById('barChart').getContext('2d');
+  if (!ctx) return console.warn('Canvas barChart não encontrado.');
+  const cnt = { 'Inativo': 0, 'Ex-cliente': 0, 'Reativado': 0 };
+  nameMaps.bar = {};
+  data.forEach(x => {
+    ['Inativo', 'Ex-cliente', 'Reativado'].forEach(k => {
+      if ((k === 'Reativado' && x.Ativo === 'Reativado') || (k !== 'Reativado' && x.Status === k)) {
+        cnt[k]++;
+        (nameMaps.bar[k] ||= []).push(x.Cliente);
+      }
+    });
+  });
+  const labels = Object.keys(cnt);
+  const vals = labels.map(l => cnt[l]);
+  const cols = ['#4caf50', '#007aff', '#ff9800'];
+  if (window.chartBar && typeof window.chartBar.destroy === 'function') window.chartBar.destroy();
+  window.chartBar = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data: vals, backgroundColor: cols }] },
+    options: { responsive: true }
+  });
+  document.getElementById('barChart').onclick = e => {
+    const pts = window.chartBar.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+    if (!pts.length) return;
+    const label = labels[pts[0].index];
+    showModal(label, nameMaps.bar[label] || []);
+  };
+}
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_FUNÇÕES_GRÁFICOS ======================= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
 
   <!-- ===== INÍCIO: BLOCO_MODAL_DETALHES ===== -->
   <div class="modal" id="detail-modal">
