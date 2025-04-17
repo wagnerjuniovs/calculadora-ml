@@ -1422,3 +1422,69 @@ function pintarTaxaReativacao(dados) {
 <!-- ===== FIM: BLOCO JS 21 - EVOLUÇÃO DA BASE INATIVA ========== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 21 - CORREÇÃO FILTROS DE DATA ====== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  // Corrige filtro de datas para evitar resultados zerados indevidos
+  function aplicarFiltroPorData(array, de, ate) {
+    if (!de && !ate) return array; // Nenhum filtro aplicado
+
+    return array.filter(r => {
+      const data = r.Data;
+      if (!(data instanceof Date) || isNaN(data)) return false;
+
+      const aposDataInicial = !de || data >= de;
+      const antesDataFinal = !ate || data <= ate;
+
+      return aposDataInicial && antesDataFinal;
+    });
+  }
+
+  // Substitui a lógica de updateDashboard, apenas no filtro de data
+  function getFiltrosAplicados() {
+    const status = document.getElementById('filtro-status').value;
+    const uf = document.getElementById('filtro-uf').value;
+    const de = document.getElementById('filtro-de').value;
+    const ate = document.getElementById('filtro-ate').value;
+
+    return {
+      status: status === 'Status' ? null : status,
+      uf: uf === 'UF' ? null : uf,
+      de: de ? new Date(de.split('/').reverse().join('-')) : null,
+      ate: ate ? new Date(ate.split('/').reverse().join('-')) : null
+    };
+  }
+
+  // Aplica os filtros corretos, incluindo os de data
+  function aplicarFiltrosGlobais() {
+    const { status, uf, de, ate } = getFiltrosAplicados();
+
+    const filtrados = window.allData.filter(r => {
+      const condStatus = !status || r.Status === status;
+      const condUF = !uf || r.UF === uf;
+      return condStatus && condUF;
+    });
+
+    const filtradosComData = aplicarFiltroPorData(filtrados, de, ate);
+    window.filteredData = filtradosComData;
+
+    console.log('[DASHBOARD] Registros filtrados:', filtradosComData.length);
+
+    updateDashboard();
+  }
+
+  // Atualiza automaticamente ao alterar filtros
+  ['filtro-status', 'filtro-uf', 'filtro-de', 'filtro-ate'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', aplicarFiltrosGlobais);
+    }
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 21 - CORREÇÃO FILTROS DE DATA ========= -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ====== -->
+<!-- ========================================================== -->
