@@ -1146,3 +1146,43 @@ function pintarTaxaReativacao(dados) {
 <!-- ===== FIM: BLOCO JS 15 - TAXA DE REATIVAÇÃO ACUMULADA ============ -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 16 - CLIENTES SEM CONTATO +30 DIAS ===== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO ===== -->
+<!-- ========================================================== -->
+<script>
+  function pintarSemContato30Dias() {
+    const hoje = new Date();
+    const container = document.getElementById('painel-sem-contato');
+    if (!container) return;
+
+    const lista = window.allData.filter(x => {
+      return x.Data instanceof Date && !isNaN(x.Data) && (hoje - x.Data) / (1000 * 60 * 60 * 24) > 30;
+    });
+
+    if (lista.length === 0) {
+      container.innerHTML += '<p class="text-gray-400 text-sm">Nenhum cliente com mais de 30 dias sem contato.</p>';
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'list-disc pl-6 text-sm text-white space-y-1';
+
+    lista.slice(0, 10).forEach(x => {
+      const li = document.createElement('li');
+      li.textContent = `${x.Cliente} - ${x.UF} - ${x.Status} - Último contato: ${x.Data.toLocaleDateString()}`;
+      ul.appendChild(li);
+    });
+
+    container.appendChild(ul);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.allData?.length) pintarSemContato30Dias();
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 16 - CLIENTES SEM CONTATO +30 DIAS ====== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
