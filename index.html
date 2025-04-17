@@ -1186,3 +1186,42 @@ function pintarTaxaReativacao(dados) {
 <!-- ===== FIM: BLOCO JS 16 - CLIENTES SEM CONTATO +30 DIAS ====== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 17 - CONTATOS DO DIA (HOJE) ========= -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function preencherContatosDoDia(data) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const contatosHoje = data.filter(x => x.ProxContato instanceof Date && !isNaN(x.ProxContato) && x.ProxContato.getTime() === hoje.getTime());
+
+    const container = document.getElementById('bloco-contatos-hoje');
+    container.innerHTML = '';
+
+    if (contatosHoje.length === 0) {
+      container.innerHTML = '<p class="text-sm text-gray-400">Nenhum contato agendado para hoje.</p>';
+      return;
+    }
+
+    const ul = document.createElement('ul');
+    ul.className = 'list-disc list-inside text-sm';
+
+    contatosHoje.forEach(cliente => {
+      const li = document.createElement('li');
+      li.textContent = cliente.Cliente + (cliente.UF ? ` (${cliente.UF})` : '');
+      ul.appendChild(li);
+    });
+
+    container.appendChild(ul);
+  }
+
+  // Chamar a função após updateDashboard (garantido via JS 13)
+  window.pintoresDashboard.push(preencherContatosDoDia);
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 17 - CONTATOS DO DIA (HOJE) ========== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
