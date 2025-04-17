@@ -436,7 +436,7 @@
       return new Date(+y, +m - 1, +d);
     }
 
-    async function fetchAllSheets() {
+    window.fetchAllSheets = async function () {
       let combined = [];
       for (const tab of tabs) {
         const res = await fetch(`${apiBase}?sheet=${tab}`);
@@ -449,7 +449,7 @@
     }
 
     // Coleta e organiza os dados iniciais
-    const raw = await fetchAllSheets();
+    const raw = await window.fetchAllSheets();
     window.allData = raw.map(r => ({
       Cliente: (r.Cliente || '').trim(),
       UF: (r.UF || '').trim(),
@@ -466,8 +466,13 @@
 
     populateFilters();
     updateDashboard();
-    document.querySelector('.close').onclick = () =>
-      document.getElementById('detail-modal').style.display = 'none';
+
+    const closeBtn = document.querySelector('.close');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        document.getElementById('detail-modal').style.display = 'none';
+      };
+    }
   });
 </script>
 <!-- ========================================================== -->
