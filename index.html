@@ -7,33 +7,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --bg-light:#f9f9f9;--bg-dark:#1c1c1e;--text-light:#1c1c1e;--text-dark:#f9f9f9;--primary:#007aff;
-            --card-bg-light:#fff;--card-bg-dark:#2c2c2e;--shadow:rgba(0,0,0,0.1);
-            --border-light:#ccc;--border-dark:#444; }
-    [data-theme="light"]{background:var(--bg-light);color:var(--text-light)}
-    [data-theme="dark"]{background:var(--bg-dark);color:var(--text-dark)}
-    *,*::before,*::after{box-sizing:border-box}
-    body{margin:0;font-family:'Inter',sans-serif}
-    header{display:flex;justify-content:space-between;align-items:center;padding:1rem 2rem}
-    h1{margin:0;font-size:1.75rem;color:var(--primary)}
-    #theme-toggle{background:none;border:1px solid var(--primary);border-radius:1rem;padding:.5rem 1rem;cursor:pointer;color:var(--primary)}
-    .filters{display:flex;flex-wrap:wrap;gap:1rem;padding:1rem 2rem}
-    .filters select,.filters input[type="date"]{flex:1;min-width:150px;padding:.5rem 1rem;border:1px solid var(--border-light);border-radius:1rem;background:var(--card-bg-light);color:var(--text-light)}
-    [data-theme="dark"] .filters select,[data-theme="dark"] .filters input[type="date"]{background:var(--card-bg-dark);border-color:var(--border-dark);color:var(--text-dark)}
-    .dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;padding:0 2rem}
-    .card{background:var(--card-bg-light);padding:1.5rem;border-radius:1.5rem;box-shadow:0 10px 30px var(--shadow)}
-    [data-theme="dark"] .card{background:var(--card-bg-dark)}
-    .card h2{margin:0 0 .5rem;color:#8e8e93;font-size:.95rem}
-    .card p{margin:0;font-size:1.75rem;font-weight:600}
-    .charts{display:grid;grid-template-columns:1fr 1fr;gap:2rem;padding:2rem}
-    canvas{width:100%!important;height:auto!important}
-    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center}
-    .modal-content{background:var(--card-bg-light);padding:2rem;border-radius:1.5rem;max-width:400px;width:90%;max-height:80%;overflow:auto;position:relative}
-    [data-theme="dark"] .modal-content{background:var(--card-bg-dark)}
-    .modal-content h2{margin-top:0;font-size:1.25rem;color:var(--primary)}
-    .modal-content ul{list-style:none;padding:0;margin:1rem 0}
-    .modal-content ul li{padding:.25rem 0;border-bottom:1px solid var(--border-light)}
-    .modal-content button.close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--primary)}
+    :root { --bg-light:#f9f9f9; --bg-dark:#1c1c1e; --text-light:#1c1c1e; --text-dark:#f9f9f9; --primary:#007aff;
+             --card-bg-light:#ffffff; --card-bg-dark:#2c2c2e; --shadow:rgba(0,0,0,0.1);
+             --border-light:#ccc; --border-dark:#444; }
+    [data-theme="light"] { background: var(--bg-light); color: var(--text-light); }
+    [data-theme="dark"]  { background: var(--bg-dark);  color: var(--text-dark); }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', sans-serif; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; }
+    h1 { margin: 0; font-size: 1.75rem; color: var(--primary); }
+    #theme-toggle { background: none; border: 1px solid var(--primary); border-radius: 1rem; padding: .5rem 1rem; cursor: pointer; color: var(--primary); }
+    .filters { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1rem 2rem; }
+    .filters select, .filters input[type="date"] {
+      flex: 1; min-width: 150px; padding: .5rem 1rem;
+      border: 1px solid var(--border-light); border-radius: 1rem;
+      background: var(--card-bg-light); color: var(--text-light);
+    }
+    [data-theme="dark"] .filters select,
+    [data-theme="dark"] .filters input[type="date"] {
+      background: var(--card-bg-dark); border-color: var(--border-dark); color: var(--text-dark);
+    }
+    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem; padding: 0 2rem; }
+    .card { background: var(--card-bg-light); padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 10px 30px var(--shadow); }
+    [data-theme="dark"] .card { background: var(--card-bg-dark); }
+    .card h2 { margin: 0 0 .5rem; color: #8e8e93; font-size: .95rem; }
+    .card p { margin: 0; font-size: 1.75rem; font-weight: 600; }
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; }
+    canvas { width: 100% !important; height: auto !important; }
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+    .modal-content { background: var(--card-bg-light); padding:2rem; border-radius:1.5rem; max-width:400px; width:90%; max-height:80%; overflow:auto; position:relative; }
+    [data-theme="dark"] .modal-content { background: var(--card-bg-dark); }
+    .modal-content h2 { margin-top:0; font-size:1.25rem; color: var(--primary); }
+    .modal-content ul { list-style:none; padding:0; margin:1rem 0; }
+    .modal-content ul li { padding:.25rem 0; border-bottom:1px solid var(--border-light); }
+    .modal-content button.close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--primary); }
   </style>
 </head>
 <body>
@@ -93,33 +100,43 @@
       for (const tab of tabs) {
         const res = await fetch(`${apiBase}?sheet=${tab}`);
         const arr = await res.json();
-        if (arr.length) {
-          combined.push(...arr.filter(r => (r.Cliente||'').trim()).map(r => ({...r, sheet: tab})));
-        }
+        const valid = arr.filter(r => (r.Cliente || '').trim() !== '');
+        if (valid.length) combined.push(...valid.map(r => ({ ...r, sheet: tab })));
       }
-      console.log('Meses com dados:', [...new Set(combined.map(r=>r.sheet))]);
+      console.log('Meses com dados:', [...new Set(combined.map(r => r.sheet))]);
       return combined;
     }
 
     async function init() {
       const raw = await fetchAllSheets();
       allData = raw.map(r => ({
-        Cliente: (r.Cliente||'').trim(), UF: (r.UF||'').trim(),
-        Status: (r['Status Principal']||'').trim(), Ativo: (r['Status Atual']||'').trim(),
-        Motivo: (r['Motivo do Status']||'').trim(), Data: parseDate(r['Último Contato']),
-        sheet: r.sheet
+        Cliente: (r.Cliente || '').trim(),
+        UF:      (r.UF || '').trim(),
+        Status:  (r['Status Principal'] || '').trim(),
+        Ativo:   (r['Status Atual'] || '').trim(),
+        Motivo:  (r['Motivo do Status'] || '').trim(),
+        Data:    parseDate(r['Último Contato']),
+        sheet:   r.sheet
       }));
       console.log('Dados carregados:', allData.length);
-      populateFilters(); updateDashboard();
+      populateFilters();
+      updateDashboard();
       document.querySelector('.close').onclick = () => document.getElementById('detail-modal').style.display = 'none';
-      document.getElementById('detail-modal').addEventListener('click', e => { if(e.target===e.currentTarget) e.currentTarget.style.display='none'; });
+      document.getElementById('detail-modal').addEventListener('click', e => {
+        if (e.target === e.currentTarget) e.currentTarget.style.display = 'none';
+      });
     }
 
     function populateFilters() {
-      const fs=document.getElementById('filter-status'), fu=document.getElementById('filter-uf');
-      new Set(allData.map(x=>x.Status)).forEach(v=>fs.add(new Option(v,v)));
-      new Set(allData.map(x=>x.UF)).forEach(v=>fu.add(new Option(v,v)));
-      ['change','input'].forEach(ev=>{fs.addEventListener(ev,updateDashboard);fu.addEventListener(ev,updateDashboard);document.getElementById('filter-from').addEventListener(ev,updateDashboard);document.getElementById('filter-to').addEventListener(ev,updateDashboard);});
+      const fs = document.getElementById('filter-status'), fu = document.getElementById('filter-uf');
+      new Set(allData.map(x => x.Status)).forEach(v => fs.add(new Option(v, v)));
+      new Set(allData.map(x => x.UF)).forEach(v => fu.add(new Option(v, v)));
+      ['change','input'].forEach(evt => {
+        fs.addEventListener(evt, updateDashboard);
+        fu.addEventListener(evt, updateDashboard);
+        document.getElementById('filter-from').addEventListener(evt, updateDashboard);
+        document.getElementById('filter-to').addEventListener(evt, updateDashboard);
+      });
     }
 
     function updateDashboard() {
@@ -127,100 +144,100 @@
       const fuV = document.getElementById('filter-uf').value;
       const from = new Date(document.getElementById('filter-from').value);
       const to   = new Date(document.getElementById('filter-to').value);
-      const filt = allData.filter(x=>(!fsV||x.Status===fsV)&&(!fuV||x.UF===fuV)&&(isNaN(from)||x.Data>=from)&&(isNaN(to)||x.Data<=to));
+      const filt = allData.filter(x =>
+        (!fsV || x.Status === fsV) &&
+        (!fuV || x.UF === fuV) &&
+        (isNaN(from) || x.Data >= from) &&
+        (isNaN(to)   || x.Data <= to)
+      );
       console.log('Filtrados:', filt.length);
-      document.getElementById('count-inativos').textContent = filt.filter(x=>x.Status==='Inativo').length;
-      document.getElementById('count-exclientes').textContent = filt.filter(x=>x.Status==='Ex-cliente').length;
-      document.getElementById('count-reativacoes').textContent = filt.filter(x=>x.Ativo==='Reativado').length;
-      const churn=filt.filter(x=>['Inativo','Ex-cliente'].includes(x.Status)).length;
-      const reats=filt.filter(x=>x.Ativo==='Reativado').length;
-      document.getElementById('count-retencao').textContent = churn?Math.round(reats/churn*100)+'%':'0%';
-      renderLine(filt); renderBar(filt); renderPie(filt); renderDoughnut(filt);
+      document.getElementById('count-inativos').textContent    = filt.filter(x => x.Status==='Inativo').length;
+      document.getElementById('count-exclientes').textContent = filt.filter(x => x.Status==='Ex-cliente').length;
+      document.getElementById('count-reativacoes').textContent= filt.filter(x => x.Ativo==='Reativado').length;
+      const churn = filt.filter(x => ['Inativo','Ex-cliente'].includes(x.Status)).length;
+      const reats = filt.filter(x => x.Ativo==='Reativado').length;
+      document.getElementById('count-retencao').textContent = churn ? Math.round(reats/churn*100)+'%' : '0%';
+      renderLine(filt);
+      renderBar(filt);
+      renderPie(filt);
+      renderDoughnut(filt);
     }
 
     function renderLine(data) {
-  const ctx = document.getElementById('lineChart');
-  const cn = {}, cr = {};
-  nameMaps.lineNew = {};
-  nameMaps.lineRe = {};
-  const months = new Set();
+      const ctx = document.getElementById('lineChart');
+      const cn = {}, cr = {};
+      nameMaps.lineNew = {};
+      nameMaps.lineRe = {};
+      const months = new Set();
 
-  // Acumula contagens por mês
-  data.forEach(x => {
-    if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
-    const mon = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
-    months.add(mon);
-    if (x.Status === 'Inativo') {
-      cn[mon] = (cn[mon] || 0) + 1;
-      (nameMaps.lineNew[mon] ||= []).push(x.Cliente);
-    }
-    if (x.Ativo === 'Reativado') {
-      cr[mon] = (cr[mon] || 0) + 1;
-      (nameMaps.lineRe[mon] ||= []).push(x.Cliente);
-    }
-  });
+      // Acumula contagens por mês
+      data.forEach(x => {
+        if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
+        const mon = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
+        months.add(mon);
+        if (x.Status === 'Inativo') {
+          cn[mon] = (cn[mon] || 0) + 1;
+          (nameMaps.lineNew[mon] ||= []).push(x.Cliente);
+        }
+        if (x.Ativo === 'Reativado') {
+          cr[mon] = (cr[mon] || 0) + 1;
+          (nameMaps.lineRe[mon] ||= []).push(x.Cliente);
+        }
+      });
 
-  // Ordena apenas meses com dados
-  const labels = [...months]
-    .filter(m => (cn[m] || 0) + (cr[m] || 0) > 0)
-    .sort((a, b) => {
-      const [ma, ya] = a.split('/');
-      const [mb, yb] = b.split('/');
-      return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
-    });
+      // Ordena apenas meses com dados
+      const labels = [...months]
+        .filter(m => (cn[m] || 0) + (cr[m] || 0) > 0)
+        .sort((a, b) => {
+          const [ma, ya] = a.split('/');
+          const [mb, yb] = b.split('/');
+          return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
+        });
 
-  // Monta arrays de valores
-  const dataNew = labels.map(l => cn[l] || 0);
-  const dataRe  = labels.map(l => cr[l] || 0);
+      // Monta arrays de valores
+      const dataNew = labels.map(l => cn[l] || 0);
+      const dataRe  = labels.map(l => cr[l] || 0);
 
-  // Destrói gráfico anterior
-  if (window.chartLine && typeof window.chartLine.destroy === 'function') {
-    window.chartLine.destroy();
-  }
-
-  // Novo gráfico: barras agrupadas
-  window.chartLine = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Inativos',   data: dataNew, backgroundColor: '#4caf50' },
-        { label: 'Reativados', data: dataRe,  backgroundColor: primaryColor }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'bottom' } },
-      scales: {
-        x: { stacked: false },
-        y: { beginAtZero: true }
+      // Destrói gráfico anterior
+      if (window.chartLine && typeof window.chartLine.destroy === 'function') {
+        window.chartLine.destroy();
       }
-    }
-  });
 
-  // Mantém modal de clique (opcional)
-  ctx.onclick = e => {
-    const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-    if (!pts.length) return;
-    const { index, datasetIndex } = pts[0];
-    const month = labels[index];
-    const list  = datasetIndex === 0 ? nameMaps.lineNew[month] : nameMaps.lineRe[month];
-    showModal((datasetIndex === 0 ? 'Inativos' : 'Reativados') + ` (${month})`, list || []);
-  };
-}, cr={}; nameMaps.lineNew={}; nameMaps.lineRe={};
-      const months=new Set();
-      data.forEach(x=>{ if(!(x.Data instanceof Date)&&isNaN(x.Data)) return; const mon=`${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`; months.add(mon); if(x.Status==='Inativo'){cn[mon]=(cn[mon]||0)+1;(nameMaps.lineNew[mon]||(nameMaps.lineNew[mon]=[])).push(x.Cliente);} if(x.Ativo==='Reativado'){cr[mon]=(cr[mon]||0)+1;(nameMaps.lineRe[mon]||(nameMaps.lineRe[mon]=[])).push(x.Cliente);} });
-      let labels=[...months].filter(m=>cn[m]||cr[m]).sort((a,b)=>{const [ma,ya]=a.split('/'),[mb,yb]=b.split('/');return new Date(+ya,parseMonth(ma)-1)-new Date(+yb,parseMonth(mb)-1);});
-      if(window.chartLine&&typeof window.chartLine.destroy==='function') window.chartLine.destroy();
-      window.chartLine=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Inativos',data:labels.map(l=>cn[l]||0),borderColor:'#4caf50',fill:false},{label:'Reativados',data:labels.map(l=>cr[l]||0),borderColor:primaryColor,fill:false}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
-      ctx.onclick=e=>{const pts=window.chartLine.getElementsAtEventForMode(e,'nearest',{intersect:true},false);if(!pts.length)return;const{index, datasetIndex}=pts[0];const month=labels[index];const list=datasetIndex===0?nameMaps.lineNew[month]:nameMaps.lineRe[month];showModal((datasetIndex===0?'Inativos':'Reativados')+` (${month})`, list||[]);};
+      // Novo gráfico: barras agrupadas
+      window.chartLine = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Inativos',   data: dataNew, backgroundColor: '#4caf50' },
+            { label: 'Reativados', data: dataRe,  backgroundColor: primaryColor }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { x: { stacked: false }, y: { beginAtZero: true } }
+        }
+      });
+
+      // Clique para mostrar modal
+      ctx.onclick = e => {
+        const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
+        if (!pts.length) return;
+        const { index, datasetIndex } = pts[0];
+        const month = labels[index];
+        const list  = datasetIndex === 0 ? nameMaps.lineNew[month] : nameMaps.lineRe[month];
+        showModal((datasetIndex === 0 ? 'Inativos' : 'Reativados') + ` (${month})`, list || []);
+      };
     }
 
-    function parseMonth(m){return {Janeiro:1,Fevereiro:2,Março:3,Abril:4,Maio:5,Junho:6,Julho:7,Agosto:8,Setembro:9,Outubro:10,Novembro:11,Dezembro:12}[m]||1;}
-    function renderBar(data){ /* ... */ }
-    function renderPie(data){ /* ... */ }
-    function renderDoughnut(data){ /* ... */ }
-    function showModal(title,list){const modal=document.getElementById('detail-modal');document.getElementById('modal-title').textContent=title;const ul=document.getElementById('modal-list');ul.innerHTML='';list.forEach(n=>{const li=document.createElement('li');li.textContent=n;ul.appendChild(li);});modal.style.display='flex';}
+    function parseMonth(m) {
+      return { Janeiro:1, Fevereiro:2, Março:3, Abril:4, Maio:5, Junho:6, Julho:7, Agosto:8, Setembro:9, Outubro:10, Novembro:11, Dezembro:12 }[m] || 1;
+    }
+    function renderBar(data) { /* ... */ }
+    function renderPie(data) { /* ... */ }
+    function renderDoughnut(data) { /* ... */ }
+    function showModal(title,list) { const modal = document.getElementById('detail-modal'); document.getElementById('modal-title').textContent = title; const ul = document.getElementById('modal-list'); ul.innerHTML = ''; list.forEach(n => { const li = document.createElement('li'); li.textContent = n; ul.appendChild(li); }); modal.style.display = 'flex'; }
 
     init();
   </script>
