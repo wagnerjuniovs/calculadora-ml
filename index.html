@@ -1286,3 +1286,139 @@ function pintarTaxaReativacao(dados) {
 <!-- ===== FIM: BLOCO JS 18 - TEMPO MÉDIO SEM CONTATO =========== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 19 - PREVISÕES VENCIDAS ========== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function atualizarPrevisoesVencidas() {
+    const hoje = new Date();
+    const lista = window.allData.filter(x =>
+      x.Recompra instanceof Date && !isNaN(x.Recompra) &&
+      x.Recompra < hoje &&
+      x.Ativo !== 'Reativado'
+    ).map(x => x.Cliente);
+
+    const painel = document.getElementById('previsoes-vencidas');
+    if (!painel) return;
+
+    if (lista.length > 0) {
+      painel.innerHTML = `
+        <h2 class="text-red-500 text-lg font-semibold mb-2">Previsões de Recompra Vencidas</h2>
+        <ul class="list-disc pl-5 text-gray-100">
+          ${lista.map(c => `<li>${c}</li>`).join('')}
+        </ul>
+      `;
+    } else {
+      painel.innerHTML = `
+        <h2 class="text-red-500 text-lg font-semibold mb-2">Previsões de Recompra Vencidas</h2>
+        <p class="text-gray-400">Nenhum cliente com previsão vencida e status pendente.</p>
+      `;
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(atualizarPrevisoesVencidas, 1000);
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 19 - PREVISÕES VENCIDAS ============== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 20 - NEGOCIAÇÕES COM PREVISÃO PRÓXIMA ===== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function atualizarNegociacoesComPrevisao() {
+    const agora = new Date();
+    const emSeteDias = new Date();
+    emSeteDias.setDate(agora.getDate() + 7);
+
+    const lista = allData.filter(x => {
+      return x.Ativo === 'Em negociação' &&
+             x.Recompra instanceof Date &&
+             !isNaN(x.Recompra) &&
+             x.Recompra >= agora && x.Recompra <= emSeteDias;
+    });
+
+    const painel = document.getElementById('negociacoes-previsao-proxima');
+    painel.innerHTML = lista.length > 0
+      ? '<ul class="list-disc pl-4">' + lista.map(x => `<li>${x.Cliente} - ${x.Recompra.toLocaleDateString()}</li>`).join('') + '</ul>'
+      : '<p class="text-sm text-gray-400">Nenhum cliente com previsão próxima.</p>';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    atualizarNegociacoesComPrevisao();
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 20 - NEGOCIAÇÕES COM PREVISÃO PRÓXIMA ====== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
+
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO JS 21 - EVOLUÇÃO DA BASE INATIVA ======== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<script>
+  function atualizarGraficoEvolucaoBase() {
+    const container = document.getElementById('grafico-evolucao-inativos');
+    if (!container || !window.allData?.length) return;
+
+    const meses = [
+      'Abril_2025', 'Maio_2025', 'Junho_2025',
+      'Julho_2025', 'Agosto_2025', 'Setembro_2025',
+      'Outubro_2025', 'Novembro_2025', 'Dezembro_2025'
+    ];
+
+    const contagemPorMes = {};
+    meses.forEach(mes => contagemPorMes[mes] = 0);
+
+    window.allData.forEach(item => {
+      if (item.Status === 'Inativo' && contagemPorMes[item.sheet] !== undefined) {
+        contagemPorMes[item.sheet]++;
+      }
+    });
+
+    const labels = Object.keys(contagemPorMes).map(m => m.replace('_2025', ''));
+    const dados = Object.values(contagemPorMes);
+
+    if (window.graficoEvolucaoBase) window.graficoEvolucaoBase.destroy();
+
+    const ctx = document.getElementById('grafico-evolucao-inativos').getContext('2d');
+    window.graficoEvolucaoBase = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Inativos por Mês',
+          data: dados,
+          fill: false,
+          borderColor: '#a855f7',
+          backgroundColor: '#a855f7',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO JS 21 - EVOLUÇÃO DA BASE INATIVA ========== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
