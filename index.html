@@ -38,56 +38,20 @@
       border-color: var(--border-dark);
       color: var(--text-dark);
     }
-    .dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      padding: 0 2rem;
-    }
-    .card {
-      background: var(--card-bg-light);
-      padding: 1.5rem;
-      border-radius: 1.5rem;
-      box-shadow: 0 10px 30px var(--shadow);
-    }
+    .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem; padding: 0 2rem; }
+    .card { background: var(--card-bg-light); padding: 1.5rem; border-radius: 1.5rem; box-shadow: 0 10px 30px var(--shadow); }
     [data-theme="dark"] .card { background: var(--card-bg-dark); }
     .card h2 { margin: 0 0 .5rem; color: #8e8e93; font-size: .95rem; }
-    .card p  { margin: 0; font-size: 1.75rem; font-weight: 600; }
-    .charts {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2rem;
-      padding: 2rem;
-    }
+    .card p { margin: 0; font-size: 1.75rem; font-weight: 600; }
+    .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem; }
     canvas { width: 100% !important; height: auto !important; }
-    .modal {
-      display: none;
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: var(--card-bg-light);
-      padding: 2rem;
-      border-radius: 1.5rem;
-      max-width: 400px;
-      width: 90%;
-      max-height: 80%;
-      overflow: auto;
-      position: relative;
-    }
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); justify-content:center; align-items:center; }
+    .modal-content { background: var(--card-bg-light); padding:2rem; border-radius:1.5rem; max-width:400px; width:90%; max-height:80%; overflow:auto; position:relative; }
     [data-theme="dark"] .modal-content { background: var(--card-bg-dark); }
-    .modal-content h2 { margin-top: 0; font-size: 1.25rem; color: var(--primary); }
-    .modal-content ul { list-style: none; padding: 0; margin: 1rem 0; }
-    .modal-content ul li { padding: .25rem 0; border-bottom: 1px solid var(--border-light); }
-    .modal-content button.close {
-      position: absolute; top: 1rem; right: 1rem;
-      background: none; border: none;
-      font-size: 1.5rem; cursor: pointer;
-      color: var(--primary);
-    }
+    .modal-content h2 { margin-top:0; font-size:1.25rem; color: var(--primary); }
+    .modal-content ul { list-style:none; padding:0; margin:1rem 0; }
+    .modal-content ul li { padding:.25rem 0; border-bottom:1px solid var(--border-light); }
+    .modal-content button.close { position:absolute; top:1rem; right:1rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--primary); }
   </style>
 </head>
 <body>
@@ -95,28 +59,24 @@
     <h1>Radar de Retenção</h1>
     <button id="theme-toggle">Dark Mode</button>
   </header>
-
   <div class="filters">
     <select id="filter-status"><option value="">Status</option></select>
     <select id="filter-uf"><option value="">UF</option></select>
     <input type="date" id="filter-from" />
     <input type="date" id="filter-to" />
   </div>
-
   <section class="dashboard">
     <div class="card"><h2>Inativos</h2><p id="count-inativos">0</p></div>
     <div class="card"><h2>Ex-Clientes</h2><p id="count-exclientes">0</p></div>
     <div class="card"><h2>Reativações</h2><p id="count-reativacoes">0</p></div>
     <div class="card"><h2>Taxa de Retenção</h2><p id="count-retencao">0%</p></div>
   </section>
-
   <section class="charts">
     <div class="card"><h2>Novos vs. Reativados</h2><canvas id="lineChart"></canvas></div>
     <div class="card"><h2>Movimento por Status</h2><canvas id="barChart"></canvas></div>
     <div class="card"><h2>Motivos de Evasão</h2><canvas id="pieChart"></canvas></div>
     <div class="card"><h2>Status Atual</h2><canvas id="doughnutChart"></canvas></div>
   </section>
-
   <div class="modal" id="detail-modal">
     <div class="modal-content">
       <button class="close">×</button>
@@ -124,26 +84,34 @@
       <ul id="modal-list"></ul>
     </div>
   </div>
-
   <script>
     const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-    const tabs    = ['Abril_2025','Maio_2025','Junho_2025','Julho_2025','Agosto_2025','Setembro_2025','Outubro_2025','Novembro_2025','Dezembro_2025'];
+    const tabs   = ['Abril_2025','Maio_2025','Junho_2025','Julho_2025','Agosto_2025','Setembro_2025','Outubro_2025','Novembro_2025','Dezembro_2025'];
     const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-    let allData = [], nameMaps = {};
+    let allData = [];
+    const nameMaps = { lineNew:{}, lineRe:{}, bar:{}, pie:{}, doughnut:{} };
 
+    // Toggle Light/Dark Mode
     document.getElementById('theme-toggle').addEventListener('click', e => {
       const html = document.documentElement;
-      const theme = html.dataset.theme === 'light' ? 'dark' : 'light';
-      html.dataset.theme = theme;
-      e.target.textContent = theme === 'light' ? 'Dark Mode' : 'Light Mode';
+      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
+      e.target.textContent = html.dataset.theme==='light'?'Dark Mode':'Light Mode';
     });
+
+    function parseDate(s) {
+      if (!s) return NaN;
+      const [d,m,y] = s.split('/');
+      return new Date(+y, +m-1, +d);
+    }
 
     async function fetchAllSheets() {
       let combined = [];
       for (const tab of tabs) {
         const res = await fetch(`${apiBase}?sheet=${tab}`);
         const arr = await res.json();
-        combined.push(...arr.map(r => ({ ...r, _sheet: tab })));
+        if (arr.length > 0) {
+          combined.push(...arr.map(r => ({ ...r, sheet: tab })));
+        }
       }
       return combined;
     }
@@ -156,20 +124,20 @@
         Status:  (r['Status Principal']||'').trim(),
         Ativo:   (r['Status Atual']||'').trim(),
         Motivo:  (r['Motivo do Status']||'').trim(),
-        Data:    r['Último Contato'] ? new Date(r['Último Contato']) : NaN,
-        sheet:   r._sheet
+        Data:    parseDate(r['Último Contato']),
+        sheet:   r.sheet
       }));
+      console.log('Dados carregados:', allData.length);
       populateFilters();
       updateDashboard();
       document.querySelector('.close').onclick = () => document.getElementById('detail-modal').style.display = 'none';
     }
 
     function populateFilters() {
-      const fs = document.getElementById('filter-status');
-      const fu = document.getElementById('filter-uf');
+      const fs = document.getElementById('filter-status'), fu = document.getElementById('filter-uf');
       new Set(allData.map(x=>x.Status)).forEach(v=>fs.add(new Option(v,v)));
       new Set(allData.map(x=>x.UF)).forEach(v=>fu.add(new Option(v,v)));
-      ['change','input'].forEach(evt=>{
+      ['change','input'].forEach(evt => {
         fs.addEventListener(evt, updateDashboard);
         fu.addEventListener(evt, updateDashboard);
         document.getElementById('filter-from').addEventListener(evt, updateDashboard);
@@ -182,152 +150,104 @@
       const fuV = document.getElementById('filter-uf').value;
       const from = new Date(document.getElementById('filter-from').value);
       const to   = new Date(document.getElementById('filter-to').value);
-
-      const filtered = allData.filter(x =>
+      const filt = allData.filter(x =>
         (!fsV || x.Status === fsV) &&
         (!fuV || x.UF === fuV) &&
         (isNaN(from) || x.Data >= from) &&
         (isNaN(to)   || x.Data <= to)
       );
-
-      document.getElementById('count-inativos').textContent     = filtered.filter(x=>x.Status==='Inativo').length;
-      document.getElementById('count-exclientes').textContent  = filtered.filter(x=>x.Status==='Ex-cliente').length;
-      document.getElementById('count-reativacoes').textContent = filtered.filter(x=>x.Ativo==='Reativado').length;
-      const churnTotal = filtered.filter(x=>['Inativo','Ex-cliente'].includes(x.Status)).length || 1;
-      document.getElementById('count-retencao').textContent    =
-        Math.round(filtered.filter(x=>x.Ativo==='Reativado').length / churnTotal * 100) + '%';
-
-      renderLine(filtered);
-      renderBar(filtered);
-      renderPie(filtered);
-      renderDoughnut(filtered);
+      console.log('Filtrados:', filt.length);
+      document.getElementById('count-inativos').textContent    = filt.filter(x=>x.Status==='Inativo').length;
+      document.getElementById('count-exclientes').textContent = filt.filter(x=>x.Status==='Ex-cliente').length;
+      document.getElementById('count-reativacoes').textContent= filt.filter(x=>x.Ativo==='Reativado').length;
+      const churn = filt.filter(x=>['Inativo','Ex-cliente'].includes(x.Status)).length || 1;
+      document.getElementById('count-retencao').textContent   = Math.round(filt.filter(x=>x.Ativo==='Reativado').length/churn*100)+'%';
+      renderLine(filt);
+      renderBar(filt);
+      renderPie(filt);
+      renderDoughnut(filt);
     }
 
     function renderLine(data) {
       const ctx = document.getElementById('lineChart');
-      const cn={}, cr={}; nameMaps.lineNew={}; nameMaps.lineRe={};
-      data.forEach(x=>{
+      const cn = {}, cr = {};
+      nameMaps.lineNew = {};
+      nameMaps.lineRe  = {};
+      data.forEach(x => {
         if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
-        const month = x.sheet.split('_')[0];
-        const lbl = `${month}/${x.Data.getFullYear()}`;
-        if (x.Status === 'Inativo') {
-          cn[lbl] = (cn[lbl]||0)+1;
-          (nameMaps.lineNew[lbl]||(nameMaps.lineNew[lbl]=[])).push(x.Cliente);
-        }
-        if (x.Ativo === 'Reativado') {
-          cr[lbl] = (cr[lbl]||0)+1;
-          (nameMaps.lineRe[lbl]||(nameMaps.lineRe[lbl]=[])).push(x.Cliente);
-        }
+        const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
+        if (x.Status==='Inativo') { cn[lbl]=(cn[lbl]||0)+1; (nameMaps.lineNew[lbl]||(nameMaps.lineNew[lbl]=[])).push(x.Cliente); }
+        if (x.Ativo==='Reativado') { cr[lbl]=(cr[lbl]||0)+1; (nameMaps.lineRe[lbl]||(nameMaps.lineRe[lbl]=[])).push(x.Cliente); }
       });
-      const labels = tabs.map(t=>`${t.split('_')[0]}/${t.split('_')[1]}`);
-      const newV = labels.map(l=>cn[l]||0),
-            reV  = labels.map(l=>cr[l]||0);
+      let labels = Object.keys({...cn,...cr});
+      labels.sort((a,b)=>{
+        const [ma,ya] = a.split('/'), [mb,yb] = b.split('/');
+        return new Date(+ya, parseMonth(ma)-1) - new Date(+yb, parseMonth(mb)-1);
+      });
+      const newV = labels.map(l=>cn[l]||0), reV = labels.map(l=>cr[l]||0);
+      if (window.chartLine && typeof window.chartLine.destroy==='function') window.chartLine.destroy();
+      window.chartLine = new Chart(ctx, { type:'line', data:{labels,datasets:[
+        {label:'Inativos',data:newV,borderColor:'#4caf50',fill:false},
+        {label:'Reativados',data:reV,borderColor:primaryColor,fill:false}
+      ]}, options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+      ctx.onclick = e => { const pts = window.chartLine.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const {index, datasetIndex} = pts[0]; const month = labels[index]; const list = datasetIndex===0?nameMaps.lineNew[month]:nameMaps.lineRe[month]; showModal((datasetIndex===0?'Inativos':'Reativados')+` (${month})`, list||[]); };
+    }
 
-      if (window.lineChart) window.lineChart.destroy();
-      window.lineChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels, datasets:[
-          { label:'Inativos',   data:newV, borderColor:'#4caf50', fill:false },
-          { label:'Reativados', data:reV, borderColor:primaryColor, fill:false }
-        ]},
-        options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
-      });
-      ctx.onclick = e=>{
-        const pts = window.lineChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
-        if (!pts.length) return;
-        const { index, datasetIndex } = pts[0];
-        const lbl = labels[index];
-        const list = datasetIndex===0 ? nameMaps.lineNew[lbl] : nameMaps.lineRe[lbl];
-        showModal((datasetIndex===0?'Inativos':'Reativados')+` (${lbl}):`, list||[]);
-      };
+    function parseMonth(m) {
+      return {Janeiro:1,Fevereiro:2,Março:3,Abril:4,Maio:5,Junho:6,Julho:7,Agosto:8,Setembro:9,Outubro:10,Novembro:11,Dezembro:12}[m]||1;
     }
 
     function renderBar(data) {
       const ctx = document.getElementById('barChart');
-      const cnt={'Inativo':0,'Ex-cliente':0,'Reativado':0};
-      nameMaps.bar={};
-      data.forEach(x=>{
-        ['Inativo','Ex-cliente','Reativado'].forEach(k=>{
-          if ((k==='Reativado'&&x.Ativo==='Reativado')||(k!=='Reativado'&&x.Status===k)) {
-            cnt[k] = (cnt[k]||0)+1;
-            (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
-          }
-        });
-      });
-      const labels = Object.keys(cnt),
-            vals   = labels.map(l=>cnt[l]);
-      if (window.barChart) window.barChart.destroy();
-      window.barChart = new Chart(ctx,{
-        type:'bar',
-        data:{ labels, datasets:[{ data:vals, backgroundColor:['#4caf50','#007aff','#ff9800'] }] },
-        options:{ responsive:true }
-      });
-      ctx.onclick = e=>{
-        const pts = window.barChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
-        if (!pts.length) return;
-        const l = labels[pts[0].index];
-        showModal(l+':', nameMaps.bar[l]||[]);
-      };
+      const cnt = {'Inativo':0,'Ex-cliente':0,'Reativado':0}; nameMaps.bar = {};
+      data.forEach(x => { ['Inativo','Ex-cliente','Reativado'].forEach(k => {
+        if ((k==='Reativado' && x.Ativo==='Reativado') || (k!=='Reativado' && x.Status===k)) {
+          cnt[k]++; (nameMaps.bar[k]||(nameMaps.bar[k]=[])).push(x.Cliente);
+        }
+      }); });
+      const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
+      const cols  = ['#4caf50','#007aff','#ff9800'];
+      if (window.chartBar && typeof window.chartBar.destroy==='function') window.chartBar.destroy();
+      window.chartBar = new Chart(ctx, { type:'bar', data:{labels,datasets:[{data:vals,backgroundColor:cols}]}, options:{responsive:true}});
+      ctx.onclick = e => { const pts = window.chartBar.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const label = labels[pts[0].index]; showModal(label, nameMaps.bar[label]||[]); };
     }
 
     function renderPie(data) {
-      const ctx = document.getElementById('pieChart'),
-            cnt={}, nm={};
-      data.forEach(x=>{
+      const ctx = document.getElementById('pieChart');
+      const cnt = {}, nm = {};
+      data.forEach(x => {
         if (!x.Motivo) return;
         cnt[x.Motivo] = (cnt[x.Motivo]||0)+1;
         (nm[x.Motivo]||(nm[x.Motivo]=[])).push(x.Cliente);
       });
       nameMaps.pie = nm;
       const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-      if (window.pieChart) window.pieChart.destroy();
-      window.pieChart = new Chart(ctx,{
-        type:'pie',
-        data:{ labels, datasets:[{ data:vals }]},
-        options:{ responsive:true, plugins:{ legend:{ position:'right' } } }
-      });
-      ctx.onclick = e=>{
-        const pts = window.pieChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
-        if (!pts.length) return;
-        const i = pts[0].index, l = labels[i];
-        showModal(l+':', nm[l]||[]);
-      };
+      if (window.chartPie && typeof window.chartPie.destroy==='function') window.chartPie.destroy();
+      window.chartPie = new Chart(ctx, { type:'pie', data:{labels,datasets:[{data:vals}]}, options:{responsive:true,plugins:{legend:{position:'right'}}}});
+      ctx.onclick = e => { const pts = window.chartPie.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i=pts[0].index; showModal(labels[i], nm[labels[i]]||[]); };
     }
 
     function renderDoughnut(data) {
-      const ctx = document.getElementById('doughnutChart'),
-            cnt={}, nm={};
-      data.forEach(x=>{
+      const ctx = document.getElementById('doughnutChart');
+      const cnt = {}, nm = {};
+      data.forEach(x => {
         if (!x.Ativo) return;
         cnt[x.Ativo] = (cnt[x.Ativo]||0)+1;
         (nm[x.Ativo]||(nm[x.Ativo]=[])).push(x.Cliente);
       });
       nameMaps.doughnut = nm;
       const labels = Object.keys(cnt), vals = labels.map(l=>cnt[l]);
-      if (window.doughnutChart) window.doughnutChart.destroy();
-      window.doughnutChart = new Chart(ctx,{
-        type:'doughnut',
-        data:{ labels, datasets:[{ data:vals, backgroundColor:['#2196f3','#4caf50','#ffeb3b','#ff5722'] }]},
-        options:{ responsive:true, plugins:{ legend:{ position:'right' } } }
-      });
-      ctx.onclick = e=>{
-        const pts = window.doughnutChart.getElementsAtEventForMode(e,'nearest',{intersect:true},false);
-        if (!pts.length) return;
-        const i = pts[0].index, l = labels[i];
-        showModal(l+':', nm[l]||[]);
-      };
+      const cols  = ['#2196f3','#4caf50','#ffeb3b','#ff5722'];
+      if (window.chartDough && typeof window.chartDough.destroy==='function') window.chartDough.destroy();
+      window.chartDough = new Chart(ctx, { type:'doughnut', data:{labels,datasets:[{data:vals,backgroundColor:cols}]}, options:{responsive:true,plugins:{legend:{position:'right'}}}});
+      ctx.onclick = e => { const pts = window.chartDough.getElementsAtEventForMode(e,'nearest',{intersect:true},false); if(!pts.length) return; const i=pts[0].index; showModal(labels[i], nm[labels[i]]||[]); };
     }
 
     function showModal(title, list) {
       const modal = document.getElementById('detail-modal');
       document.getElementById('modal-title').textContent = title;
-      const ul = document.getElementById('modal-list');
-      ul.innerHTML = '';
-      list.forEach(name => {
-        const li = document.createElement('li');
-        li.textContent = name;
-        ul.appendChild(li);
-      });
+      const ul = document.getElementById('modal-list'); ul.innerHTML = '';
+      list.forEach(name => { const li=document.createElement('li'); li.textContent=name; ul.appendChild(li); });
       modal.style.display = 'flex';
     }
 
