@@ -3,6 +3,8 @@ import {
   Line,
   Pie,
   Bar,
+  Doughnut,
+  Radar,
 } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,6 +14,7 @@ import {
   LineElement,
   BarElement,
   ArcElement,
+  RadialLinearScale,
   Tooltip,
   Legend,
 } from "chart.js";
@@ -23,49 +26,29 @@ ChartJS.register(
   LineElement,
   BarElement,
   ArcElement,
+  RadialLinearScale,
   Tooltip,
   Legend
 );
 
-export default function DashboardTailwind() {
+export default function App() {
   return (
     <div className="min-h-screen bg-gray-100 p-8 font-sans">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Radar de Retenção 2025</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard com 5 Gráficos</h1>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Top Cards */}
-        <div className="col-span-3 bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Clientes Inativos</p>
-          <p className="text-3xl font-semibold">15</p>
-        </div>
-        <div className="col-span-3 bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Clientes Reativados no Mês</p>
-          <p className="text-3xl font-semibold">8</p>
-        </div>
-        <div className="col-span-3 bg-white rounded-xl p-4 shadow-md">
-          <p className="text-sm text-gray-500">Taxa de Retenção</p>
-          <p className="text-3xl font-semibold">72%</p>
-        </div>
-        <div className="col-span-3 flex justify-end items-start">
-          <button className="text-sm bg-gray-200 px-4 py-2 rounded-lg">Alternar Modo</button>
-        </div>
-
-        {/* Gráfico Linhas */}
+        {/* Gráfico de Linhas */}
         <div className="col-span-6 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Novos vs. Reativados</p>
+          <p className="mb-2 font-semibold">Vendas Mensais</p>
           <Line
             data={{
-              labels: ["Março", "Abril", "Junho", "Julho"],
+              labels: ["Jan", "Fev", "Mar", "Abr", "Mai"],
               datasets: [
                 {
-                  label: "Novos",
-                  data: [3, 4, 5, 5],
-                  borderColor: "#34A853",
-                },
-                {
-                  label: "Reativados",
-                  data: [1, 2, 3, 2],
-                  borderColor: "#4285F4",
+                  label: "Vendas",
+                  data: [30, 45, 28, 50, 60],
+                  borderColor: "#4F46E5",
+                  fill: false,
                 },
               ],
             }}
@@ -73,59 +56,17 @@ export default function DashboardTailwind() {
           />
         </div>
 
-        {/* Gráfico Pizza */}
+        {/* Gráfico de Barras */}
         <div className="col-span-6 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Detalhes do Cliente</p>
-          <Pie
-            data={{
-              labels: ["Em negociação", "Cliente ativo"],
-              datasets: [
-                {
-                  data: [50, 50],
-                  backgroundColor: ["#4285F4", "#34A853"],
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
-
-        {/* Calendário */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md">
-          <p className="mb-2 font-semibold">Calendário de Contatos</p>
-          <div className="grid grid-cols-7 gap-2 text-center text-sm">
-            {[...Array(24).keys()].map((d) => (
-              <div
-                key={d}
-                className={`rounded-md py-2 ${[14, 15, 20].includes(d + 1) ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-700"}`}
-              >
-                {d + 1}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Detalhes Texto */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md">
-          <p className="mb-2 font-semibold">Detalhes do Cliente</p>
-          <p className="text-gray-600 text-sm">
-            Maria Confecções<br />
-            Prometer o que não podemos entregar é a maneira mais rápida de perder a credibilidade.
-          </p>
-          <button className="mt-4 text-sm bg-gray-200 px-4 py-2 rounded-lg">Voltar</button>
-        </div>
-
-        {/* Gráfico Barras */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Indicadores Gerais</p>
+          <p className="mb-2 font-semibold">Comparativo de Produtos</p>
           <Bar
             data={{
-              labels: ["A", "B", "C", "D", "E"],
+              labels: ["Produto A", "Produto B", "Produto C"],
               datasets: [
                 {
-                  label: "Indicador",
-                  data: [20, 25, 30, 22, 28],
-                  backgroundColor: "#34A853",
+                  label: "Vendas",
+                  data: [80, 55, 70],
+                  backgroundColor: ["#10B981", "#3B82F6", "#F59E0B"],
                 },
               ],
             }}
@@ -133,14 +74,57 @@ export default function DashboardTailwind() {
           />
         </div>
 
-        {/* Filtro Simples */}
-        <div className="col-span-6 bg-white rounded-xl p-4 shadow-md">
-          <p className="mb-2 font-semibold">Filtros e Categorias</p>
-          <select className="w-full border border-gray-300 rounded-lg p-2 text-sm">
-            <option>Todos os Status</option>
-            <option>Ativos</option>
-            <option>Inativos</option>
-          </select>
+        {/* Gráfico de Pizza */}
+        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
+          <p className="mb-2 font-semibold">Distribuição de Clientes</p>
+          <Pie
+            data={{
+              labels: ["Ativos", "Inativos", "Potenciais"],
+              datasets: [
+                {
+                  data: [45, 25, 30],
+                  backgroundColor: ["#22C55E", "#EF4444", "#F97316"],
+                },
+              ],
+            }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
+        </div>
+
+        {/* Gráfico Doughnut */}
+        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
+          <p className="mb-2 font-semibold">Origem dos Leads</p>
+          <Doughnut
+            data={{
+              labels: ["Instagram", "Google Ads", "Indicação"],
+              datasets: [
+                {
+                  data: [40, 35, 25],
+                  backgroundColor: ["#6366F1", "#10B981", "#F59E0B"],
+                },
+              ],
+            }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
+        </div>
+
+        {/* Gráfico Radar */}
+        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
+          <p className="mb-2 font-semibold">Performance de Equipes</p>
+          <Radar
+            data={{
+              labels: ["Comunicação", "Vendas", "Suporte", "Inovação"],
+              datasets: [
+                {
+                  label: "Equipe A",
+                  data: [65, 59, 80, 81],
+                  backgroundColor: "rgba(59,130,246,0.2)",
+                  borderColor: "#3B82F6",
+                },
+              ],
+            }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
         </div>
       </div>
     </div>
