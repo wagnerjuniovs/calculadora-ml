@@ -1,132 +1,110 @@
-import React from "react";
-import {
-  Line,
-  Pie,
-  Bar,
-  Doughnut,
-  Radar,
-} from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  RadialLinearScale,
-  Tooltip,
-  Legend,
-} from "chart.js";
+<!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO_DASHBOARD_CINCO_GRÁFICOS ============ -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
+<section class="px-6 py-10 grid grid-cols-12 gap-6">
+  <!-- Gráfico de Linhas -->
+  <div class="col-span-6 bg-white dark:bg-cardDark rounded-xl p-6 shadow-soft">
+    <h2 class="text-base font-semibold mb-4 text-primary">Vendas Mensais</h2>
+    <canvas id="grafico-linha" class="w-full h-64"></canvas>
+  </div>
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  RadialLinearScale,
-  Tooltip,
-  Legend
-);
+  <!-- Gráfico de Barras -->
+  <div class="col-span-6 bg-white dark:bg-cardDark rounded-xl p-6 shadow-soft">
+    <h2 class="text-base font-semibold mb-4 text-primary">Comparativo de Produtos</h2>
+    <canvas id="grafico-barras" class="w-full h-64"></canvas>
+  </div>
 
-export default function App() {
-  return (
-    <div className="min-h-screen bg-gray-100 p-8 font-sans">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard com 5 Gráficos</h1>
+  <!-- Gráfico de Pizza -->
+  <div class="col-span-4 bg-white dark:bg-cardDark rounded-xl p-6 shadow-soft">
+    <h2 class="text-base font-semibold mb-4 text-primary">Distribuição de Clientes</h2>
+    <canvas id="grafico-pizza" class="w-full h-64"></canvas>
+  </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Gráfico de Linhas */}
-        <div className="col-span-6 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Vendas Mensais</p>
-          <Line
-            data={{
-              labels: ["Jan", "Fev", "Mar", "Abr", "Mai"],
-              datasets: [
-                {
-                  label: "Vendas",
-                  data: [30, 45, 28, 50, 60],
-                  borderColor: "#4F46E5",
-                  fill: false,
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
+  <!-- Gráfico de Rosca -->
+  <div class="col-span-4 bg-white dark:bg-cardDark rounded-xl p-6 shadow-soft">
+    <h2 class="text-base font-semibold mb-4 text-primary">Origem dos Leads</h2>
+    <canvas id="grafico-rosca" class="w-full h-64"></canvas>
+  </div>
 
-        {/* Gráfico de Barras */}
-        <div className="col-span-6 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Comparativo de Produtos</p>
-          <Bar
-            data={{
-              labels: ["Produto A", "Produto B", "Produto C"],
-              datasets: [
-                {
-                  label: "Vendas",
-                  data: [80, 55, 70],
-                  backgroundColor: ["#10B981", "#3B82F6", "#F59E0B"],
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
+  <!-- Gráfico de Radar -->
+  <div class="col-span-4 bg-white dark:bg-cardDark rounded-xl p-6 shadow-soft">
+    <h2 class="text-base font-semibold mb-4 text-primary">Performance de Equipes</h2>
+    <canvas id="grafico-radar" class="w-full h-64"></canvas>
+  </div>
+</section>
 
-        {/* Gráfico de Pizza */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Distribuição de Clientes</p>
-          <Pie
-            data={{
-              labels: ["Ativos", "Inativos", "Potenciais"],
-              datasets: [
-                {
-                  data: [45, 25, 30],
-                  backgroundColor: ["#22C55E", "#EF4444", "#F97316"],
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const corPrimaria = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
 
-        {/* Gráfico Doughnut */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Origem dos Leads</p>
-          <Doughnut
-            data={{
-              labels: ["Instagram", "Google Ads", "Indicação"],
-              datasets: [
-                {
-                  data: [40, 35, 25],
-                  backgroundColor: ["#6366F1", "#10B981", "#F59E0B"],
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
+    // Gráfico de Linhas
+    new Chart(document.getElementById('grafico-linha'), {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
+        datasets: [{ label: 'Vendas', data: [30, 45, 28, 50, 60], borderColor: corPrimaria, fill: false }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
 
-        {/* Gráfico Radar */}
-        <div className="col-span-4 bg-white rounded-xl p-4 shadow-md h-64">
-          <p className="mb-2 font-semibold">Performance de Equipes</p>
-          <Radar
-            data={{
-              labels: ["Comunicação", "Vendas", "Suporte", "Inovação"],
-              datasets: [
-                {
-                  label: "Equipe A",
-                  data: [65, 59, 80, 81],
-                  backgroundColor: "rgba(59,130,246,0.2)",
-                  borderColor: "#3B82F6",
-                },
-              ],
-            }}
-            options={{ responsive: true, maintainAspectRatio: false }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+    // Gráfico de Barras
+    new Chart(document.getElementById('grafico-barras'), {
+      type: 'bar',
+      data: {
+        labels: ['Produto A', 'Produto B', 'Produto C'],
+        datasets: [{
+          label: 'Vendas',
+          data: [80, 55, 70],
+          backgroundColor: ['#10B981', '#3B82F6', '#F59E0B']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Gráfico de Pizza
+    new Chart(document.getElementById('grafico-pizza'), {
+      type: 'pie',
+      data: {
+        labels: ['Ativos', 'Inativos', 'Potenciais'],
+        datasets: [{
+          data: [45, 25, 30],
+          backgroundColor: ['#22C55E', '#EF4444', '#F97316']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Gráfico de Rosca
+    new Chart(document.getElementById('grafico-rosca'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Instagram', 'Google Ads', 'Indicação'],
+        datasets: [{
+          data: [40, 35, 25],
+          backgroundColor: ['#6366F1', '#10B981', '#F59E0B']
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    // Gráfico de Radar
+    new Chart(document.getElementById('grafico-radar'), {
+      type: 'radar',
+      data: {
+        labels: ['Comunicação', 'Vendas', 'Suporte', 'Inovação'],
+        datasets: [{
+          label: 'Equipe A',
+          data: [65, 59, 80, 81],
+          backgroundColor: 'rgba(59,130,246,0.2)',
+          borderColor: '#3B82F6'
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  });
+</script>
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO_DASHBOARD_CINCO_GRÁFICOS =============== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
