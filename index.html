@@ -1360,63 +1360,71 @@ function pintarTaxaReativacao(dados) {
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - CORREÇÃO DE FILTROS DE DATA === -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ===== INÍCIO: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO ===== -->
 <!-- ========================================================== -->
 <script>
-  function filtrarDadosComSeguranca() {
-    try {
-      const statusSelect = document.getElementById('filtro-status');
-      const ufSelect = document.getElementById('filtro-uf');
-      const deInput = document.getElementById('filtro-de');
-      const ateInput = document.getElementById('filtro-ate');
-
-      if (!statusSelect || !ufSelect || !deInput || !ateInput || !window.allData) {
-        console.warn('[DASHBOARD] Algum filtro ou os dados não foram encontrados');
-        return;
-      }
-
-      const status = statusSelect.value;
-      const uf = ufSelect.value;
-      const de = new Date(deInput.value);
-      const ate = new Date(ateInput.value);
-
-      const temDataValida = !isNaN(de.getTime()) && !isNaN(ate.getTime());
-
-      const filtrados = window.allData.filter(r => {
-        if (!r.Data || !(r.Data instanceof Date) || isNaN(r.Data.getTime())) return false;
-
-        const dentroDoPeriodo = temDataValida ? (r.Data >= de && r.Data <= ate) : true;
-        const condStatus = status === '' || r.Status === status;
-        const condUf = uf === '' || r.UF === uf;
-
-        return dentroDoPeriodo && condStatus && condUf;
-      });
-
-      console.log('[DASHBOARD] Registros filtrados:', filtrados.length);
-      window.filteredData = filtrados;
-      updateDashboard();
-    } catch (erro) {
-      console.error('[ERRO FILTRO DATA]', erro);
-    } finally {
-      hideLoader();
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
-    const inputs = [
-      'filtro-status',
-      'filtro-uf',
-      'filtro-de',
-      'filtro-ate'
-    ];
-    inputs.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('change', filtrarDadosComSeguranca);
-    });
+    const deInput = document.getElementById('filtro-de');
+    const ateInput = document.getElementById('filtro-ate');
+
+    function parseInputDate(value) {
+      if (!value) return null;
+      const parsed = new Date(value);
+      if (!isNaN(parsed)) return parsed;
+
+      // Tenta converter formatos tipo "12 de mai. de 2025" ou "12/05/2025"
+      const match = value.match(/(\d{1,2})\D+(\d{1,2}|[a-zç]+)\D+(\d{4})/i);
+      if (!match) return null;
+
+      const day = parseInt(match[1]);
+      let month = isNaN(match[2]) ?
+        ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
+          .findIndex(m => m.startsWith(match[2].toLowerCase().slice(0,3))) + 1
+        : parseInt(match[2]);
+
+      const year = parseInt(match[3]);
+      if (!day || !month || !year) return null;
+      return new Date(year, month - 1, day);
+    }
+
+    function marcarErroInput(input, erro = true) {
+      if (erro) {
+        input.classList.add('border-red-500');
+        input.title = 'Data inválida';
+      } else {
+        input.classList.remove('border-red-500');
+        input.title = '';
+      }
+    }
+
+    function aplicarFiltroSeValido() {
+      const de = parseInputDate(deInput.value);
+      const ate = parseInputDate(ateInput.value);
+
+      const deValido = de instanceof Date && !isNaN(de);
+      const ateValido = ate instanceof Date && !isNaN(ate);
+
+      marcarErroInput(deInput, !deValido && deInput.value);
+      marcarErroInput(ateInput, !ateValido && ateInput.value);
+
+      if ((deInput.value && !deValido) || (ateInput.value && !ateValido)) return;
+
+      window.filtros = window.filtros || {};
+      window.filtros.de = deValido ? de : null;
+      window.filtros.ate = ateValido ? ate : null;
+
+      aplicarTodosFiltros();
+    }
+
+    // Escutadores para validação ao sair do campo e ao digitar (real-time)
+    deInput.addEventListener('change', aplicarFiltroSeValido);
+    ateInput.addEventListener('change', aplicarFiltroSeValido);
+    deInput.addEventListener('input', aplicarFiltroSeValido);
+    ateInput.addEventListener('input', aplicarFiltroSeValido);
   });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - CORREÇÃO DE FILTROS DE DATA ===== -->
+<!-- ===== FIM: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
