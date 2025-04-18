@@ -1360,25 +1360,29 @@ function pintarTaxaReativacao(dados) {
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - FILTRO POR DATA (CORRIGIDO) ==== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ===== INÍCIO: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO ===== -->
 <!-- ========================================================== -->
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const deInput = document.getElementById('filtro-de');
-    const ateInput = document.getElementById('filtro-ate');
+    const deInput = document.getElementById('filter-from');
+    const ateInput = document.getElementById('filter-to');
 
     function parseInputDate(value) {
       if (!value) return null;
       const parsed = new Date(value);
       if (!isNaN(parsed)) return parsed;
+
+      // Tenta converter formatos tipo "12 de mai. de 2025" ou "12/05/2025"
       const match = value.match(/(\d{1,2})\D+(\d{1,2}|[a-zç]+)\D+(\d{4})/i);
       if (!match) return null;
+
       const day = parseInt(match[1]);
       let month = isNaN(match[2]) ?
         ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
           .findIndex(m => m.startsWith(match[2].toLowerCase().slice(0,3))) + 1
         : parseInt(match[2]);
+
       const year = parseInt(match[3]);
       if (!day || !month || !year) return null;
       return new Date(year, month - 1, day);
@@ -1397,25 +1401,20 @@ function pintarTaxaReativacao(dados) {
     function aplicarFiltroSeValido() {
       const de = parseInputDate(deInput.value);
       const ate = parseInputDate(ateInput.value);
+
       const deValido = de instanceof Date && !isNaN(de);
       const ateValido = ate instanceof Date && !isNaN(ate);
 
       marcarErroInput(deInput, !deValido && deInput.value);
       marcarErroInput(ateInput, !ateValido && ateInput.value);
 
-      window.filtros = window.filtros || {};
-      
-      if (deValido && ateValido) {
-        window.filtros.de = de; 
-        window.filtros.ate = ate;
-      } else {
-        window.filtros.de = null;
-        window.filtros.ate = null;
-      }
+      if ((deInput.value && !deValido) || (ateInput.value && !ateValido)) return;
 
-      aplicarTodosFiltros();
+      // Chamamos diretamente o updateDashboard ao invés de aplicarTodosFiltros
+      updateDashboard();
     }
-    
+
+    // Escutadores para validação ao sair do campo e ao digitar (real-time)
     deInput.addEventListener('change', aplicarFiltroSeValido);
     ateInput.addEventListener('change', aplicarFiltroSeValido);
     deInput.addEventListener('input', aplicarFiltroSeValido);
@@ -1423,6 +1422,6 @@ function pintarTaxaReativacao(dados) {
   });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - FILTRO POR DATA (CORRIGIDO) ====== -->
+<!-- ===== FIM: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
