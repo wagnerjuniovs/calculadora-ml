@@ -1360,45 +1360,63 @@ function pintarTaxaReativacao(dados) {
 <!-- ========================================================== -->
 
 <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - AJUSTE FILTRO DE DATAS ========= -->
+<!-- ===== INÍCIO: BLOCO JS 21 - CORREÇÃO DE FILTROS DE DATA === -->
 <!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
 <!-- ========================================================== -->
 <script>
-  function updateDashboard() {
-    const status = document.getElementById('status-filter').value;
-    const uf = document.getElementById('uf-filter').value;
-    const dataDe = document.getElementById('data-inicio').value;
-    const dataAte = document.getElementById('data-fim').value;
+  function filtrarDadosComSeguranca() {
+    try {
+      const statusSelect = document.getElementById('filtro-status');
+      const ufSelect = document.getElementById('filtro-uf');
+      const deInput = document.getElementById('filtro-de');
+      const ateInput = document.getElementById('filtro-ate');
 
-    const inicioValido = dataDe && !isNaN(new Date(dataDe));
-    const fimValido = dataAte && !isNaN(new Date(dataAte));
-
-    const dadosFiltrados = window.allData.filter(d => {
-      const dentroStatus = status === '' || d.Status === status;
-      const dentroUF = uf === '' || d.UF === uf;
-
-      let dentroPeriodo = true;
-
-      if (inicioValido && fimValido) {
-        dentroPeriodo = d.Data >= new Date(dataDe) && d.Data <= new Date(dataAte);
+      if (!statusSelect || !ufSelect || !deInput || !ateInput || !window.allData) {
+        console.warn('[DASHBOARD] Algum filtro ou os dados não foram encontrados');
+        return;
       }
 
-      return dentroStatus && dentroUF && dentroPeriodo;
-    });
+      const status = statusSelect.value;
+      const uf = ufSelect.value;
+      const de = new Date(deInput.value);
+      const ate = new Date(ateInput.value);
 
-    console.log('[DASHBOARD] Registros filtrados:', dadosFiltrados.length);
-    atualizarKPIs(dadosFiltrados);
-    atualizarTabela(dadosFiltrados);
-    atualizarGraficos(dadosFiltrados);
-    atualizarIndicadores(dadosFiltrados);
+      const temDataValida = !isNaN(de.getTime()) && !isNaN(ate.getTime());
+
+      const filtrados = window.allData.filter(r => {
+        if (!r.Data || !(r.Data instanceof Date) || isNaN(r.Data.getTime())) return false;
+
+        const dentroDoPeriodo = temDataValida ? (r.Data >= de && r.Data <= ate) : true;
+        const condStatus = status === '' || r.Status === status;
+        const condUf = uf === '' || r.UF === uf;
+
+        return dentroDoPeriodo && condStatus && condUf;
+      });
+
+      console.log('[DASHBOARD] Registros filtrados:', filtrados.length);
+      window.filteredData = filtrados;
+      updateDashboard();
+    } catch (erro) {
+      console.error('[ERRO FILTRO DATA]', erro);
+    } finally {
+      hideLoader();
+    }
   }
 
-  document.getElementById('status-filter').addEventListener('change', updateDashboard);
-  document.getElementById('uf-filter').addEventListener('change', updateDashboard);
-  document.getElementById('data-inicio').addEventListener('change', updateDashboard);
-  document.getElementById('data-fim').addEventListener('change', updateDashboard);
+  document.addEventListener('DOMContentLoaded', () => {
+    const inputs = [
+      'filtro-status',
+      'filtro-uf',
+      'filtro-de',
+      'filtro-ate'
+    ];
+    inputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('change', filtrarDadosComSeguranca);
+    });
+  });
 </script>
 <!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - AJUSTE FILTRO DE DATAS =========== -->
+<!-- ===== FIM: BLOCO JS 21 - CORREÇÃO DE FILTROS DE DATA ===== -->
 <!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
 <!-- ========================================================== -->
