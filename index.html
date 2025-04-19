@@ -653,39 +653,93 @@ async function carregarTodosDados() {
       };
     }
     
-    // Agrupar dados por mês (3 séries: Ex‑clientes, Inativos, Reativados)
-function agruparPorMes(dados) {
-  const cont = {};
+    // Nova função para agrupar dados por mês seguindo a lógica matemática correta
+function agruparDadosPorMes(dados) {
+  const resultado = {};
+  
+  // Percorre todos os registros
   dados.forEach(item => {
-    const mes = item['Mês de Referência'];
-    if (!mes) return;
-    if (!cont[mes]) cont[mes] = { exClientes: 0, inativos: 0, reativados: 0 };
-
-    // Reativado ganha prioridade
-    if (item['Status Atual'] === 'Reativado') {
-      cont[mes].reativados++;
+    // Obtém o mês de referência
+    const mesReferencia = item['Mês de Referência'];
+    if (!mesReferencia) return; // Pula se não tiver mês de referência
+    
+    // Inicializa o contador para esse mês se não existir
+    if (!resultado[mesReferencia]) {
+      resultado[mesReferencia] = { exClientes: 0, inativos: 0, reativados: 0 };
     }
-    else if (item['Status Principal'] === 'Ex-cliente') {
-      cont[mes].exClientes++;
+    
+    // Obtém o último pedido e converte para data
+    const ultimoPedido = converterStringParaData(item['Último Pedido']);
+    if (!ultimoPedido) return; // Pula se não tiver último pedido
+    
+    // Converte o mês de referência para um objeto Date do primeiro dia do mês
+    const [nomeMes, anoStr] = mesReferencia.split('/');
+    if (!nomeMes || !anoStr) return; // Validação básica
+    
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    const mesIndex = meses.indexOf(nomeMes);
+    const ano = parseInt(anoStr);
+    
+    if (mesIndex === -1 || isNaN(ano)) return; // Mês ou ano inválido
+    
+    // Cria data do primeiro dia do mês de referência
+    const dataMesReferencia = new Date(ano, mesIndex, 1);
+    
+    // Calcula a diferença em meses entre o último pedido e o mês de referência
+    const diferencaMeses = calcularDiferencaMeses(ultimoPedido, dataMesReferencia);
+    
+    // Aplica a lógica matemática para classificação:
+    
+    // 1. REATIVADOS: Status Atual = "Reativado" E último pedido no próprio mês de referência
+    if (item['Status Atual'] === 'Reativado' && 
+        ultimoPedido.getMonth() === mesIndex && 
+        ultimoPedido.getFullYear() === ano) {
+      resultado[mesReferencia].reativados++;
     }
-    else if (item['Status Principal'] === 'Inativo') {
-      cont[mes].inativos++;
+    // 2. EX-CLIENTES: Último pedido há 6 meses ou mais
+    else if (diferencaMeses >= 6) {
+      resultado[mesReferencia].exClientes++;
     }
+    // 3. INATIVOS: Último pedido entre 4 e menos de 6 meses
+    else if (diferencaMeses >= 4 && diferencaMeses < 6) {
+      resultado[mesReferencia].inativos++;
+    }
+    // Outros casos não são contabilizados em nenhuma das categorias
   });
-
-  const mesesOrdenados = Object.keys(cont).sort((a, b) => {
-    const [nA, yA] = a.split('/'), [nB, yB] = b.split('/');
-    const idx = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    if (+yA !== +yB) return +yA - +yB;
-    return idx.indexOf(nA) - idx.indexOf(nB);
+  
+  // Ordena os meses cronologicamente
+  const mesesOrdenados = Object.keys(resultado).sort((a, b) => {
+    const [nomeA, anoA] = a.split('/');
+    const [nomeB, anoB] = b.split('/');
+    
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    
+    // Compara primeiro por ano
+    if (parseInt(anoA) !== parseInt(anoB)) {
+      return parseInt(anoA) - parseInt(anoB);
+    }
+    
+    // Se anos iguais, compara por mês
+    return meses.indexOf(nomeA) - meses.indexOf(nomeB);
   });
-
+  
+  // Retorna o resultado formatado para o Chart.js
   return {
-    meses:       mesesOrdenados,
-    exClientes: mesesOrdenados.map(m => cont[m].exClientes),
-    inativos:   mesesOrdenados.map(m => cont[m].inativos),
-    reativados: mesesOrdenados.map(m => cont[m].reativados)
+    meses: mesesOrdenados,
+    exClientes: mesesOrdenados.map(mes => resultado[mes].exClientes),
+    inativos: mesesOrdenados.map(mes => resultado[mes].inativos),
+    reativados: mesesOrdenados.map(mes => resultado[mes].reativados)
   };
+}
+
+// Função auxiliar para calcular a diferença em meses entre duas datas
+function calcularDiferencaMeses(dataAnterior, dataPosterior) {
+  return (
+    (dataPosterior.getFullYear() - dataAnterior.getFullYear()) * 12 + 
+    (dataPosterior.getMonth() - dataAnterior.getMonth())
+  );
 }
     
     // Agrupar por status atual para gráfico de pizza
@@ -848,28 +902,71 @@ function inicializarFiltros() {
       });
     }
     
-    // Desenhar gráfico Inativos vs Reativados com 3 barras
+    // Desenhar gráfico Inativos vs Reativados com 3 barras (Ex-clientes, Inativos, Reativados)
 function desenharGraficoInativosReativados(dados) {
   const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
   if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
 
-  const { meses, exClientes, inativos, reativados } = agruparPorMes(dados);
+  // Agrupar os dados por mês usando a lógica matemática específica
+  const dadosAgrupados = agruparDadosPorMes(dados);
+
+  // Cores para os diferentes tipos
+  const coresBarras = {
+    exClientes: '#ff9800', // laranja
+    inativos: '#4caf50',   // verde
+    reativados: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() // azul (var CSS)
+  };
 
   window.graficoInativosReativados = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: meses,
+      labels: dadosAgrupados.meses,
       datasets: [
-        { label: 'Ex‑clientes', data: exClientes, backgroundColor: '#ff9800' },
-        { label: 'Inativos',    data: inativos,   backgroundColor: '#4caf50' },
-        { label: 'Reativados',  data: reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
+        { 
+          label: 'Ex‑clientes', 
+          data: dadosAgrupados.exClientes, 
+          backgroundColor: coresBarras.exClientes,
+          borderWidth: 0
+        },
+        { 
+          label: 'Inativos', 
+          data: dadosAgrupados.inativos, 
+          backgroundColor: coresBarras.inativos,
+          borderWidth: 0
+        },
+        { 
+          label: 'Reativados', 
+          data: dadosAgrupados.reativados, 
+          backgroundColor: coresBarras.reativados,
+          borderWidth: 0
+        }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
-      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } } }
+      plugins: {
+        legend: {
+          display: false // Remove a legenda automática do Chart.js
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(200,200,200,0.1)'
+          }
+        }
+      }
     }
   });
 }
