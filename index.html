@@ -1,4 +1,759 @@
-// Identificar clientes sem contato há mais de 30 dias
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radar de Retenção</title>
+
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Tailwind CSS (via CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007aff',
+            bgLight: '#f9f9f9',
+            bgDark: '#1c1c1e',
+            cardLight: '#ffffff',
+            cardDark: '#2c2c2e',
+            textLight: '#1c1c1e',
+            textDark: '#f9f9f9',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.1)'
+          },
+          borderRadius: {
+            xl: '1.5rem',
+            full: '9999px'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Tema escuro/claro - Variáveis de cores */
+    :root {
+      --bg-main: #f9fafb;
+      --text-main: #111827;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(0, 0, 0, 0.1);
+      --primary: #007aff;
+      --primary-hover: #0056b3;
+      --danger: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --border: #e5e7eb;
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #1f1f1f;
+      --text-main: #f1f1f1;
+      --card-bg: #2a2a2a;
+      --card-shadow: rgba(0, 0, 0, 0.4);
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --info: #60a5fa;
+      --border: #374151;
+    }
+
+    /* Estilos globais */
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      transition: background-color 0.3s, color 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      box-shadow: 0 4px 6px var(--card-shadow);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .text-primary {
+      color: var(--primary);
+    }
+
+    /* Controles e inputs */
+    select, input, button {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      transition: all 0.2s;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Tabelas */
+    table {
+      width: 100%;
+      border-spacing: 0;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      opacity: 0.7;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Animação de loading */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    /* Classe para erros */
+    .border-error {
+      border-color: var(--danger) !important;
+    }
+
+    /* Tooltip personalizado */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="font-sans min-h-screen">
+  <header class="flex justify-between items-center px-6 py-4 bg-opacity-90 backdrop-blur-sm sticky top-0 z-10" style="background-color: var(--card-bg);">
+    <h1 class="text-2xl font-bold" style="color: var(--primary);">Radar de Retenção</h1>
+    <div class="flex items-center gap-4">
+      <span id="data-update" class="text-sm opacity-70"></span>
+      <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm transition-colors">
+        Alternar Tema
+      </button>
+    </div>
+  </header>
+
+  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
+    <div class="flex flex-col items-center space-y-4">
+      <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
+      <p class="font-medium" style="color: var(--primary);">Carregando dados...</p>
+    </div>
+  </div>
+
+  <main class="container mx-auto px-4 py-6">
+    <!-- Filtros -->
+    <section class="card mb-6">
+      <div class="mb-4">
+        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
+            <select id="filter-status" class="w-full">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
+            <select id="filter-uf" class="w-full">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
+            <input type="date" id="filter-from" class="w-full">
+          </div>
+          <div>
+            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
+            <input type="date" id="filter-to" class="w-full">
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button id="btn-limpar-filtros" class="px-4 py-2 rounded text-sm mr-2" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
+          Limpar Filtros
+        </button>
+        <button id="btn-aplicar-filtros" class="px-4 py-2 rounded text-sm" style="background-color: var(--primary);">
+          Aplicar Filtros
+        </button>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
+        <p id="count-inativos" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
+        <p id="count-exclientes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
+        <p id="count-reativacoes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
+        <p id="count-retencao" class="text-2xl font-bold" style="color: var(--primary);">0%</p>
+      </div>
+    </section>
+
+    <!-- Gráficos principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Inativos vs Reativados -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
+          <div class="text-xs opacity-70" id="inativos-reativados-info">
+            <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #4caf50;"></span> Inativos
+            <span class="inline-block w-3 h-3 rounded-full ml-3 mr-1" style="background-color: var(--primary);"></span> Reativados
+          </div>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-inativos-reativados"></canvas>
+        </div>
+      </section>
+
+      <!-- Gráfico Status -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Status Atual</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-status"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Motivos de Evasão -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Motivos de Evasão</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-motivos"></canvas>
+        </div>
+      </section>
+
+      <!-- Taxa de Reativação por Mês -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Taxa de Reativação por Mês</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-taxa-reativacao"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- Alertas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Clientes sem contato há mais de 30 dias -->
+      <section class="card border-l-4" style="border-left-color: var(--danger);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
+        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- Previsões de recompra vencidas -->
+      <section class="card border-l-4" style="border-left-color: var(--warning);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
+        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tabela de clientes -->
+    <section class="card">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
+        <div class="flex items-center">
+          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." class="text-sm px-3 py-1 mr-2">
+          <select id="filtro-tabela-status" class="text-sm px-3 py-1">
+            <option value="">Todos os status</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="tabela-clientes" class="min-w-full">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>UF</th>
+              <th>Status Principal</th>
+              <th>Status Atual</th>
+              <th>Motivo</th>
+              <th>Último Contato</th>
+              <th>Previsão de Recompra</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela-clientes">
+            <tr>
+              <td colspan="7" class="text-center py-4">Carregando dados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm">
+          <span id="total-registros">0</span> registros encontrados
+        </div>
+        <div class="flex items-center">
+          <button id="btn-anterior" class="px-3 py-1 rounded mr-2" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
+          <span id="paginacao" class="text-sm mx-2">Página 1 de 1</span>
+          <button id="btn-proximo" class="px-3 py-1 rounded" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal para detalhes do cliente -->
+  <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="max-w-md w-full mx-4 rounded-xl overflow-hidden" style="background-color: var(--card-bg);">
+      <div class="flex justify-between items-center p-4 border-b" style="border-color: var(--border);">
+        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
+        <button id="btn-fechar-modal" class="text-2xl font-bold hover:opacity-70">&times;</button>
+      </div>
+      <div class="p-4" id="modal-conteudo">
+        <p class="text-sm opacity-70">Carregando...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONFIGURAÇÕES INICIAIS
+    // ==========================================
+    
+    // API e configurações
+    const API_BASE = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
+    
+    // Armazenamento global de dados
+    window.dadosClientes = [];
+    window.dadosFiltrados = [];
+    window.abas = [];
+    window.filtros = {
+      status: '',
+      uf: '',
+      dataInicio: null,
+      dataFim: null
+    };
+    
+    // Configuração de paginação da tabela
+    window.paginacao = {
+      paginaAtual: 1,
+      itensPorPagina: 10,
+      totalPaginas: 1
+    };
+    
+    // Mapas para armazenar dados dos gráficos
+    window.mapasGraficos = {
+      inativosVsReativados: {},
+      status: {},
+      motivos: {}
+    };
+    
+    // Tema atual
+    window.temaAtual = localStorage.getItem('tema') || 'dark';
+    document.documentElement.dataset.theme = window.temaAtual;
+    
+    // ==========================================
+    // FUNÇÕES DE UTILIDADE
+    // ==========================================
+    
+    // Converter string de data DD/MM/AAAA para objeto Date
+    function converterStringParaData(dataString) {
+      if (!dataString) return null;
+      
+      // Verifica se já é um objeto Date
+      if (dataString instanceof Date) return dataString;
+      
+      // Tenta converter de DD/MM/AAAA
+      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        const [dia, mes, ano] = dataString.split('/').map(Number);
+        return new Date(ano, mes - 1, dia);
+      }
+      
+      // Tenta converter de YYYY-MM-DD (formato do input date)
+      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(dataString + 'T00:00:00');
+      }
+      
+      // Para outros formatos, tenta conversão direta
+      const data = new Date(dataString);
+      return isNaN(data) ? null : data;
+    }
+    
+    // Formatar data para exibição (DD/MM/AAAA)
+    function formatarData(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
+      
+      const dia = data.getDate().toString().padStart(2, '0');
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const ano = data.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+    
+    // Formatar data para o formato ISO (YYYY-MM-DD)
+    function formatarDataISO(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '';
+      
+      const ano = data.getFullYear();
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const dia = data.getDate().toString().padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+    
+    // Calcular dias desde uma data até hoje
+    function diasDesde(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const diff = hoje - data;
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+    
+    // Extrair mês/ano de uma data para agrupamento
+    function extrairMesAno(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return `${meses[data.getMonth()]}/${data.getFullYear()}`;
+    }
+    
+    // Mostrar mensagem de erro
+    function mostrarErro(mensagem, duracao = 5000) {
+      const alerta = document.createElement('div');
+      alerta.className = 'fixed bottom-4 right-4 p-4 rounded-lg z-50 text-white text-sm';
+      alerta.style.backgroundColor = 'var(--danger)';
+      alerta.textContent = mensagem;
+      
+      document.body.appendChild(alerta);
+      
+      setTimeout(() => {
+        alerta.style.opacity = '0';
+        alerta.style.transition = 'opacity 0.5s';
+        
+        setTimeout(() => {
+          document.body.removeChild(alerta);
+        }, 500);
+      }, duracao);
+    }
+    
+    // Alternar visibilidade do loader
+    function toggleLoader(mostrar = true) {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        loader.style.display = mostrar ? 'flex' : 'none';
+      }
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE CARREGAMENTO DE DADOS
+    // ==========================================
+    
+    // Obter a lista de abas da planilha
+    async function obterListaAbas() {
+      try {
+        // Busca os metadados da planilha
+        const response = await fetch(`${API_BASE}?info=true`);
+        const info = await response.json();
+        
+        // Extrai os nomes das abas
+        if (info && info.sheets) {
+          return info.sheets;
+        }
+        
+        return [];
+      } catch (erro) {
+        console.error('Erro ao obter lista de abas:', erro);
+        mostrarErro('Não foi possível obter a lista de abas da planilha');
+        return [];
+      }
+    }
+    
+    // Carregar dados de uma aba específica
+    async function carregarDadosAba(nomeAba) {
+      try {
+        const response = await fetch(`${API_BASE}?sheet=${nomeAba}`);
+        const dados = await response.json();
+        
+        // Verifica se a aba tem dados
+        if (Array.isArray(dados) && dados.length > 0) {
+          console.log(`Carregados ${dados.length} registros da aba ${nomeAba}`);
+          
+          // Adiciona o nome da aba aos registros e faz o processamento dos dados
+          return dados.map(registro => ({
+            Cliente: (registro.Cliente || '').trim(),
+            UF: (registro.UF || '').trim(),
+            Status: (registro['Status Principal'] || '').trim(),
+            Ativo: (registro['Status Atual'] || '').trim(),
+            Motivo: (registro['Motivo do Status'] || '').trim(),
+            Data: converterStringParaData(registro['Último Contato']),
+            ProxContato: converterStringParaData(registro['Próximo Contato']),
+            Recompra: converterStringParaData(registro['Previsão de Recompra']),
+            Aba: nomeAba
+          }));
+        }
+        
+        return [];
+      } catch (erro) {
+        console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
+        mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
+        return [];
+      }
+    }
+    
+    // Carregar todos os dados de todas as abas com conteúdo
+    async function carregarTodosDados() {
+      toggleLoader(true);
+      
+      try {
+        // Obtém a lista de abas disponíveis
+        const listaAbas = await obterListaAbas();
+        window.abas = listaAbas;
+        
+        // Carrega os dados de cada aba sequencialmente
+        let dadosCombinados = [];
+        
+        for (const aba of listaAbas) {
+          const dadosAba = await carregarDadosAba(aba);
+          if (dadosAba.length > 0) {
+            dadosCombinados = [...dadosCombinados, ...dadosAba];
+          }
+        }
+        
+        // Atualiza a data da última atualização
+        const dataAtualizacao = document.getElementById('data-update');
+        if (dataAtualizacao) {
+          const agora = new Date();
+          dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
+        }
+        
+        return dadosCombinados;
+      } catch (erro) {
+        console.error('Erro ao carregar todos os dados:', erro);
+        mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
+        return [];
+      } finally {
+        toggleLoader(false);
+      }
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE FILTRO E PROCESSAMENTO
+    // ==========================================
+    
+    // Aplicar filtros aos dados
+    function aplicarFiltros(dados, filtros) {
+      return dados.filter(item => {
+        // Filtro de Status
+        if (filtros.status && item.Status !== filtros.status) {
+          return false;
+        }
+        
+        // Filtro de UF
+        if (filtros.uf && item.UF !== filtros.uf) {
+          return false;
+        }
+        
+        // Filtro de Data Início
+        if (filtros.dataInicio && item.Data && item.Data < filtros.dataInicio) {
+          return false;
+        }
+        
+        // Filtro de Data Fim
+        if (filtros.dataFim && item.Data && item.Data > filtros.dataFim) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Calcular KPIs
+    function calcularKPIs(dados) {
+      const totalInativos = dados.filter(item => item.Status === 'Inativo').length;
+      const totalExClientes = dados.filter(item => item.Status === 'Ex-cliente').length;
+      const totalReativados = dados.filter(item => item.Ativo === 'Reativado').length;
+      
+      // Base para cálculo da taxa de retenção (inativos + ex-clientes)
+      const baseChurn = totalInativos + totalExClientes;
+      
+      // Taxa de retenção (reativados / base de churn)
+      const taxaRetencao = baseChurn > 0 ? Math.round((totalReativados / baseChurn) * 100) : 0;
+      
+      return {
+        totalInativos,
+        totalExClientes,
+        totalReativados,
+        taxaRetencao
+      };
+    }
+    
+    // Agrupar dados por mês para gráficos
+    function agruparPorMes(dados) {
+      const inativosPorMes = {};
+      const reativadosPorMes = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        // Contagem de inativos
+        if (item.Status === 'Inativo') {
+          inativosPorMes[mesAno] = (inativosPorMes[mesAno] || 0) + 1;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          reativadosPorMes[mesAno] = (reativadosPorMes[mesAno] || 0) + 1;
+        }
+      });
+      
+      // Obtém todos os meses presentes nos dados
+      const meses = [...new Set([...Object.keys(inativosPorMes), ...Object.keys(reativadosPorMes)])].sort();
+      
+      // Cria arrays ordenados para o gráfico
+      const inativosArray = meses.map(mes => inativosPorMes[mes] || 0);
+      const reativadosArray = meses.map(mes => reativadosPorMes[mes] || 0);
+      
+      return {
+        meses,
+        inativos: inativosArray,
+        reativados: reativadosArray
+      };
+    }
+    
+    // Agrupar por status atual para gráfico de pizza
+    function agruparPorStatus(dados) {
+      const statusCount = {};
+      
+      dados.forEach(item => {
+        if (item.Ativo) {
+          statusCount[item.Ativo] = (statusCount[item.Ativo] || 0) + 1;
+        }
+      });
+      
+      return statusCount;
+    }
+    
+    // Agrupar por motivo para gráfico de pizza
+    function agruparPorMotivo(dados) {
+      const motivoCount = {};
+      
+      dados.forEach(item => {
+        if (item.Motivo) {
+          motivoCount[item.Motivo] = (motivoCount[item.Motivo] || 0) + 1;
+        }
+      });
+      
+      return motivoCount;
+    }
+    
+    // Calcular taxa de reativação por mês
+    function calcularTaxaReativacaoPorMes(dados) {
+      const meses = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        if (!meses[mesAno]) {
+          meses[mesAno] = { inativos: 0, reativados: 0 };
+        }
+        
+        // Contagem de inativos e ex-clientes
+        if (item.Status === 'Inativo' || item.Status === 'Ex-cliente') {
+          meses[mesAno].inativos++;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          meses[mesAno].reativados++;
+        }
+      });
+      
+      // Calcula as taxas para cada mês
+      const mesesOrdenados = Object.keys(meses).sort();
+      const taxas = mesesOrdenados.map(mes => {
+        const { inativos, reativados } = meses[mes];
+        return inativos > 0 ? (reativados / inativos) * 100 : 0;
+      });
+      
+      return {
+        meses: mesesOrdenados,
+        taxas
+      };
+    }
+    
+    // Identificar clientes sem contato há mais de 30 dias
     function identificarClientesSemContato(dados) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
@@ -15,35 +770,20 @@
       });
     }
     
-    // Identificar previsões de recompra vencidas ou prestes a vencer
+    // Identificar previsões de recompra vencidas
     function identificarPrevisoesVencidas(dados) {
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       
-      // Considerar apenas clientes com previsão de recompra que não seja "Não comprará mais"
       return dados.filter(item => {
-        if (!item.Recompra || item.Recompra === "Não comprará mais") return false;
+        if (!item.Recompra) return false;
         
-        // Tenta converter a data se for uma string
-        let dataRecompra = null;
-        if (typeof item.Recompra === 'string') {
-          dataRecompra = converterStringParaData(item.Recompra);
-        } else if (item.Recompra instanceof Date) {
-          dataRecompra = item.Recompra;
-        }
-        
-        if (!dataRecompra) return false;
-        
-        // Verifica se a data de recompra já passou ou está próxima (7 dias)
-        return dataRecompra < hoje && item.StatusAtual !== 'Reativado';
+        // Verifica se a data de recompra já passou e o cliente não foi reativado
+        return item.Recompra < hoje && item.Ativo !== 'Reativado';
       }).sort((a, b) => {
-        // Convertedata para comparação
-        const dateA = typeof a.Recompra === 'string' ? converterStringParaData(a.Recompra) : a.Recompra;
-        const dateB = typeof b.Recompra === 'string' ? converterStringParaData(b.Recompra) : b.Recompra;
-        
-        if (!dateA) return 1;
-        if (!dateB) return -1;
-        return dateA - dateB; // Mais antigos primeiro
+        if (!a.Recompra) return 1;
+        if (!b.Recompra) return -1;
+        return a.Recompra - b.Recompra; // Mais antigos primeiro
       });
     }
     
@@ -87,7 +827,7 @@
       // Extrair valores únicos
       const status = [...new Set(dados.map(item => item.Status).filter(Boolean))].sort();
       const ufs = [...new Set(dados.map(item => item.UF).filter(Boolean))].sort();
-      const statusAtuais = [...new Set(dados.map(item => item.StatusAtual).filter(Boolean))].sort();
+      const statusAtuais = [...new Set(dados.map(item => item.Ativo).filter(Boolean))].sort();
       
       // Adicionar opções
       status.forEach(s => {
@@ -112,63 +852,47 @@
       });
     }
     
-    // Desenhar gráfico de status principal vs status atual
-    function desenharGraficoStatusPrincipalAtual(dados) {
-      const ctx = document.getElementById('chart-status-principal-atual').getContext('2d');
+    // Desenhar gráfico de inativos vs reativados
+    function desenharGraficoInativosReativados(dados) {
+      const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
       
       // Destruir gráfico existente se houver
-      if (window.graficoStatusPrincipalAtual) {
-        window.graficoStatusPrincipalAtual.destroy();
+      if (window.graficoInativosReativados) {
+        window.graficoInativosReativados.destroy();
       }
       
-      // Agrupar dados
-      const dadosAgrupados = agruparPorStatusPrincipalAtual(dados);
+      // Agrupar dados por mês
+      const dadosPorMes = agruparPorMes(dados);
       
-      // Extrair status principais e status atuais únicos
-      const statusPrincipais = Object.keys(dadosAgrupados);
-      const todosStatusAtuais = new Set();
-      
-      statusPrincipais.forEach(sp => {
-        Object.keys(dadosAgrupados[sp]).forEach(sa => {
-          todosStatusAtuais.add(sa);
-        });
-      });
-      
-      const statusAtuais = [...todosStatusAtuais].sort();
-      
-      // Preparar datasets
-      const datasets = statusAtuais.map((statusAtual, index) => {
-        // Gerar cores para cada status atual
-        const cores = [
-          '#4caf50', // Verde
-          '#3b82f6', // Azul
-          '#f59e0b', // Amarelo
-          '#ef4444', // Vermelho
-          '#8b5cf6', // Roxo
-          '#ec4899'  // Rosa
-        ];
-        
-        return {
-          label: statusAtual,
-          data: statusPrincipais.map(sp => dadosAgrupados[sp][statusAtual] || 0),
-          backgroundColor: cores[index % cores.length],
-          borderWidth: 0
-        };
-      });
+      // Armazenar dados para interatividade
+      window.mapasGraficos.inativosVsReativados = dadosPorMes;
       
       // Configuração do gráfico
-      window.graficoStatusPrincipalAtual = new Chart(ctx, {
+      window.graficoInativosReativados = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: statusPrincipais,
-          datasets: datasets
+          labels: dadosPorMes.meses,
+          datasets: [
+            {
+              label: 'Inativos',
+              data: dadosPorMes.inativos,
+              backgroundColor: '#4caf50',
+              borderWidth: 0
+            },
+            {
+              label: 'Reativados',
+              data: dadosPorMes.reativados,
+              backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+              borderWidth: 0
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              position: 'top'
+              display: false
             },
             tooltip: {
               mode: 'index',
@@ -192,17 +916,17 @@
       });
     }
     
-    // Desenhar gráfico de status atual (rosca)
-    function desenharGraficoStatusAtual(dados) {
-      const ctx = document.getElementById('chart-status-atual').getContext('2d');
+    // Desenhar gráfico de status (rosca)
+    function desenharGraficoStatus(dados) {
+      const ctx = document.getElementById('chart-status').getContext('2d');
       
       // Destruir gráfico existente se houver
-      if (window.graficoStatusAtual) {
-        window.graficoStatusAtual.destroy();
+      if (window.graficoStatus) {
+        window.graficoStatus.destroy();
       }
       
-      // Agrupar dados por status atual
-      const statusCount = agruparPorStatusAtual(dados);
+      // Agrupar dados por status
+      const statusCount = agruparPorStatus(dados);
       
       // Preparar dados para o gráfico
       const labels = Object.keys(statusCount);
@@ -211,15 +935,18 @@
       // Gerar cores para cada status
       const cores = [
         '#4caf50', // Verde
-        '#3b82f6', // Azul
+        getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
         '#f59e0b', // Amarelo
         '#ef4444', // Vermelho
         '#8b5cf6', // Roxo
         '#ec4899'  // Rosa
       ];
       
+      // Armazenar dados para interatividade
+      window.mapasGraficos.status = statusCount;
+      
       // Configuração do gráfico
-      window.graficoStatusAtual = new Chart(ctx, {
+      window.graficoStatus = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: labels,
@@ -288,6 +1015,9 @@
         '#8b5cf6'  // Roxo
       ];
       
+      // Armazenar dados para interatividade
+      window.mapasGraficos.motivos = motivoCount;
+      
       // Configuração do gráfico
       window.graficoMotivos = new Chart(ctx, {
         type: 'pie',
@@ -327,58 +1057,63 @@
       });
     }
     
-    // Desenhar gráfico de distribuição por UF
-    function desenharGraficoDistribuicaoUF(dados) {
-      const ctx = document.getElementById('chart-distribuicao-uf').getContext('2d');
+    // Desenhar gráfico de taxa de reativação por mês
+    function desenharGraficoTaxaReativacao(dados) {
+      const ctx = document.getElementById('chart-taxa-reativacao').getContext('2d');
       
       // Destruir gráfico existente se houver
-      if (window.graficoDistribuicaoUF) {
-        window.graficoDistribuicaoUF.destroy();
+      if (window.graficoTaxaReativacao) {
+        window.graficoTaxaReativacao.destroy();
       }
       
-      // Agrupar dados por UF
-      const ufCount = agruparPorUF(dados);
-      
-      // Ordenar UFs por quantidade (do maior para o menor)
-      const ufsSorted = Object.entries(ufCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10); // Limite para as 10 UFs com mais registros
-      
-      // Preparar dados para o gráfico
-      const labels = ufsSorted.map(item => item[0]);
-      const values = ufsSorted.map(item => item[1]);
+      // Calcular taxa de reativação por mês
+      const { meses, taxas } = calcularTaxaReativacaoPorMes(dados);
       
       // Configuração do gráfico
-      window.graficoDistribuicaoUF = new Chart(ctx, {
-        type: 'bar',
+      window.graficoTaxaReativacao = new Chart(ctx, {
+        type: 'line',
         data: {
-          labels: labels,
+          labels: meses,
           datasets: [{
-            label: 'Clientes por UF',
-            data: values,
-            backgroundColor: '#3b82f6',
-            borderWidth: 0
+            label: 'Taxa de Reativação (%)',
+            data: taxas,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          indexAxis: 'y', // Barras horizontais
           plugins: {
             legend: {
               display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Taxa: ${context.raw.toFixed(1)}%`;
+                }
+              }
             }
           },
           scales: {
             x: {
-              beginAtZero: true,
               grid: {
-                color: 'rgba(200, 200, 200, 0.1)'
+                display: false
               }
             },
             y: {
               grid: {
-                display: false
+                color: 'rgba(200, 200, 200, 0.1)'
+              },
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
               }
             }
           }
@@ -397,8 +1132,6 @@
       }
       
       const lista = document.createElement('ul');
-      lista.style.listStyle = 'none';
-      lista.style.padding = '0';
       lista.className = 'space-y-2';
       
       // Limitar a 10 itens para não sobrecarregar a UI
@@ -439,8 +1172,6 @@
       }
       
       const lista = document.createElement('ul');
-      lista.style.listStyle = 'none';
-      lista.style.padding = '0';
       lista.className = 'space-y-2';
       
       // Limitar a 10 itens para não sobrecarregar a UI
@@ -448,20 +1179,9 @@
         const item = document.createElement('li');
         item.className = 'text-sm flex justify-between';
         
-        // Formatar a data de recompra
-        let dataRecompra = '-';
-        if (typeof cliente.Recompra === 'string' && cliente.Recompra !== 'Não comprará mais') {
-          const data = converterStringParaData(cliente.Recompra);
-          if (data) {
-            dataRecompra = formatarData(data);
-          } else {
-            dataRecompra = cliente.Recompra;
-          }
-        }
-        
         item.innerHTML = `
           <span>${cliente.Cliente} (${cliente.UF})</span>
-          <span class="opacity-70">${dataRecompra}</span>
+          <span class="opacity-70">${formatarData(cliente.Recompra)}</span>
         `;
         
         lista.appendChild(item);
@@ -533,23 +1253,14 @@
       dadosPagina.forEach(cliente => {
         const tr = document.createElement('tr');
         
-        // Formatar a previsão de recompra
-        let recompraFormatada = cliente.Recompra;
-        if (typeof cliente.Recompra === 'string' && cliente.Recompra !== 'Não comprará mais') {
-          const data = converterStringParaData(cliente.Recompra);
-          if (data) {
-            recompraFormatada = formatarData(data);
-          }
-        }
-        
         tr.innerHTML = `
           <td class="cursor-pointer hover:text-primary" data-cliente="${cliente.Cliente}">${cliente.Cliente}</td>
           <td>${cliente.UF || '-'}</td>
           <td>${cliente.Status || '-'}</td>
-          <td>${cliente.StatusAtual || '-'}</td>
+          <td>${cliente.Ativo || '-'}</td>
           <td>${cliente.Motivo || '-'}</td>
           <td>${cliente.Data ? formatarData(cliente.Data) : '-'}</td>
-          <td>${recompraFormatada || '-'}</td>
+          <td>${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</td>
         `;
         
         // Adicionar evento de clique para exibir detalhes
@@ -573,12 +1284,12 @@
       const dadosFiltrados = window.dadosFiltrados.filter(cliente => {
         // Filtro de texto
         const matchTexto = !pesquisa || 
-                          (cliente.Cliente && cliente.Cliente.toLowerCase().includes(pesquisa)) ||
-                          (cliente.UF && cliente.UF.toLowerCase().includes(pesquisa)) ||
-                          (cliente.Motivo && cliente.Motivo.toLowerCase().includes(pesquisa));
+                         (cliente.Cliente && cliente.Cliente.toLowerCase().includes(pesquisa)) ||
+                         (cliente.UF && cliente.UF.toLowerCase().includes(pesquisa)) ||
+                         (cliente.Motivo && cliente.Motivo.toLowerCase().includes(pesquisa));
         
         // Filtro de status
-        const matchStatus = !statusFiltro || cliente.StatusAtual === statusFiltro;
+        const matchStatus = !statusFiltro || cliente.Ativo === statusFiltro;
         
         return matchTexto && matchStatus;
       });
@@ -596,69 +1307,46 @@
       const conteudo = document.getElementById('modal-conteudo');
       
       // Formatar dados para o modal
-      let dataRecompra = cliente.Recompra;
-      if (typeof cliente.Recompra === 'string' && cliente.Recompra !== 'Não comprará mais') {
-        const data = converterStringParaData(cliente.Recompra);
-        if (data) {
-          dataRecompra = formatarData(data);
-        }
-      }
-      
       conteudo.innerHTML = `
-        <div style="margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
-          <div style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">${cliente.Cliente}</div>
-          <div style="opacity: 0.7; font-size: 0.875rem;">
-            <span style="margin-right: 0.5rem;">${cliente.UF || '-'}</span>
-            <span style="display: inline-block; width: 0.375rem; height: 0.375rem; border-radius: 50%; margin: 0 0.5rem; background-color: var(--border);"></span>
-            <span>${cliente.Categoria || '-'}</span>
+        <div class="mb-4 pb-3 border-b" style="border-color: var(--border);">
+          <div class="text-xl font-bold mb-1">${cliente.Cliente}</div>
+          <div class="flex items-center opacity-70 text-sm">
+            <span class="mr-2">${cliente.UF || '-'}</span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full mx-2" style="background-color: var(--border);"></span>
+            <span>${cliente.Aba || ''}</span>
           </div>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+        <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Status Principal</p>
-            <p style="font-weight: 500;">${cliente.Status || '-'}</p>
+            <p class="text-sm opacity-70 mb-1">Status Principal</p>
+            <p class="font-medium">${cliente.Status || '-'}</p>
           </div>
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Status Atual</p>
-            <p style="font-weight: 500;">${cliente.StatusAtual || '-'}</p>
+            <p class="text-sm opacity-70 mb-1">Status Atual</p>
+            <p class="font-medium">${cliente.Ativo || '-'}</p>
           </div>
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Motivo</p>
-            <p style="font-weight: 500;">${cliente.Motivo || '-'}</p>
-          </div>
-          <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Último Pedido</p>
-            <p style="font-weight: 500;">${cliente.UltimoPedido ? formatarData(cliente.UltimoPedido) : '-'}</p>
+            <p class="text-sm opacity-70 mb-1">Motivo</p>
+            <p class="font-medium">${cliente.Motivo || '-'}</p>
           </div>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+        <div class="grid grid-cols-2 gap-4">
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Último Contato</p>
-            <p style="font-weight: 500;">${cliente.Data ? formatarData(cliente.Data) : '-'}</p>
-            ${cliente.Data ? `<p style="font-size: 0.75rem; opacity: 0.5; margin-top: 0.25rem;">Há ${diasDesde(cliente.Data)} dias</p>` : ''}
+            <p class="text-sm opacity-70 mb-1">Último Contato</p>
+            <p class="font-medium">${cliente.Data ? formatarData(cliente.Data) : '-'}</p>
+            ${cliente.Data ? `<p class="text-xs opacity-50 mt-1">Há ${diasDesde(cliente.Data)} dias</p>` : ''}
           </div>
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Próximo Contato</p>
-            <p style="font-weight: 500;">${cliente.ProxContato ? formatarData(cliente.ProxContato) : cliente.ProxContato || '-'}</p>
+            <p class="text-sm opacity-70 mb-1">Próximo Contato</p>
+            <p class="font-medium">${cliente.ProxContato ? formatarData(cliente.ProxContato) : '-'}</p>
           </div>
           <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Previsão de Recompra</p>
-            <p style="font-weight: 500;">${dataRecompra || '-'}</p>
-          </div>
-          <div>
-            <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Mês de Referência</p>
-            <p style="font-weight: 500;">${cliente.MesReferencia || '-'}</p>
+            <p class="text-sm opacity-70 mb-1">Previsão de Recompra</p>
+            <p class="font-medium">${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</p>
           </div>
         </div>
-        
-        ${cliente.Observacao ? `
-        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-          <p style="font-size: 0.875rem; opacity: 0.7; margin-bottom: 0.25rem;">Observação</p>
-          <p style="font-size: 0.875rem;">${cliente.Observacao}</p>
-        </div>
-        ` : ''}
       `;
       
       // Exibir o modal
@@ -698,10 +1386,10 @@
       
       // Atualizar gráficos e KPIs
       atualizarKPIs(kpis);
-      desenharGraficoStatusPrincipalAtual(window.dadosFiltrados);
-      desenharGraficoStatusAtual(window.dadosFiltrados);
+      desenharGraficoInativosReativados(window.dadosFiltrados);
+      desenharGraficoStatus(window.dadosFiltrados);
       desenharGraficoMotivos(window.dadosFiltrados);
-      desenharGraficoDistribuicaoUF(window.dadosFiltrados);
+      desenharGraficoTaxaReativacao(window.dadosFiltrados);
       atualizarAlertaSemContato(window.dadosFiltrados);
       atualizarAlertaPrevisoesVencidas(window.dadosFiltrados);
       renderizarTabelaClientes(window.dadosFiltrados);
@@ -732,10 +1420,10 @@
       
       // Atualizar gráficos se existirem
       if (window.dadosFiltrados) {
-        desenharGraficoStatusPrincipalAtual(window.dadosFiltrados);
-        desenharGraficoStatusAtual(window.dadosFiltrados);
+        desenharGraficoInativosReativados(window.dadosFiltrados);
+        desenharGraficoStatus(window.dadosFiltrados);
         desenharGraficoMotivos(window.dadosFiltrados);
-        desenharGraficoDistribuicaoUF(window.dadosFiltrados);
+        desenharGraficoTaxaReativacao(window.dadosFiltrados);
       }
     }
     
@@ -806,11 +1494,11 @@
         configurarEventListeners();
         
         // Carregar dados
-        const dados = await carregarDados();
+        const dados = await carregarTodosDados();
         
         // Verificar se há dados
         if (!dados || dados.length === 0) {
-          mostrarErro('Não foram encontrados dados na API. Verifique se há registros na planilha.');
+          mostrarErro('Não foram encontrados dados na planilha. Verifique se há registros nas abas.');
           toggleLoader(false);
           return;
         }
@@ -840,790 +1528,4 @@
     document.addEventListener('DOMContentLoaded', inicializarDashboard);
   </script>
 </body>
-</html><!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Radar de Retenção</title>
-
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    /* Tema escuro/claro - Variáveis de cores */
-    :root {
-      --bg-main: #f9fafb;
-      --text-main: #111827;
-      --card-bg: #ffffff;
-      --card-shadow: rgba(0, 0, 0, 0.1);
-      --primary: #007aff;
-      --primary-hover: #0056b3;
-      --danger: #dc2626;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --info: #3b82f6;
-      --border: #e5e7eb;
-    }
-
-    [data-theme="dark"] {
-      --bg-main: #1f1f1f;
-      --text-main: #f1f1f1;
-      --card-bg: #2a2a2a;
-      --card-shadow: rgba(0, 0, 0, 0.4);
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --info: #60a5fa;
-      --border: #374151;
-    }
-
-    /* Estilos globais */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      transition: background-color 0.3s, color 0.3s;
-      font-family: 'Inter', sans-serif;
-      line-height: 1.5;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      box-shadow: 0 4px 6px var(--card-shadow);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .text-primary {
-      color: var(--primary);
-    }
-
-    .flex {
-      display: flex;
-    }
-
-    .flex-col {
-      flex-direction: column;
-    }
-
-    .justify-between {
-      justify-content: space-between;
-    }
-
-    .items-center {
-      align-items: center;
-    }
-
-    .gap-4 {
-      gap: 1rem;
-    }
-
-    .grid {
-      display: grid;
-    }
-
-    .grid-cols-1 {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-
-    .grid-cols-2 {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .grid-cols-4 {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .mb-4 {
-      margin-bottom: 1rem;
-    }
-
-    .mb-6 {
-      margin-bottom: 1.5rem;
-    }
-
-    .font-bold {
-      font-weight: 700;
-    }
-
-    .font-medium {
-      font-weight: 500;
-    }
-
-    .text-sm {
-      font-size: 0.875rem;
-    }
-
-    .text-lg {
-      font-size: 1.125rem;
-    }
-
-    .text-xl {
-      font-size: 1.25rem;
-    }
-
-    .text-2xl {
-      font-size: 1.5rem;
-    }
-
-    .opacity-70 {
-      opacity: 0.7;
-    }
-
-    /* Controles e inputs */
-    select, input, button {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-
-    select:focus, input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-
-    button {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: var(--primary-hover);
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    /* Tabelas */
-    table {
-      width: 100%;
-      border-spacing: 0;
-    }
-
-    th {
-      text-align: left;
-      font-weight: 600;
-      padding: 0.75rem 1rem;
-      color: var(--text-main);
-      opacity: 0.7;
-    }
-
-    td {
-      padding: 0.75rem 1rem;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Animação de loading */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin {
-      animation: spin 1s linear infinite;
-    }
-    
-    /* Classes utilitárias */
-    .cursor-pointer {
-      cursor: pointer;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    .max-h-60 {
-      max-height: 15rem;
-    }
-
-    .overflow-y-auto {
-      overflow-y: auto;
-    }
-
-    .overflow-x-auto {
-      overflow-x: auto;
-    }
-
-    .border-l-4 {
-      border-left-width: 4px;
-      border-left-style: solid;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .fixed {
-      position: fixed;
-    }
-
-    .inset-0 {
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-    }
-
-    .z-50 {
-      z-index: 50;
-    }
-
-    .rounded {
-      border-radius: 0.25rem;
-    }
-
-    .rounded-full {
-      border-radius: 9999px;
-    }
-
-    .p-4 {
-      padding: 1rem;
-    }
-
-    .h-72 {
-      height: 18rem;
-    }
-
-    .w-full {
-      width: 100%;
-    }
-
-    /* Títulos */
-    h1, h2, h3, h4, h5, h6 {
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-    }
-
-    /* Responsividade */
-    @media (max-width: 768px) {
-      .grid-cols-2, .grid-cols-4 {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-      }
-    }
-
-    @media (min-width: 769px) and (max-width: 1024px) {
-      .grid-cols-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-  </style>
-</head>
-<body>
-  <header class="card" style="position: sticky; top: 0; z-index: 10; margin-bottom: 1rem;">
-    <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-primary">Radar de Retenção</h1>
-      <div class="flex items-center gap-4">
-        <span id="data-update" class="text-sm opacity-70"></span>
-        <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm">
-          Alternar Tema
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
-    <div class="flex flex-col items-center gap-4">
-      <div style="width: 3rem; height: 3rem; border: 4px solid var(--primary); border-top-color: transparent; border-radius: 50%;" class="animate-spin"></div>
-      <p class="font-medium text-primary">Carregando dados...</p>
-    </div>
-  </div>
-
-  <main class="container">
-    <!-- Filtros -->
-    <section class="card mb-6">
-      <div class="mb-4">
-        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
-            <select id="filter-status" class="w-full">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
-            <select id="filter-uf" class="w-full">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
-            <input type="date" id="filter-from" class="w-full">
-          </div>
-          <div>
-            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
-            <input type="date" id="filter-to" class="w-full">
-          </div>
-        </div>
-      </div>
-      <div class="flex justify-between">
-        <button id="btn-limpar-filtros" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
-          Limpar Filtros
-        </button>
-        <button id="btn-aplicar-filtros" style="background-color: var(--primary);">
-          Aplicar Filtros
-        </button>
-      </div>
-    </section>
-
-    <!-- KPIs -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="card text-center" style="padding: 1rem; margin-bottom: 0;">
-        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
-        <p id="count-inativos" class="text-2xl font-bold text-primary">0</p>
-      </div>
-      <div class="card text-center" style="padding: 1rem; margin-bottom: 0;">
-        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
-        <p id="count-exclientes" class="text-2xl font-bold text-primary">0</p>
-      </div>
-      <div class="card text-center" style="padding: 1rem; margin-bottom: 0;">
-        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
-        <p id="count-reativacoes" class="text-2xl font-bold text-primary">0</p>
-      </div>
-      <div class="card text-center" style="padding: 1rem; margin-bottom: 0;">
-        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
-        <p id="count-retencao" class="text-2xl font-bold text-primary">0%</p>
-      </div>
-    </section>
-
-    <!-- Gráficos principais -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <!-- Gráfico Status Principal vs Status Atual -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Status Principal vs Status Atual</h2>
-        </div>
-        <div class="h-72">
-          <canvas id="chart-status-principal-atual"></canvas>
-        </div>
-      </section>
-
-      <!-- Gráfico Status Atual -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Status Atual</h2>
-        </div>
-        <div class="h-72">
-          <canvas id="chart-status-atual"></canvas>
-        </div>
-      </section>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <!-- Gráfico Motivos -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Motivos de Inatividade/Ex-cliente</h2>
-        </div>
-        <div class="h-72">
-          <canvas id="chart-motivos"></canvas>
-        </div>
-      </section>
-
-      <!-- Gráfico Distribuição por UF -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Distribuição por UF</h2>
-        </div>
-        <div class="h-72">
-          <canvas id="chart-distribuicao-uf"></canvas>
-        </div>
-      </section>
-    </div>
-
-    <!-- Alertas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      <!-- Clientes sem contato há mais de 30 dias -->
-      <section class="card border-l-4" style="border-left-color: var(--danger);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
-        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-
-      <!-- Previsões de recompra vencidas -->
-      <section class="card border-l-4" style="border-left-color: var(--warning);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
-        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Tabela de clientes -->
-    <section class="card">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
-        <div class="flex items-center gap-2">
-          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
-          <select id="filtro-tabela-status" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
-            <option value="">Todos os status</option>
-          </select>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table id="tabela-clientes" class="w-full">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>UF</th>
-              <th>Status Principal</th>
-              <th>Status Atual</th>
-              <th>Motivo</th>
-              <th>Último Contato</th>
-              <th>Previsão de Recompra</th>
-            </tr>
-          </thead>
-          <tbody id="corpo-tabela-clientes">
-            <tr>
-              <td colspan="7" class="text-center">Carregando dados...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="flex justify-between items-center mt-4">
-        <div class="text-sm">
-          <span id="total-registros">0</span> registros encontrados
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="btn-anterior" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
-          <span id="paginacao" class="text-sm">Página 1 de 1</span>
-          <button id="btn-proximo" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Modal para detalhes do cliente -->
-  <div id="modal-detalhes" class="fixed inset-0 hidden z-50" style="background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center;">
-    <div class="card" style="max-width: 500px; width: 100%; margin: 1rem;">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
-        <button id="btn-fechar-modal" class="text-2xl font-bold" style="background: none; border: none;">&times;</button>
-      </div>
-      <div id="modal-conteudo">
-        <p class="text-sm opacity-70">Carregando...</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ==========================================
-    // CONFIGURAÇÕES INICIAIS
-    // ==========================================
-    
-    // API e configurações
-    const API_BASE = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-    
-    // Armazenamento global de dados
-    window.dadosClientes = [];
-    window.dadosFiltrados = [];
-    
-    // Configuração de filtros global
-    window.filtros = {
-      status: '',
-      uf: '',
-      dataInicio: null,
-      dataFim: null
-    };
-    
-    // Configuração de paginação da tabela
-    window.paginacao = {
-      paginaAtual: 1,
-      itensPorPagina: 10,
-      totalPaginas: 1
-    };
-    
-    // Tema atual
-    window.temaAtual = localStorage.getItem('tema') || 'dark';
-    document.documentElement.dataset.theme = window.temaAtual;
-    
-    // ==========================================
-    // FUNÇÕES DE UTILIDADE
-    // ==========================================
-    
-    // Converter string de data DD/MM/AAAA para objeto Date
-    function converterStringParaData(dataString) {
-      if (!dataString) return null;
-      
-      // Verifica se já é um objeto Date
-      if (dataString instanceof Date && !isNaN(dataString)) return dataString;
-      
-      // Tenta converter de DD/MM/AAAA
-      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        const [dia, mes, ano] = dataString.split('/').map(Number);
-        return new Date(ano, mes - 1, dia);
-      }
-      
-      // Tenta converter de YYYY-MM-DD (formato do input date)
-      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return new Date(dataString + 'T00:00:00');
-      }
-      
-      // Para outros formatos, tenta conversão direta
-      const data = new Date(dataString);
-      return isNaN(data) ? null : data;
-    }
-    
-    // Formatar data para exibição (DD/MM/AAAA)
-    function formatarData(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
-      
-      const dia = data.getDate().toString().padStart(2, '0');
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const ano = data.getFullYear();
-      
-      return `${dia}/${mes}/${ano}`;
-    }
-    
-    // Formatar data para o formato ISO (YYYY-MM-DD)
-    function formatarDataISO(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '';
-      
-      const ano = data.getFullYear();
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const dia = data.getDate().toString().padStart(2, '0');
-      
-      return `${ano}-${mes}-${dia}`;
-    }
-    
-    // Calcular dias desde uma data até hoje
-    function diasDesde(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return null;
-      
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const diff = hoje - data;
-      
-      return Math.floor(diff / (1000 * 60 * 60 * 24));
-    }
-    
-    // Mostrar mensagem de erro
-    function mostrarErro(mensagem, duracao = 5000) {
-      const alerta = document.createElement('div');
-      alerta.style.position = 'fixed';
-      alerta.style.bottom = '1rem';
-      alerta.style.right = '1rem';
-      alerta.style.backgroundColor = 'var(--danger)';
-      alerta.style.color = 'white';
-      alerta.style.padding = '1rem';
-      alerta.style.borderRadius = '0.5rem';
-      alerta.style.zIndex = '100';
-      alerta.textContent = mensagem;
-      
-      document.body.appendChild(alerta);
-      
-      setTimeout(() => {
-        alerta.style.opacity = '0';
-        alerta.style.transition = 'opacity 0.5s';
-        
-        setTimeout(() => {
-          document.body.removeChild(alerta);
-        }, 500);
-      }, duracao);
-    }
-    
-    // Alternar visibilidade do loader
-    function toggleLoader(mostrar = true) {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        loader.style.display = mostrar ? 'flex' : 'none';
-      }
-    }
-    
-    // ==========================================
-    // FUNÇÕES DE CARREGAMENTO DE DADOS
-    // ==========================================
-    
-    // Carregar dados da API
-    async function carregarDados() {
-      toggleLoader(true);
-      
-      try {
-        const response = await fetch(API_BASE);
-        
-        if (!response.ok) {
-          throw new Error(`Erro ao carregar dados: ${response.status} ${response.statusText}`);
-        }
-        
-        const dados = await response.json();
-        
-        if (!Array.isArray(dados) || dados.length === 0) {
-          throw new Error('Nenhum dado encontrado na API');
-        }
-        
-        console.log(`Carregados ${dados.length} registros`);
-        
-        // Processar dados
-        const dadosProcessados = dados.map(registro => ({
-          Cliente: (registro.Cliente || '').trim(),
-          UF: (registro.UF || '').trim(),
-          Categoria: (registro.Categoria || '').trim(),
-          Status: (registro['Status Principal'] || '').trim(),
-          StatusAtual: (registro['Status Atual'] || '').trim(),
-          Motivo: (registro['Motivo do Status'] || '').trim(),
-          UltimoPedido: converterStringParaData(registro['Último Pedido']),
-          Data: converterStringParaData(registro['Último Contato']),
-          ProxContato: converterStringParaData(registro['Próximo Contato']),
-          Recompra: (registro['Previsão de Recompra'] || '').trim(),
-          Observacao: (registro.Observação || '').trim(),
-          MesReferencia: (registro['Mês de Referência'] || '').trim()
-        }));
-        
-        // Atualizar a data da última atualização
-        const dataAtualizacao = document.getElementById('data-update');
-        if (dataAtualizacao) {
-          const agora = new Date();
-          dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
-        }
-        
-        return dadosProcessados;
-      } catch (erro) {
-        console.error('Erro ao carregar dados:', erro);
-        mostrarErro(`Ocorreu um erro ao carregar os dados: ${erro.message}`);
-        return [];
-      } finally {
-        toggleLoader(false);
-      }
-    }
-    
-    // ==========================================
-    // FUNÇÕES DE FILTRO E PROCESSAMENTO
-    // ==========================================
-    
-    // Aplicar filtros aos dados
-    function aplicarFiltros(dados, filtros) {
-      return dados.filter(item => {
-        // Filtro de Status
-        if (filtros.status && item.Status !== filtros.status) {
-          return false;
-        }
-        
-        // Filtro de UF
-        if (filtros.uf && item.UF !== filtros.uf) {
-          return false;
-        }
-        
-        // Filtro de Data Início
-        if (filtros.dataInicio && item.Data && item.Data < filtros.dataInicio) {
-          return false;
-        }
-        
-        // Filtro de Data Fim
-        if (filtros.dataFim && item.Data && item.Data > filtros.dataFim) {
-          return false;
-        }
-        
-        return true;
-      });
-    }
-    
-    // Calcular KPIs
-    function calcularKPIs(dados) {
-      const totalInativos = dados.filter(item => item.Status === 'Inativo').length;
-      const totalExClientes = dados.filter(item => item.Status === 'Ex-cliente').length;
-      const totalReativados = dados.filter(item => item.StatusAtual === 'Reativado').length;
-      
-      // Base para cálculo da taxa de retenção (inativos + ex-clientes)
-      const baseChurn = totalInativos + totalExClientes;
-      
-      // Taxa de retenção (reativados / base de churn)
-      const taxaRetencao = baseChurn > 0 ? Math.round((totalReativados / baseChurn) * 100) : 0;
-      
-      return {
-        totalInativos,
-        totalExClientes,
-        totalReativados,
-        taxaRetencao
-      };
-    }
-    
-    // Agrupar por status principal vs status atual
-    function agruparPorStatusPrincipalAtual(dados) {
-      const grupos = {};
-      
-      // Identificar status principais únicos
-      const statusPrincipais = [...new Set(dados.map(item => item.Status))].filter(Boolean);
-      
-      // Para cada status principal, contar os status atuais
-      statusPrincipais.forEach(statusPrincipal => {
-        const itensFiltrados = dados.filter(item => item.Status === statusPrincipal);
-        const statusAtuaisContagem = {};
-        
-        itensFiltrados.forEach(item => {
-          if (item.StatusAtual) {
-            statusAtuaisContagem[item.StatusAtual] = (statusAtuaisContagem[item.StatusAtual] || 0) + 1;
-          }
-        });
-        
-        grupos[statusPrincipal] = statusAtuaisContagem;
-      });
-      
-      return grupos;
-    }
-    
-    // Agrupar por status atual para gráfico de pizza
-    function agruparPorStatusAtual(dados) {
-      const statusCount = {};
-      
-      dados.forEach(item => {
-        if (item.StatusAtual) {
-          statusCount[item.StatusAtual] = (statusCount[item.StatusAtual] || 0) + 1;
-        }
-      });
-      
-      return statusCount;
-    }
-    
-    // Agrupar por motivo para gráfico de pizza
-    function agruparPorMotivo(dados) {
-      const motivoCount = {};
-      
-      dados.forEach(item => {
-        if (item.Motivo) {
-          motivoCount[item.Motivo] = (motivoCount[item.Motivo] || 0) + 1;
-        }
-      });
-      
-      return motivoCount;
-    }
-    
-    // Agrupar por UF para gráfico
-    function agruparPorUF(dados) {
-      const ufCount = {};
-      
-      dados.forEach(item => {
-        if (item.UF) {
-          ufCount[item.UF] = (ufCount[item.UF] || 0) + 1;
-        }
-      });
-      
-      return ufCount;
-    }
-    
-    // Identificar clientes
+</html>
