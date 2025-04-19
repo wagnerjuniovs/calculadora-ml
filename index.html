@@ -798,19 +798,16 @@ async function carregarTodosDados() {
       document.getElementById('count-retencao').textContent = `${kpis.taxaRetencao}%`;
     }
     
-    // Inicializar os valores dos filtros
-    function inicializarFiltros() {
-      // Define as datas padrão (último mês)
-      const hoje = new Date();
-      const mesPassado = new Date();
-      mesPassado.setMonth(mesPassado.getMonth() - 1);
-      
-      document.getElementById('filter-from').value = formatarDataISO(mesPassado);
-      document.getElementById('filter-to').value = formatarDataISO(hoje);
-      
-      window.filtros.dataInicio = mesPassado;
-      window.filtros.dataFim = hoje;
-    }
+    // === Função ajustada para deixar os campos vazios ===
+function inicializarFiltros() {
+  // Limpa os campos de data
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value   = '';
+
+  // Zera as datas nos filtros
+  window.filtros.dataInicio = null;
+  window.filtros.dataFim    = null;
+}
     
     // Popular os dropdowns de filtro
     function popularFiltros(dados) {
