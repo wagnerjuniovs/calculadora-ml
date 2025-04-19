@@ -256,18 +256,20 @@
     </section>
 
     <!-- Gráficos principais -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <!-- Gráfico Inativos vs Reativados -->
-  <section class="card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
-    </div>
-    <div class="h-72 relative">
-      <canvas id="chart-inativos-reativados"></canvas>
-    </div>
-  </section>
-  <!-- ...outros gráficos... -->
-</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Inativos vs Reativados -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
+          <div class="text-xs opacity-70" id="inativos-reativados-info">
+            <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #4caf50;"></span> Inativos
+            <span class="inline-block w-3 h-3 rounded-full ml-3 mr-1" style="background-color: var(--primary);"></span> Reativados
+          </div>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-inativos-reativados"></canvas>
+        </div>
+      </section>
 
       <!-- Gráfico Status -->
       <section class="card">
@@ -650,40 +652,41 @@ async function carregarTodosDados() {
       };
     }
     
-    // Agrupar dados por mês (3 séries: Ex‑clientes, Inativos, Reativados)
-function agruparPorMes(dados) {
-  const cont = {};
-  dados.forEach(item => {
-    const mes = item['Mês de Referência'];
-    if (!mes) return;
-    if (!cont[mes]) cont[mes] = { exClientes: 0, inativos: 0, reativados: 0 };
-
-    // Reativado ganha prioridade
-    if (item['Status Atual'] === 'Reativado') {
-      cont[mes].reativados++;
+    // Agrupar dados por mês para gráficos
+    function agruparPorMes(dados) {
+      const inativosPorMes = {};
+      const reativadosPorMes = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        // Contagem de inativos
+        if (item.Status === 'Inativo') {
+          inativosPorMes[mesAno] = (inativosPorMes[mesAno] || 0) + 1;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          reativadosPorMes[mesAno] = (reativadosPorMes[mesAno] || 0) + 1;
+        }
+      });
+      
+      // Obtém todos os meses presentes nos dados
+      const meses = [...new Set([...Object.keys(inativosPorMes), ...Object.keys(reativadosPorMes)])].sort();
+      
+      // Cria arrays ordenados para o gráfico
+      const inativosArray = meses.map(mes => inativosPorMes[mes] || 0);
+      const reativadosArray = meses.map(mes => reativadosPorMes[mes] || 0);
+      
+      return {
+        meses,
+        inativos: inativosArray,
+        reativados: reativadosArray
+      };
     }
-    else if (item['Status Principal'] === 'Ex-cliente') {
-      cont[mes].exClientes++;
-    }
-    else if (item['Status Principal'] === 'Inativo') {
-      cont[mes].inativos++;
-    }
-  });
-
-  const mesesOrdenados = Object.keys(cont).sort((a, b) => {
-    const [nA, yA] = a.split('/'), [nB, yB] = b.split('/');
-    const idx = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    if (+yA !== +yB) return +yA - +yB;
-    return idx.indexOf(nA) - idx.indexOf(nB);
-  });
-
-  return {
-    meses:       mesesOrdenados,
-    exClientes: mesesOrdenados.map(m => cont[m].exClientes),
-    inativos:   mesesOrdenados.map(m => cont[m].inativos),
-    reativados: mesesOrdenados.map(m => cont[m].reativados)
-  };
-}
     
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
@@ -845,31 +848,69 @@ function inicializarFiltros() {
       });
     }
     
-    // Desenhar gráfico Inativos vs Reativados com 3 barras
-function desenharGraficoInativosReativados(dados) {
-  const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
-  if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
-
-  const { meses, exClientes, inativos, reativados } = agruparPorMes(dados);
-
-  window.graficoInativosReativados = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: meses,
-      datasets: [
-        { label: 'Ex‑clientes', data: exClientes, backgroundColor: '#ff9800' },
-        { label: 'Inativos',    data: inativos,   backgroundColor: '#4caf50' },
-        { label: 'Reativados',  data: reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } },
-      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } } }
+    // Desenhar gráfico de inativos vs reativados
+    function desenharGraficoInativosReativados(dados) {
+      const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoInativosReativados) {
+        window.graficoInativosReativados.destroy();
+      }
+      
+      // Agrupar dados por mês
+      const dadosPorMes = agruparPorMes(dados);
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.inativosVsReativados = dadosPorMes;
+      
+      // Configuração do gráfico
+      window.graficoInativosReativados = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dadosPorMes.meses,
+          datasets: [
+            {
+              label: 'Inativos',
+              data: dadosPorMes.inativos,
+              backgroundColor: '#4caf50',
+              borderWidth: 0
+            },
+            {
+              label: 'Reativados',
+              data: dadosPorMes.reativados,
+              backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+              borderWidth: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(200, 200, 200, 0.1)'
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
     }
-  });
-}
     
     // Desenhar gráfico de status (rosca)
     function desenharGraficoStatus(dados) {
