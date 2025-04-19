@@ -1,9 +1,5 @@
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_ESTRUTURA_BASE ========================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,1383 +41,1491 @@
     }
   </script>
 
-  <!-- Estilo customizado para Dark Mode -->
   <style>
-    [data-theme="dark"] body { background-color: #1c1c1e; color: #f9f9f9; }
-    [data-theme="light"] body { background-color: #f9f9f9; color: #1c1c1e; }
+    /* Tema escuro/claro - Variáveis de cores */
+    :root {
+      --bg-main: #f9fafb;
+      --text-main: #111827;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(0, 0, 0, 0.1);
+      --primary: #007aff;
+      --primary-hover: #0056b3;
+      --danger: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --border: #e5e7eb;
+    }
+
+    [data-theme="dark"] {
+      --bg-main: #1f1f1f;
+      --text-main: #f1f1f1;
+      --card-bg: #2a2a2a;
+      --card-shadow: rgba(0, 0, 0, 0.4);
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --info: #60a5fa;
+      --border: #374151;
+    }
+
+    /* Estilos globais */
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      transition: background-color 0.3s, color 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      box-shadow: 0 4px 6px var(--card-shadow);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .text-primary {
+      color: var(--primary);
+    }
+
+    /* Controles e inputs */
+    select, input, button {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      transition: all 0.2s;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Tabelas */
+    table {
+      width: 100%;
+      border-spacing: 0;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      opacity: 0.7;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Animação de loading */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+    /* Classe para erros */
+    .border-error {
+      border-color: var(--danger) !important;
+    }
+
+    /* Tooltip personalizado */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
-<body class="font-sans">
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_ESTRUTURA_BASE ============================ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO 2 - ESTILOS POR TEMA =============== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<style>
-  [data-theme="dark"] {
-    --bg-main: #1f1f1f;
-    --text-main: #f1f1f1;
-    --card-bg: #2a2a2a;
-    --card-shadow: rgba(0, 0, 0, 0.4);
-    --primary: #3b82f6;
-  }
-
-  [data-theme="light"] {
-    --bg-main: #f9fafb;
-    --text-main: #111827;
-    --card-bg: #ffffff;
-    --card-shadow: rgba(0, 0, 0, 0.1);
-    --primary: #3b82f6;
-  }
-
-  body {
-    background-color: var(--bg-main);
-    color: var(--text-main);
-    transition: background-color 0.3s, color 0.3s;
-  }
-
-  .card {
-    background-color: var(--card-bg);
-    box-shadow: 0 4px 6px var(--card-shadow);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    transition: background-color 0.3s, box-shadow 0.3s;
-  }
-
-  .text-primary {
-    color: var(--primary);
-  }
-</style>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO 2 - ESTILOS POR TEMA ==================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_CABEÇALHO_E_CONTROLE_TEMA ============ -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<header class="flex justify-between items-center px-6 py-4">
-  <h1 class="text-2xl font-bold text-primary">Radar de Retenção</h1>
-  <button id="theme-toggle" class="border border-primary text-primary px-4 py-1 rounded-full transition hover:bg-primary hover:text-white">
-    Modo Claro
-  </button>
-</header>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_CABEÇALHO_E_CONTROLE_TEMA =============== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_FILTROS_INTERATIVOS ================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 py-4 space-y-4 md:space-y-0 md:flex md:items-center md:gap-4 bg-white dark:bg-cardDark rounded-xl shadow-soft mb-4">
-  <div class="flex-1">
-    <label for="filter-status" class="block text-sm font-medium mb-1">Status</label>
-    <select id="filter-status" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
-      <option value="">Todos</option>
-    </select>
-  </div>
-  <div class="flex-1">
-    <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
-    <select id="filter-uf" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
-      <option value="">Todas</option>
-    </select>
-  </div>
-  <div class="flex-1">
-    <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
-    <input type="date" id="filter-from" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
-  </div>
-  <div class="flex-1">
-    <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
-    <input type="date" id="filter-to" class="w-full px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-cardDark text-sm text-gray-700 dark:text-white">
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_FILTROS_INTERATIVOS ===================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_INDICADORES_KPIS ===================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="grid grid-cols-2 md:grid-cols-4 gap-4 px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
-    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Inativos</h2>
-    <p id="count-inativos" class="text-2xl font-bold text-primary">0</p>
-  </div>
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
-    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Ex-Clientes</h2>
-    <p id="count-exclientes" class="text-2xl font-bold text-primary">0</p>
-  </div>
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
-    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Reativações</h2>
-    <p id="count-reativacoes" class="text-2xl font-bold text-primary">0</p>
-  </div>
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 text-center">
-    <h2 class="text-sm text-gray-500 dark:text-gray-300 mb-1 font-medium">Taxa de Retenção</h2>
-    <p id="count-retencao" class="text-2xl font-bold text-primary">0%</p>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_INDICADORES_KPIS ======================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_GRÁFICO_LINHA_INATIVOS_REATIVADOS ==== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Novos Inativos vs Reativados</h2>
+<body class="font-sans min-h-screen">
+  <header class="flex justify-between items-center px-6 py-4 bg-opacity-90 backdrop-blur-sm sticky top-0 z-10" style="background-color: var(--card-bg);">
+    <h1 class="text-2xl font-bold" style="color: var(--primary);">Radar de Retenção</h1>
+    <div class="flex items-center gap-4">
+      <span id="data-update" class="text-sm opacity-70"></span>
+      <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm transition-colors">
+        Alternar Tema
+      </button>
     </div>
-    <div class="relative h-72">
-      <canvas id="lineChart" class="w-full h-full"></canvas>
+  </header>
+
+  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
+    <div class="flex flex-col items-center space-y-4">
+      <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
+      <p class="font-medium" style="color: var(--primary);">Carregando dados...</p>
     </div>
   </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_GRÁFICO_LINHA_INATIVOS_REATIVADOS ====== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
 
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_GRÁFICO_BARRAS_STATUS_TIPO ========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Movimento por Status</h2>
+  <main class="container mx-auto px-4 py-6">
+    <!-- Filtros -->
+    <section class="card mb-6">
+      <div class="mb-4">
+        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
+            <select id="filter-status" class="w-full">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
+            <select id="filter-uf" class="w-full">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
+            <input type="date" id="filter-from" class="w-full">
+          </div>
+          <div>
+            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
+            <input type="date" id="filter-to" class="w-full">
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button id="btn-limpar-filtros" class="px-4 py-2 rounded text-sm mr-2" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
+          Limpar Filtros
+        </button>
+        <button id="btn-aplicar-filtros" class="px-4 py-2 rounded text-sm" style="background-color: var(--primary);">
+          Aplicar Filtros
+        </button>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
+        <p id="count-inativos" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
+        <p id="count-exclientes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
+        <p id="count-reativacoes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
+      </div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
+        <p id="count-retencao" class="text-2xl font-bold" style="color: var(--primary);">0%</p>
+      </div>
+    </section>
+
+    <!-- Gráficos principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Inativos vs Reativados -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
+          <div class="text-xs opacity-70" id="inativos-reativados-info">
+            <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #4caf50;"></span> Inativos
+            <span class="inline-block w-3 h-3 rounded-full ml-3 mr-1" style="background-color: var(--primary);"></span> Reativados
+          </div>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-inativos-reativados"></canvas>
+        </div>
+      </section>
+
+      <!-- Gráfico Status -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Status Atual</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-status"></canvas>
+        </div>
+      </section>
     </div>
-    <div class="relative h-72">
-      <canvas id="barChart" class="w-full h-full"></canvas>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Motivos de Evasão -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Motivos de Evasão</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-motivos"></canvas>
+        </div>
+      </section>
+
+      <!-- Taxa de Reativação por Mês -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Taxa de Reativação por Mês</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-taxa-reativacao"></canvas>
+        </div>
+      </section>
     </div>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_GRÁFICO_BARRAS_STATUS_TIPO ============= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
 
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_GRÁFICO_PIZZA_MOTIVOS_EVASAO ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Motivos de Evasão</h2>
+    <!-- Alertas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Clientes sem contato há mais de 30 dias -->
+      <section class="card border-l-4" style="border-left-color: var(--danger);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
+        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- Previsões de recompra vencidas -->
+      <section class="card border-l-4" style="border-left-color: var(--warning);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
+        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
     </div>
-    <div class="relative h-72">
-      <canvas id="pieChart" class="w-full h-full"></canvas>
-    </div>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_GRÁFICO_PIZZA_MOTIVOS_EVASAO ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
 
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_GRÁFICO_ROSCA_STATUS_ATUAL ========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4">
-    <div class="flex justify-between items-center mb-3">
-      <h2 class="text-lg font-semibold text-gray-700 dark:text-white">Status Atual</h2>
-    </div>
-    <div class="relative h-72">
-      <canvas id="doughnutChart" class="w-full h-full"></canvas>
-    </div>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_GRÁFICO_ROSCA_STATUS_ATUAL ============= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
+    <!-- Tabela de clientes -->
+    <section class="card">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
+        <div class="flex items-center">
+          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." class="text-sm px-3 py-1 mr-2">
+          <select id="filtro-tabela-status" class="text-sm px-3 py-1">
+            <option value="">Todos os status</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table id="tabela-clientes" class="min-w-full">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>UF</th>
+              <th>Status Principal</th>
+              <th>Status Atual</th>
+              <th>Motivo</th>
+              <th>Último Contato</th>
+              <th>Previsão de Recompra</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela-clientes">
+            <tr>
+              <td colspan="7" class="text-center py-4">Carregando dados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm">
+          <span id="total-registros">0</span> registros encontrados
+        </div>
+        <div class="flex items-center">
+          <button id="btn-anterior" class="px-3 py-1 rounded mr-2" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
+          <span id="paginacao" class="text-sm mx-2">Página 1 de 1</span>
+          <button id="btn-proximo" class="px-3 py-1 rounded" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_MODAL_DETALHES_CLIENTES ============= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<div id="detail-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 w-full max-w-md max-h-[80vh] overflow-y-auto relative">
-    <button class="absolute top-3 right-4 text-2xl text-primary font-bold hover:text-red-500" onclick="document.getElementById('detail-modal').style.display = 'none'">×</button>
-    <h2 id="modal-title" class="text-xl font-semibold mb-4 text-primary"></h2>
-    <ul id="modal-list" class="list-disc pl-5 space-y-1 text-sm text-gray-700 dark:text-gray-100"></ul>
-  </div>
-</div>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_MODAL_DETALHES_CLIENTES ================ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_LOADER_CARREGAMENTO_INICIAL ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<div id="loader" class="fixed inset-0 bg-white dark:bg-bgDark flex items-center justify-center z-50">
-  <div class="flex flex-col items-center space-y-4">
-    <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-    <p class="text-sm text-primary font-medium">Carregando dados...</p>
-  </div>
-</div>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_LOADER_CARREGAMENTO_INICIAL ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_TABELA_DETALHADA_CLIENTES =========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-10">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-4 overflow-auto">
-    <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-white">Análise Detalhada de Clientes</h2>
-    <table id="tabela-clientes" class="min-w-full text-sm text-left border-separate border-spacing-y-2">
-      <thead class="text-xs uppercase text-gray-500 dark:text-gray-300">
-        <tr>
-          <th class="px-2 py-1">Cliente</th>
-          <th class="px-2 py-1">UF</th>
-          <th class="px-2 py-1">Status Principal</th>
-          <th class="px-2 py-1">Status Atual</th>
-          <th class="px-2 py-1">Motivo</th>
-          <th class="px-2 py-1">Último Contato</th>
-          <th class="px-2 py-1">Previsão de Recompra</th>
-        </tr>
-      </thead>
-      <tbody id="corpo-tabela-clientes" class="text-gray-800 dark:text-gray-100">
-        <!-- Os dados serão inseridos via JS -->
-      </tbody>
-    </table>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_TABELA_DETALHADA_CLIENTES ============== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_INDICADOR_REATIVACAO_ACUMULADA ====== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 text-center">
-    <h2 class="text-base font-medium text-gray-500 dark:text-gray-300 mb-2">Taxa de Reativação Acumulada</h2>
-    <p id="indicador-reativacao" class="text-4xl font-bold text-primary">0%</p>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_INDICADOR_REATIVACAO_ACUMULADA ========= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_ALERTA_30DIAS_SEM_CONTATO =========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
-    <h2 class="text-base font-semibold text-red-500 mb-3">Clientes com mais de 30 dias sem contato</h2>
-    <ul id="lista-alerta-30dias" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
-      <!-- Lista preenchida via JavaScript -->
-    </ul>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_ALERTA_30DIAS_SEM_CONTATO ============== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_CONTATOS_DO_DIA ====================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
-    <h2 class="text-base font-semibold text-green-600 mb-3">Contatos do Dia (Hoje)</h2>
-    <ul id="lista-contatos-dia" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
-      <!-- Itens serão inseridos dinamicamente via JavaScript -->
-    </ul>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_CONTATOS_DO_DIA ========================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_RADAR_RESPONSIVIDADE_STATUS ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
-    <h2 class="text-base font-semibold text-blue-600 mb-4">Tempo Médio Sem Contato por Status Atual</h2>
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm text-left border-separate border-spacing-y-2">
-        <thead class="text-xs uppercase text-gray-500 dark:text-gray-300">
-          <tr>
-            <th class="px-2 py-1">Status Atual</th>
-            <th class="px-2 py-1">Dias Médios sem Contato</th>
-          </tr>
-        </thead>
-        <tbody id="tabela-responsividade-status" class="text-gray-800 dark:text-gray-100">
-          <!-- Dados preenchidos dinamicamente via JavaScript -->
-        </tbody>
-      </table>
+  <!-- Modal para detalhes do cliente -->
+  <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="max-w-md w-full mx-4 rounded-xl overflow-hidden" style="background-color: var(--card-bg);">
+      <div class="flex justify-between items-center p-4 border-b" style="border-color: var(--border);">
+        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
+        <button id="btn-fechar-modal" class="text-2xl font-bold hover:opacity-70">&times;</button>
+      </div>
+      <div class="p-4" id="modal-conteudo">
+        <p class="text-sm opacity-70">Carregando...</p>
+      </div>
     </div>
   </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_RADAR_RESPONSIVIDADE_STATUS ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
 
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_PREVISOES_VENCIDAS ================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 border-l-4 border-red-500">
-    <h2 class="text-base font-semibold text-red-600 mb-3">Previsões de Recompra Vencidas</h2>
-    <ul id="lista-previsoes-vencidas" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
-      <!-- Preenchido via JavaScript com clientes cuja previsão passou e ainda estão inativos -->
-    </ul>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_PREVISOES_VENCIDAS ====================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_PRIORIDADES_NEGOCIACAO ============== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 mb-6">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6 border-l-4 border-yellow-400">
-    <h2 class="text-base font-semibold text-yellow-600 mb-3">Negociações com Previsão Próxima</h2>
-    <ul id="lista-negociacoes-prioritarias" class="list-disc pl-5 text-sm text-gray-800 dark:text-gray-100 space-y-1">
-      <!-- Será preenchido via JavaScript com clientes "Em negociação" + previsão nos próximos 7 dias -->
-    </ul>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_PRIORIDADES_NEGOCIACAO ================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_EVOLUCAO_BASE_INATIVA =============== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<section class="px-6 pb-10">
-  <div class="bg-white dark:bg-cardDark rounded-xl shadow-soft p-6">
-    <h2 class="text-base font-semibold text-purple-600 mb-4">Evolução da Base Inativa</h2>
-    <canvas id="chartEvolucaoInativos" class="w-full h-72"></canvas>
-  </div>
-</section>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_EVOLUCAO_BASE_INATIVA ================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 1 - TEMA E DADOS INICIAIS ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  // Ativa modo escuro por padrão
-  document.documentElement.dataset.theme = 'dark';
-
-  // Torna a cor primária acessível globalmente
-  window.primaryColor = getComputedStyle(document.documentElement)
-    .getPropertyValue('--primary')
-    .trim();
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    const toggleBtn = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-
-    const atualizarTextoBotao = () => {
-      toggleBtn.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
+  <script>
+    // ==========================================
+    // CONFIGURAÇÕES INICIAIS
+    // ==========================================
+    
+    // API e configurações
+    const API_BASE = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
+    
+    // Armazenamento global de dados
+    window.dadosClientes = [];
+    window.dadosFiltrados = [];
+    window.abas = [];
+    window.filtros = {
+      status: '',
+      uf: '',
+      dataInicio: null,
+      dataFim: null
     };
-
-    atualizarTextoBotao(); // Aplica o texto inicial no botão
-
-    toggleBtn.addEventListener('click', () => {
-      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
-      atualizarTextoBotao();
-    });
-
-    const apiBase = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-    const tabs = [
-      'Abril_2025', 'Maio_2025', 'Junho_2025',
-      'Julho_2025', 'Agosto_2025', 'Setembro_2025',
-      'Outubro_2025', 'Novembro_2025', 'Dezembro_2025'
-    ];
-
-    window.allData = []; // global para outros blocos
-    window.nameMaps = { lineNew:{}, lineRe:{}, bar:{}, pie:{}, doughnut:{} };
-
-    function parseDate(s) {
-      if (!s) return NaN;
-      const [d, m, y] = s.split('/');
-      return new Date(+y, +m - 1, +d);
-    }
-
-    window.fetchAllSheets = async function () {
-      let combined = [];
-      for (const tab of tabs) {
-        const res = await fetch(`${apiBase}?sheet=${tab}`);
-        const arr = await res.json();
-        if (arr.length > 0) {
-          combined.push(...arr.map(r => ({ ...r, sheet: tab })));
-        }
+    
+    // Configuração de paginação da tabela
+    window.paginacao = {
+      paginaAtual: 1,
+      itensPorPagina: 10,
+      totalPaginas: 1
+    };
+    
+    // Mapas para armazenar dados dos gráficos
+    window.mapasGraficos = {
+      inativosVsReativados: {},
+      status: {},
+      motivos: {}
+    };
+    
+    // Tema atual
+    window.temaAtual = localStorage.getItem('tema') || 'dark';
+    document.documentElement.dataset.theme = window.temaAtual;
+    
+    // ==========================================
+    // FUNÇÕES DE UTILIDADE
+    // ==========================================
+    
+    // Converter string de data DD/MM/AAAA para objeto Date
+    function converterStringParaData(dataString) {
+      if (!dataString) return null;
+      
+      // Verifica se já é um objeto Date
+      if (dataString instanceof Date) return dataString;
+      
+      // Tenta converter de DD/MM/AAAA
+      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        const [dia, mes, ano] = dataString.split('/').map(Number);
+        return new Date(ano, mes - 1, dia);
       }
-      return combined;
+      
+      // Tenta converter de YYYY-MM-DD (formato do input date)
+      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(dataString + 'T00:00:00');
+      }
+      
+      // Para outros formatos, tenta conversão direta
+      const data = new Date(dataString);
+      return isNaN(data) ? null : data;
     }
-
-    // Coleta e organiza os dados iniciais
-    const raw = await window.fetchAllSheets();
-    window.allData = raw.map(r => ({
-      Cliente: (r.Cliente || '').trim(),
-      UF: (r.UF || '').trim(),
-      Status: (r['Status Principal'] || '').trim(),
-      Ativo: (r['Status Atual'] || '').trim(),
-      Motivo: (r['Motivo do Status'] || '').trim(),
-      Data: parseDate(r['Último Contato']),
-      ProxContato: parseDate(r['Próximo Contato']),
-      Recompra: parseDate(r['Previsão de Recompra']),
-      sheet: r.sheet
-    }));
-
-    console.log('[DASHBOARD] Dados carregados:', window.allData.length);
-
-    populateFilters();
-    updateDashboard();
-
-    const closeBtn = document.querySelector('.close');
-    if (closeBtn) {
-      closeBtn.onclick = () => {
-        document.getElementById('detail-modal').style.display = 'none';
+    
+    // Formatar data para exibição (DD/MM/AAAA)
+    function formatarData(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
+      
+      const dia = data.getDate().toString().padStart(2, '0');
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const ano = data.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+    
+    // Formatar data para o formato ISO (YYYY-MM-DD)
+    function formatarDataISO(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '';
+      
+      const ano = data.getFullYear();
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const dia = data.getDate().toString().padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+    
+    // Calcular dias desde uma data até hoje
+    function diasDesde(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const diff = hoje - data;
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+    
+    // Extrair mês/ano de uma data para agrupamento
+    function extrairMesAno(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return `${meses[data.getMonth()]}/${data.getFullYear()}`;
+    }
+    
+    // Mostrar mensagem de erro
+    function mostrarErro(mensagem, duracao = 5000) {
+      const alerta = document.createElement('div');
+      alerta.className = 'fixed bottom-4 right-4 p-4 rounded-lg z-50 text-white text-sm';
+      alerta.style.backgroundColor = 'var(--danger)';
+      alerta.textContent = mensagem;
+      
+      document.body.appendChild(alerta);
+      
+      setTimeout(() => {
+        alerta.style.opacity = '0';
+        alerta.style.transition = 'opacity 0.5s';
+        
+        setTimeout(() => {
+          document.body.removeChild(alerta);
+        }, 500);
+      }, duracao);
+    }
+    
+    // Alternar visibilidade do loader
+    function toggleLoader(mostrar = true) {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        loader.style.display = mostrar ? 'flex' : 'none';
+      }
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE CARREGAMENTO DE DADOS
+    // ==========================================
+    
+    // Obter a lista de abas da planilha
+    async function obterListaAbas() {
+      try {
+        // Busca os metadados da planilha
+        const response = await fetch(`${API_BASE}?info=true`);
+        const info = await response.json();
+        
+        // Extrai os nomes das abas
+        if (info && info.sheets) {
+          return info.sheets;
+        }
+        
+        return [];
+      } catch (erro) {
+        console.error('Erro ao obter lista de abas:', erro);
+        mostrarErro('Não foi possível obter a lista de abas da planilha');
+        return [];
+      }
+    }
+    
+    // Carregar dados de uma aba específica
+    async function carregarDadosAba(nomeAba) {
+      try {
+        const response = await fetch(`${API_BASE}?sheet=${nomeAba}`);
+        const dados = await response.json();
+        
+        // Verifica se a aba tem dados
+        if (Array.isArray(dados) && dados.length > 0) {
+          console.log(`Carregados ${dados.length} registros da aba ${nomeAba}`);
+          
+          // Adiciona o nome da aba aos registros e faz o processamento dos dados
+          return dados.map(registro => ({
+            Cliente: (registro.Cliente || '').trim(),
+            UF: (registro.UF || '').trim(),
+            Status: (registro['Status Principal'] || '').trim(),
+            Ativo: (registro['Status Atual'] || '').trim(),
+            Motivo: (registro['Motivo do Status'] || '').trim(),
+            Data: converterStringParaData(registro['Último Contato']),
+            ProxContato: converterStringParaData(registro['Próximo Contato']),
+            Recompra: converterStringParaData(registro['Previsão de Recompra']),
+            Aba: nomeAba
+          }));
+        }
+        
+        return [];
+      } catch (erro) {
+        console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
+        mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
+        return [];
+      }
+    }
+    
+    // Carregar todos os dados de todas as abas com conteúdo
+    async function carregarTodosDados() {
+      toggleLoader(true);
+      
+      try {
+        // Obtém a lista de abas disponíveis
+        const listaAbas = await obterListaAbas();
+        window.abas = listaAbas;
+        
+        // Carrega os dados de cada aba sequencialmente
+        let dadosCombinados = [];
+        
+        for (const aba of listaAbas) {
+          const dadosAba = await carregarDadosAba(aba);
+          if (dadosAba.length > 0) {
+            dadosCombinados = [...dadosCombinados, ...dadosAba];
+          }
+        }
+        
+        // Atualiza a data da última atualização
+        const dataAtualizacao = document.getElementById('data-update');
+        if (dataAtualizacao) {
+          const agora = new Date();
+          dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
+        }
+        
+        return dadosCombinados;
+      } catch (erro) {
+        console.error('Erro ao carregar todos os dados:', erro);
+        mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
+        return [];
+      } finally {
+        toggleLoader(false);
+      }
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE FILTRO E PROCESSAMENTO
+    // ==========================================
+    
+    // Aplicar filtros aos dados
+    function aplicarFiltros(dados, filtros) {
+      return dados.filter(item => {
+        // Filtro de Status
+        if (filtros.status && item.Status !== filtros.status) {
+          return false;
+        }
+        
+        // Filtro de UF
+        if (filtros.uf && item.UF !== filtros.uf) {
+          return false;
+        }
+        
+        // Filtro de Data Início
+        if (filtros.dataInicio && item.Data && item.Data < filtros.dataInicio) {
+          return false;
+        }
+        
+        // Filtro de Data Fim
+        if (filtros.dataFim && item.Data && item.Data > filtros.dataFim) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Calcular KPIs
+    function calcularKPIs(dados) {
+      const totalInativos = dados.filter(item => item.Status === 'Inativo').length;
+      const totalExClientes = dados.filter(item => item.Status === 'Ex-cliente').length;
+      const totalReativados = dados.filter(item => item.Ativo === 'Reativado').length;
+      
+      // Base para cálculo da taxa de retenção (inativos + ex-clientes)
+      const baseChurn = totalInativos + totalExClientes;
+      
+      // Taxa de retenção (reativados / base de churn)
+      const taxaRetencao = baseChurn > 0 ? Math.round((totalReativados / baseChurn) * 100) : 0;
+      
+      return {
+        totalInativos,
+        totalExClientes,
+        totalReativados,
+        taxaRetencao
       };
     }
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 1 - TEMA E DADOS INICIAIS ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_CONTROLE_TEMA ======================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  // Tema escuro por padrão ao carregar
-  document.documentElement.dataset.theme = 'dark';
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-
-    // Atualiza texto do botão com base no tema atual
-    function atualizarTextoBotao() {
-      toggleBtn.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
-    }
-
-    atualizarTextoBotao(); // Ao iniciar
-
-    toggleBtn.addEventListener('click', () => {
-      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
-      atualizarTextoBotao();
-    });
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_CONTROLE_TEMA =========================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_FILTROS_INTERATIVOS ================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function populateFilters() {
-    const filtroStatus = document.getElementById('filter-status');
-    const filtroUF     = document.getElementById('filter-uf');
-
-    // Garante que os filtros fiquem limpos antes de popular
-    filtroStatus.innerHTML = '<option value="">Status</option>';
-    filtroUF.innerHTML = '<option value="">UF</option>';
-
-    const statusSet = new Set();
-    const ufSet = new Set();
-
-    allData.forEach(item => {
-      if (item.Status) statusSet.add(item.Status);
-      if (item.UF)     ufSet.add(item.UF);
-    });
-
-    [...statusSet].sort().forEach(status => {
-      filtroStatus.appendChild(new Option(status, status));
-    });
-
-    [...ufSet].sort().forEach(uf => {
-      filtroUF.appendChild(new Option(uf, uf));
-    });
-
-    // Adiciona eventos para atualizar o dashboard ao usar os filtros
-    ['change', 'input'].forEach(evt => {
-      filtroStatus.addEventListener(evt, updateDashboard);
-      filtroUF.addEventListener(evt, updateDashboard);
-      document.getElementById('filter-from').addEventListener(evt, updateDashboard);
-      document.getElementById('filter-to').addEventListener(evt, updateDashboard);
-    });
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_FILTROS_INTERATIVOS ===================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_KPIS_INDICADORES ===================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function updateDashboard() {
-    const fsV = document.getElementById('filter-status').value;
-    const fuV = document.getElementById('filter-uf').value;
-    const from = new Date(document.getElementById('filter-from').value);
-    const to   = new Date(document.getElementById('filter-to').value);
-
-    const filtrado = allData.filter(x =>
-      (!fsV || x.Status === fsV) &&
-      (!fuV || x.UF === fuV) &&
-      (isNaN(from) || x.Data >= from) &&
-      (isNaN(to)   || x.Data <= to)
-    );
-
-    console.log('[DASHBOARD] Registros filtrados:', filtrado.length);
-
-    const totalInativos    = filtrado.filter(x => x.Status === 'Inativo').length;
-    const totalExClientes  = filtrado.filter(x => x.Status === 'Ex-cliente').length;
-    const totalReativados  = filtrado.filter(x => x.Ativo === 'Reativado').length;
-    const baseChurn        = filtrado.filter(x => ['Inativo', 'Ex-cliente'].includes(x.Status)).length || 1;
-    const taxaRetencao     = Math.round((totalReativados / baseChurn) * 100);
-
-    document.getElementById('count-inativos').textContent     = totalInativos;
-    document.getElementById('count-exclientes').textContent   = totalExClientes;
-    document.getElementById('count-reativacoes').textContent  = totalReativados;
-    document.getElementById('count-retencao').textContent     = `${taxaRetencao}%`;
-
-    // Atualiza gráficos e componentes reativos
-    renderLine(filtrado);
-    renderBar(filtrado);
-    renderPie(filtrado);
-    renderDoughnut(filtrado);
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_KPIS_INDICADORES ======================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_FUNÇÕES_GRÁFICOS ==================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function parseMonth(m) {
-    return {
-      Janeiro: 1, Fevereiro: 2, Março: 3, Abril: 4, Maio: 5, Junho: 6,
-      Julho: 7, Agosto: 8, Setembro: 9, Outubro: 10, Novembro: 11, Dezembro: 12
-    }[m] || 1;
-  }
-
-  function renderLine(data) {
-    const canvas = document.getElementById('lineChart');
-    if (!canvas) return console.warn('❌ lineChart não encontrado.');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return console.warn('❌ Contexto 2D ausente em lineChart.');
-
-    const cn = {}, cr = {};
-    nameMaps.lineNew = {};
-    nameMaps.lineRe = {};
-
-    data.forEach(x => {
-      if (!(x.Data instanceof Date) || isNaN(x.Data)) return;
-      const lbl = `${x.sheet.split('_')[0]}/${x.Data.getFullYear()}`;
-      if (x.Status === 'Inativo') {
-        cn[lbl] = (cn[lbl] || 0) + 1;
-        (nameMaps.lineNew[lbl] ||= []).push(x.Cliente);
-      }
-      if (x.Ativo === 'Reativado') {
-        cr[lbl] = (cr[lbl] || 0) + 1;
-        (nameMaps.lineRe[lbl] ||= []).push(x.Cliente);
-      }
-    });
-
-    const labels = Object.keys({ ...cn, ...cr }).sort((a, b) => {
-      const [ma, ya] = a.split('/'), [mb, yb] = b.split('/');
-      return new Date(+ya, parseMonth(ma) - 1) - new Date(+yb, parseMonth(mb) - 1);
-    });
-
-    const newV = labels.map(l => cn[l] || 0);
-    const reV = labels.map(l => cr[l] || 0);
-
-    if (window.chartLine?.destroy) window.chartLine.destroy();
-    window.chartLine = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          { label: 'Inativos', data: newV, borderColor: '#4caf50', fill: false },
-          { label: 'Reativados', data: reV, borderColor: primaryColor, fill: false }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' }, tooltip: { enabled: true } }
-      }
-    });
-
-    canvas.onclick = e => {
-      const pts = window.chartLine.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-      if (!pts.length) return;
-      const { index, datasetIndex } = pts[0];
-      const label = labels[index];
-      const lista = datasetIndex === 0 ? nameMaps.lineNew[label] : nameMaps.lineRe[label];
-      showModal(`${datasetIndex === 0 ? 'Inativos' : 'Reativados'} (${label})`, lista);
-    };
-  }
-
-  function renderBar(data) {
-    const canvas = document.getElementById('barChart');
-    if (!canvas) return console.warn('❌ barChart não encontrado.');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const tipos = ['Inativo', 'Ex-cliente', 'Reativado'];
-    const contagem = { Inativo: 0, 'Ex-cliente': 0, Reativado: 0 };
-    nameMaps.bar = {};
-
-    data.forEach(x => {
-      tipos.forEach(tipo => {
-        const cond = tipo === 'Reativado' ? x.Ativo === tipo : x.Status === tipo;
-        if (cond) {
-          contagem[tipo]++;
-          (nameMaps.bar[tipo] ||= []).push(x.Cliente);
+    
+    // Agrupar dados por mês para gráficos
+    function agruparPorMes(dados) {
+      const inativosPorMes = {};
+      const reativadosPorMes = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        // Contagem de inativos
+        if (item.Status === 'Inativo') {
+          inativosPorMes[mesAno] = (inativosPorMes[mesAno] || 0) + 1;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          reativadosPorMes[mesAno] = (reativadosPorMes[mesAno] || 0) + 1;
         }
       });
-    });
-
-    const labels = Object.keys(contagem);
-    const valores = labels.map(l => contagem[l]);
-    const cores = ['#4caf50', '#007aff', '#ff9800'];
-
-    if (window.chartBar?.destroy) window.chartBar.destroy();
-    window.chartBar = new Chart(ctx, {
-      type: 'bar',
-      data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: true } }
-      }
-    });
-
-    canvas.onclick = e => {
-      const pts = window.chartBar.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-      if (!pts.length) return;
-      const i = pts[0].index;
-      showModal(labels[i], nameMaps.bar[labels[i]]);
-    };
-  }
-
-  function renderPie(data) {
-    const canvas = document.getElementById('pieChart');
-    if (!canvas) return console.warn('❌ pieChart não encontrado.');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const motivos = {};
-    const mapas = {};
-    data.forEach(x => {
-      if (!x.Motivo) return;
-      motivos[x.Motivo] = (motivos[x.Motivo] || 0) + 1;
-      (mapas[x.Motivo] ||= []).push(x.Cliente);
-    });
-
-    const labels = Object.keys(motivos);
-    const valores = labels.map(m => motivos[m]);
-    nameMaps.pie = mapas;
-
-    if (window.chartPie?.destroy) window.chartPie.destroy();
-    window.chartPie = new Chart(ctx, {
-      type: 'pie',
-      data: { labels, datasets: [{ data: valores }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'right' }, tooltip: { enabled: true } }
-      }
-    });
-
-    canvas.onclick = e => {
-      const pts = window.chartPie.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-      if (!pts.length) return;
-      const i = pts[0].index;
-      showModal(labels[i], mapas[labels[i]]);
-    };
-  }
-
-  function renderDoughnut(data) {
-    const canvas = document.getElementById('doughnutChart');
-    if (!canvas) return console.warn('❌ doughnutChart não encontrado.');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const status = {};
-    const mapas = {};
-    data.forEach(x => {
-      if (!x.Ativo) return;
-      status[x.Ativo] = (status[x.Ativo] || 0) + 1;
-      (mapas[x.Ativo] ||= []).push(x.Cliente);
-    });
-
-    const labels = Object.keys(status);
-    const valores = labels.map(k => status[k]);
-    const cores = ['#2196f3', '#4caf50', '#ffeb3b', '#ff5722'];
-    nameMaps.doughnut = mapas;
-
-    if (window.chartDough?.destroy) window.chartDough.destroy();
-    window.chartDough = new Chart(ctx, {
-      type: 'doughnut',
-      data: { labels, datasets: [{ data: valores, backgroundColor: cores }] },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'right' }, tooltip: { enabled: true } }
-      }
-    });
-
-    canvas.onclick = e => {
-      const pts = window.chartDough.getElementsAtEventForMode(e, 'nearest', { intersect: true }, false);
-      if (!pts.length) return;
-      const i = pts[0].index;
-      showModal(labels[i], mapas[labels[i]]);
-    };
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_FUNÇÕES_GRÁFICOS ======================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_6_MODAL_DETALHES ================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function showModal(titulo, lista) {
-    const modal = document.getElementById('detail-modal');
-    const tituloElem = document.getElementById('modal-title');
-    const ul = document.getElementById('modal-list');
-
-    tituloElem.textContent = titulo;
-    ul.innerHTML = '';
-
-    lista.forEach(nome => {
-      const li = document.createElement('li');
-      li.textContent = nome;
-      ul.appendChild(li);
-    });
-
-    modal.style.display = 'flex';
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_6_MODAL_DETALHES ===================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_7_FECHAR_MODAL ==================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const btnFechar = document.querySelector('.modal .close');
-    const modal = document.getElementById('detail-modal');
-
-    if (btnFechar && modal) {
-      btnFechar.addEventListener('click', () => {
-        modal.style.display = 'none';
-      });
+      
+      // Obtém todos os meses presentes nos dados
+      const meses = [...new Set([...Object.keys(inativosPorMes), ...Object.keys(reativadosPorMes)])].sort();
+      
+      // Cria arrays ordenados para o gráfico
+      const inativosArray = meses.map(mes => inativosPorMes[mes] || 0);
+      const reativadosArray = meses.map(mes => reativadosPorMes[mes] || 0);
+      
+      return {
+        meses,
+        inativos: inativosArray,
+        reativados: reativadosArray
+      };
     }
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_7_FECHAR_MODAL ======================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_8_CONTROLE_DE_TEMA =============== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const btnTema = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-
-    // Ativa o modo escuro por padrão
-    html.dataset.theme = 'dark';
-
-    const atualizarTexto = () => {
-      btnTema.textContent = html.dataset.theme === 'light' ? 'Modo Escuro' : 'Modo Claro';
-    };
-
-    atualizarTexto();
-
-    btnTema.addEventListener('click', () => {
-      html.dataset.theme = html.dataset.theme === 'light' ? 'dark' : 'light';
-      atualizarTexto();
-    });
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_8_CONTROLE_DE_TEMA ================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_9_LOADER_VISUAL =================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const loader = document.getElementById('loader');
-
-    if (loader) {
-      // Exibe o loader antes de buscar os dados
-      loader.style.display = 'flex';
-
-      // Aguarda até os dados serem carregados
-      fetchAllSheets().then(raw => {
-        allData = raw.map(r => ({
-          Cliente: (r.Cliente || '').trim(),
-          UF: (r.UF || '').trim(),
-          Status: (r['Status Principal'] || '').trim(),
-          Ativo: (r['Status Atual'] || '').trim(),
-          Motivo: (r['Motivo do Status'] || '').trim(),
-          Data: parseDate(r['Último Contato']),
-          Recompra: (r['Previsão de Recompra'] || '').trim(),
-          sheet: r.sheet
-        }));
-
-        console.log('✅ Dados carregados:', allData.length);
-        populateFilters();
-        updateDashboard();
-        loader.style.display = 'none'; // esconde o loader ao finalizar
-      });
-    }
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_9_LOADER_VISUAL ====================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_10_INIT_SEGURO ==================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  document.addEventListener('DOMContentLoaded', async () => {
-    const loader = document.getElementById('loader');
-
-    if (!loader) {
-      // Caso o loader não esteja presente, carrega diretamente
-      const raw = await fetchAllSheets();
-      allData = raw.map(r => ({
-        Cliente: (r.Cliente || '').trim(),
-        UF: (r.UF || '').trim(),
-        Status: (r['Status Principal'] || '').trim(),
-        Ativo: (r['Status Atual'] || '').trim(),
-        Motivo: (r['Motivo do Status'] || '').trim(),
-        Data: parseDate(r['Último Contato']),
-        Recompra: (r['Previsão de Recompra'] || '').trim(),
-        sheet: r.sheet
-      }));
-
-      console.log('✅ Dados carregados (modo direto):', allData.length);
-      populateFilters();
-      updateDashboard();
-    }
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_10_INIT_SEGURO ======================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_11_EXTRA (RESERVADO) ============== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  // Este bloco está reservado para funcionalidades futuras ou testes adicionais
-
-  // Exemplo de ação extra:
-  // console.log('🧪 BLOCO_JS_11_EXTRA ativo');
-
-  // Você pode criar interações aqui no futuro
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_11_EXTRA (RESERVADO) ================= -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_12_CHARTJS_GLOBAL_CONFIG ========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  Chart.defaults.font.family = 'Inter, sans-serif';
-  Chart.defaults.font.size = 14;
-  Chart.defaults.color = '#555';
-
-  Chart.defaults.plugins.tooltip.backgroundColor = '#1f2937'; // cinza escuro
-  Chart.defaults.plugins.tooltip.titleFont = { weight: '600' };
-  Chart.defaults.plugins.tooltip.cornerRadius = 8;
-  Chart.defaults.plugins.tooltip.padding = 10;
-
-  Chart.defaults.plugins.legend.labels.boxWidth = 12;
-  Chart.defaults.plugins.legend.labels.boxHeight = 12;
-  Chart.defaults.plugins.legend.labels.padding = 20;
-
-  Chart.defaults.elements.line.tension = 0.35; // suaviza as linhas
-  Chart.defaults.elements.point.radius = 4;
-  Chart.defaults.elements.point.hoverRadius = 6;
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_12_CHARTJS_GLOBAL_CONFIG ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO_JS_13_FUNCOES_UTILITARIAS ============ -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  // Converte datas do formato DD/MM/AAAA para objeto Date
-  function parseDate(s) {
-    if (!s) return NaN;
-    const [d, m, y] = s.split('/');
-    return new Date(+y, +m - 1, +d);
-  }
-
-  // Converte datas do formato AAAA-MM-DD para objeto Date
-  function parseISO(s) {
-    if (!s) return NaN;
-    const [y, m, d] = s.split('-');
-    return new Date(+y, +m - 1, +d);
-  }
-
-  // Converte string tipo "01/04/2025" em "Abril/2025"
-  function labelMesAno(dataStr) {
-    const [dia, mes, ano] = dataStr.split('/');
-    const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    return `${meses[parseInt(mes) - 1]}/${ano}`;
-  }
-
-  // Converte objeto Date em string formatada (DD/MM/AAAA)
-  function formatarData(date) {
-    const d = date.getDate().toString().padStart(2, '0');
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-
-  // Calcula diferença de dias entre uma data e hoje
-  function diasDesde(data) {
-    const hoje = new Date();
-    const diff = hoje - data;
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
-  }
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO_JS_13_FUNCOES_UTILITARIAS ============== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 14 - PREENCHIMENTO TABELA ======= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-function preencherTabelaDetalhada(data) {
-  const corpo = document.getElementById('corpo-tabela-clientes');
-  corpo.innerHTML = ''; // limpa tabela
-
-  data.forEach(x => {
-    const linha = document.createElement('tr');
-    linha.innerHTML = `
-      <td class="px-2 py-1">${x.Cliente}</td>
-      <td class="px-2 py-1">${x.UF}</td>
-      <td class="px-2 py-1">${x.Status}</td>
-      <td class="px-2 py-1">${x.Ativo}</td>
-      <td class="px-2 py-1">${x.Motivo}</td>
-      <td class="px-2 py-1">${x.Data instanceof Date && !isNaN(x.Data) ? x.Data.toLocaleDateString() : '-'}</td>
-      <td class="px-2 py-1">${x.Recompra instanceof Date && !isNaN(x.Recompra) ? x.Recompra.toLocaleDateString() : '-'}</td>
-    `;
-    corpo.appendChild(linha);
-  });
-}
-
-// Encaixa na chamada do updateDashboard()
-function updateDashboard() {
-  const fsV = document.getElementById('filter-status').value;
-  const fuV = document.getElementById('filter-uf').value;
-  const from = new Date(document.getElementById('filter-from').value);
-  const to   = new Date(document.getElementById('filter-to').value);
-  const filt = allData.filter(x =>
-    (!fsV || x.Status === fsV) &&
-    (!fuV || x.UF === fuV) &&
-    (isNaN(from) || x.Data >= from) &&
-    (isNaN(to)   || x.Data <= to)
-  );
-  console.log('[DASHBOARD] Registros filtrados:', filt.length);
-
-  document.getElementById('count-inativos').textContent    = filt.filter(x => x.Status === 'Inativo').length;
-  document.getElementById('count-exclientes').textContent  = filt.filter(x => x.Status === 'Ex-cliente').length;
-  document.getElementById('count-reativacoes').textContent = filt.filter(x => x.Ativo === 'Reativado').length;
-  const churn = filt.filter(x => ['Inativo','Ex-cliente'].includes(x.Status)).length || 1;
-  document.getElementById('count-retencao').textContent    = Math.round(filt.filter(x => x.Ativo === 'Reativado').length / churn * 100) + '%';
-
-  renderLine(filt);
-  renderBar(filt);
-  renderPie(filt);
-  renderDoughnut(filt);
-  preencherTabelaDetalhada(filt); // aqui pintamos a tabela ;)
-}
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 14 - PREENCHIMENTO TABELA ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 15 - TAXA DE REATIVAÇÃO ACUMULADA ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-function pintarTaxaReativacao(dados) {
-  const totalInativos = dados.filter(x => x.Status === 'Inativo' || x.Status === 'Ex-cliente').length;
-  const totalReativados = dados.filter(x => x.Ativo === 'Reativado').length;
-  const taxa = totalInativos > 0 ? Math.round((totalReativados / totalInativos) * 100) : 0;
-
-  const alvo = document.getElementById('taxa-reativacao');
-  if (alvo) alvo.textContent = taxa + '%';
-}
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 15 - TAXA DE REATIVAÇÃO ACUMULADA ============ -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 16 - CLIENTES SEM CONTATO +30 DIAS ===== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO ===== -->
-<!-- ========================================================== -->
-<script>
-  function pintarSemContato30Dias() {
-    const hoje = new Date();
-    const container = document.getElementById('painel-sem-contato');
-    if (!container) return;
-
-    const lista = window.allData.filter(x => {
-      return x.Data instanceof Date && !isNaN(x.Data) && (hoje - x.Data) / (1000 * 60 * 60 * 24) > 30;
-    });
-
-    if (lista.length === 0) {
-      container.innerHTML += '<p class="text-gray-400 text-sm">Nenhum cliente com mais de 30 dias sem contato.</p>';
-      return;
-    }
-
-    const ul = document.createElement('ul');
-    ul.className = 'list-disc pl-6 text-sm text-white space-y-1';
-
-    lista.slice(0, 10).forEach(x => {
-      const li = document.createElement('li');
-      li.textContent = `${x.Cliente} - ${x.UF} - ${x.Status} - Último contato: ${x.Data.toLocaleDateString()}`;
-      ul.appendChild(li);
-    });
-
-    container.appendChild(ul);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    if (window.allData?.length) pintarSemContato30Dias();
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 16 - CLIENTES SEM CONTATO +30 DIAS ====== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 17 - CONTATOS DO DIA (HOJE) ========= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function preencherContatosDoDia(data) {
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const contatosHoje = data.filter(x => x.ProxContato instanceof Date && !isNaN(x.ProxContato) && x.ProxContato.getTime() === hoje.getTime());
-
-    const container = document.getElementById('bloco-contatos-hoje');
-    container.innerHTML = '';
-
-    if (contatosHoje.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-400">Nenhum contato agendado para hoje.</p>';
-      return;
-    }
-
-    const ul = document.createElement('ul');
-    ul.className = 'list-disc list-inside text-sm';
-
-    contatosHoje.forEach(cliente => {
-      const li = document.createElement('li');
-      li.textContent = cliente.Cliente + (cliente.UF ? ` (${cliente.UF})` : '');
-      ul.appendChild(li);
-    });
-
-    container.appendChild(ul);
-  }
-
-  // Chamar a função após updateDashboard (garantido via JS 13)
-  window.pintoresDashboard.push(preencherContatosDoDia);
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 17 - CONTATOS DO DIA (HOJE) ========== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 18 - TEMPO MÉDIO SEM CONTATO ======= -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function renderDiasMediosSemContato() {
-    const container = document.getElementById("tempo-medio-contato");
-    if (!container || !window.allData) return;
-
-    const agrupado = {};
-
-    // Agrupa clientes por status atual e soma os dias desde o último contato
-    window.allData.forEach((item) => {
-      const status = item.Ativo || "Sem status";
-      if (!item.Data || isNaN(item.Data)) return;
-
-      const dias = Math.floor((Date.now() - item.Data.getTime()) / (1000 * 60 * 60 * 24));
-      if (!agrupado[status]) agrupado[status] = { soma: 0, qtd: 0 };
-
-      agrupado[status].soma += dias;
-      agrupado[status].qtd += 1;
-    });
-
-    // Limpa conteúdo anterior
-    container.innerHTML = "";
-
-    // Cria linhas da tabela
-    Object.entries(agrupado).forEach(([status, { soma, qtd }]) => {
-      const media = Math.round(soma / qtd);
-
-      const row = document.createElement("div");
-      row.className = "flex justify-between px-4 py-2 text-sm";
-
-      row.innerHTML = `
-        <span class="text-gray-300">${status}</span>
-        <span class="text-gray-100 font-semibold">${media} dias</span>
-      `;
-
-      container.appendChild(row);
-    });
-  }
-
-  // Executa quando o DOM estiver pronto e os dados carregados
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.allData?.length) renderDiasMediosSemContato();
-    else {
-      // Garante que execute quando os dados forem carregados
-      const intervalo = setInterval(() => {
-        if (window.allData?.length) {
-          clearInterval(intervalo);
-          renderDiasMediosSemContato();
+    
+    // Agrupar por status atual para gráfico de pizza
+    function agruparPorStatus(dados) {
+      const statusCount = {};
+      
+      dados.forEach(item => {
+        if (item.Ativo) {
+          statusCount[item.Ativo] = (statusCount[item.Ativo] || 0) + 1;
         }
-      }, 300);
+      });
+      
+      return statusCount;
     }
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 18 - TEMPO MÉDIO SEM CONTATO =========== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 19 - PREVISÕES VENCIDAS ========== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function atualizarPrevisoesVencidas() {
-    const hoje = new Date();
-    const lista = window.allData.filter(x =>
-      x.Recompra instanceof Date && !isNaN(x.Recompra) &&
-      x.Recompra < hoje &&
-      x.Ativo !== 'Reativado'
-    ).map(x => x.Cliente);
-
-    const painel = document.getElementById('previsoes-vencidas');
-    if (!painel) return;
-
-    if (lista.length > 0) {
-      painel.innerHTML = `
-        <h2 class="text-red-500 text-lg font-semibold mb-2">Previsões de Recompra Vencidas</h2>
-        <ul class="list-disc pl-5 text-gray-100">
-          ${lista.map(c => `<li>${c}</li>`).join('')}
-        </ul>
+    
+    // Agrupar por motivo para gráfico de pizza
+    function agruparPorMotivo(dados) {
+      const motivoCount = {};
+      
+      dados.forEach(item => {
+        if (item.Motivo) {
+          motivoCount[item.Motivo] = (motivoCount[item.Motivo] || 0) + 1;
+        }
+      });
+      
+      return motivoCount;
+    }
+    
+    // Calcular taxa de reativação por mês
+    function calcularTaxaReativacaoPorMes(dados) {
+      const meses = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        if (!meses[mesAno]) {
+          meses[mesAno] = { inativos: 0, reativados: 0 };
+        }
+        
+        // Contagem de inativos e ex-clientes
+        if (item.Status === 'Inativo' || item.Status === 'Ex-cliente') {
+          meses[mesAno].inativos++;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          meses[mesAno].reativados++;
+        }
+      });
+      
+      // Calcula as taxas para cada mês
+      const mesesOrdenados = Object.keys(meses).sort();
+      const taxas = mesesOrdenados.map(mes => {
+        const { inativos, reativados } = meses[mes];
+        return inativos > 0 ? (reativados / inativos) * 100 : 0;
+      });
+      
+      return {
+        meses: mesesOrdenados,
+        taxas
+      };
+    }
+    
+    // Identificar clientes sem contato há mais de 30 dias
+    function identificarClientesSemContato(dados) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      return dados.filter(item => {
+        if (!item.Data) return false;
+        
+        const dias = diasDesde(item.Data);
+        return dias > 30;
+      }).sort((a, b) => {
+        if (!a.Data) return 1;
+        if (!b.Data) return -1;
+        return a.Data - b.Data; // Mais antigos primeiro
+      });
+    }
+    
+    // Identificar previsões de recompra vencidas
+    function identificarPrevisoesVencidas(dados) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      return dados.filter(item => {
+        if (!item.Recompra) return false;
+        
+        // Verifica se a data de recompra já passou e o cliente não foi reativado
+        return item.Recompra < hoje && item.Ativo !== 'Reativado';
+      }).sort((a, b) => {
+        if (!a.Recompra) return 1;
+        if (!b.Recompra) return -1;
+        return a.Recompra - b.Recompra; // Mais antigos primeiro
+      });
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE VISUALIZAÇÃO
+    // ==========================================
+    
+    // Atualizar os KPIs
+    function atualizarKPIs(kpis) {
+      document.getElementById('count-inativos').textContent = kpis.totalInativos;
+      document.getElementById('count-exclientes').textContent = kpis.totalExClientes;
+      document.getElementById('count-reativacoes').textContent = kpis.totalReativados;
+      document.getElementById('count-retencao').textContent = `${kpis.taxaRetencao}%`;
+    }
+    
+    // Inicializar os valores dos filtros
+    function inicializarFiltros() {
+      // Define as datas padrão (último mês)
+      const hoje = new Date();
+      const mesPassado = new Date();
+      mesPassado.setMonth(mesPassado.getMonth() - 1);
+      
+      document.getElementById('filter-from').value = formatarDataISO(mesPassado);
+      document.getElementById('filter-to').value = formatarDataISO(hoje);
+      
+      window.filtros.dataInicio = mesPassado;
+      window.filtros.dataFim = hoje;
+    }
+    
+    // Popular os dropdowns de filtro
+    function popularFiltros(dados) {
+      const selectStatus = document.getElementById('filter-status');
+      const selectUF = document.getElementById('filter-uf');
+      const selectStatusTabela = document.getElementById('filtro-tabela-status');
+      
+      // Limpar opções existentes
+      selectStatus.innerHTML = '<option value="">Todos</option>';
+      selectUF.innerHTML = '<option value="">Todas</option>';
+      selectStatusTabela.innerHTML = '<option value="">Todos os status</option>';
+      
+      // Extrair valores únicos
+      const status = [...new Set(dados.map(item => item.Status).filter(Boolean))].sort();
+      const ufs = [...new Set(dados.map(item => item.UF).filter(Boolean))].sort();
+      const statusAtuais = [...new Set(dados.map(item => item.Ativo).filter(Boolean))].sort();
+      
+      // Adicionar opções
+      status.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        selectStatus.appendChild(option);
+      });
+      
+      ufs.forEach(uf => {
+        const option = document.createElement('option');
+        option.value = uf;
+        option.textContent = uf;
+        selectUF.appendChild(option);
+      });
+      
+      statusAtuais.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        selectStatusTabela.appendChild(option);
+      });
+    }
+    
+    // Desenhar gráfico de inativos vs reativados
+    function desenharGraficoInativosReativados(dados) {
+      const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoInativosReativados) {
+        window.graficoInativosReativados.destroy();
+      }
+      
+      // Agrupar dados por mês
+      const dadosPorMes = agruparPorMes(dados);
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.inativosVsReativados = dadosPorMes;
+      
+      // Configuração do gráfico
+      window.graficoInativosReativados = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dadosPorMes.meses,
+          datasets: [
+            {
+              label: 'Inativos',
+              data: dadosPorMes.inativos,
+              backgroundColor: '#4caf50',
+              borderWidth: 0
+            },
+            {
+              label: 'Reativados',
+              data: dadosPorMes.reativados,
+              backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+              borderWidth: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(200, 200, 200, 0.1)'
+              },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+    
+    // Desenhar gráfico de status (rosca)
+    function desenharGraficoStatus(dados) {
+      const ctx = document.getElementById('chart-status').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoStatus) {
+        window.graficoStatus.destroy();
+      }
+      
+      // Agrupar dados por status
+      const statusCount = agruparPorStatus(dados);
+      
+      // Preparar dados para o gráfico
+      const labels = Object.keys(statusCount);
+      const values = Object.values(statusCount);
+      
+      // Gerar cores para cada status
+      const cores = [
+        '#4caf50', // Verde
+        getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+        '#f59e0b', // Amarelo
+        '#ef4444', // Vermelho
+        '#8b5cf6', // Roxo
+        '#ec4899'  // Rosa
+      ];
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.status = statusCount;
+      
+      // Configuração do gráfico
+      window.graficoStatus = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: cores.slice(0, labels.length),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+    
+    // Desenhar gráfico de motivos (pizza)
+    function desenharGraficoMotivos(dados) {
+      const ctx = document.getElementById('chart-motivos').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoMotivos) {
+        window.graficoMotivos.destroy();
+      }
+      
+      // Agrupar dados por motivo
+      const motivoCount = agruparPorMotivo(dados);
+      
+      // Preparar dados para o gráfico
+      const labels = Object.keys(motivoCount);
+      const values = Object.values(motivoCount);
+      
+      // Gerar cores para cada motivo
+      const cores = [
+        '#4caf50', // Verde
+        '#3b82f6', // Azul
+        '#f59e0b', // Amarelo
+        '#ef4444', // Vermelho
+        '#8b5cf6', // Roxo
+        '#ec4899',  // Rosa
+        '#06b6d4', // Ciano
+        '#84cc16', // Verde-limão
+        '#14b8a6', // Teal
+        '#8b5cf6'  // Roxo
+      ];
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.motivos = motivoCount;
+      
+      // Configuração do gráfico
+      window.graficoMotivos = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: cores.slice(0, labels.length),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Desenhar gráfico de taxa de reativação por mês
+    function desenharGraficoTaxaReativacao(dados) {
+      const ctx = document.getElementById('chart-taxa-reativacao').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoTaxaReativacao) {
+        window.graficoTaxaReativacao.destroy();
+      }
+      
+      // Calcular taxa de reativação por mês
+      const { meses, taxas } = calcularTaxaReativacaoPorMes(dados);
+      
+      // Configuração do gráfico
+      window.graficoTaxaReativacao = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: meses,
+          datasets: [{
+            label: 'Taxa de Reativação (%)',
+            data: taxas,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Taxa: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(200, 200, 200, 0.1)'
+              },
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Atualizar alertas
+    function atualizarAlertaSemContato(dados) {
+      const clientesSemContato = identificarClientesSemContato(dados);
+      const container = document.getElementById('alerta-sem-contato');
+      
+      if (clientesSemContato.length === 0) {
+        container.innerHTML = '<p class="text-sm opacity-70">Nenhum cliente sem contato há mais de 30 dias.</p>';
+        return;
+      }
+      
+      const lista = document.createElement('ul');
+      lista.className = 'space-y-2';
+      
+      // Limitar a 10 itens para não sobrecarregar a UI
+      clientesSemContato.slice(0, 10).forEach(cliente => {
+        const item = document.createElement('li');
+        item.className = 'text-sm flex justify-between';
+        
+        const dias = diasDesde(cliente.Data);
+        
+        item.innerHTML = `
+          <span>${cliente.Cliente} (${cliente.UF})</span>
+          <span class="opacity-70">${dias} dias</span>
+        `;
+        
+        lista.appendChild(item);
+      });
+      
+      // Adicionar contador se houver mais itens
+      if (clientesSemContato.length > 10) {
+        const mais = document.createElement('li');
+        mais.className = 'text-sm text-center mt-2 opacity-70';
+        mais.textContent = `+ ${clientesSemContato.length - 10} outros clientes`;
+        lista.appendChild(mais);
+      }
+      
+      container.innerHTML = '';
+      container.appendChild(lista);
+    }
+    
+    // Atualizar alerta de previsões vencidas
+    function atualizarAlertaPrevisoesVencidas(dados) {
+      const previsoesVencidas = identificarPrevisoesVencidas(dados);
+      const container = document.getElementById('alerta-previsoes-vencidas');
+      
+      if (previsoesVencidas.length === 0) {
+        container.innerHTML = '<p class="text-sm opacity-70">Nenhuma previsão de recompra vencida.</p>';
+        return;
+      }
+      
+      const lista = document.createElement('ul');
+      lista.className = 'space-y-2';
+      
+      // Limitar a 10 itens para não sobrecarregar a UI
+      previsoesVencidas.slice(0, 10).forEach(cliente => {
+        const item = document.createElement('li');
+        item.className = 'text-sm flex justify-between';
+        
+        item.innerHTML = `
+          <span>${cliente.Cliente} (${cliente.UF})</span>
+          <span class="opacity-70">${formatarData(cliente.Recompra)}</span>
+        `;
+        
+        lista.appendChild(item);
+      });
+      
+      // Adicionar contador se houver mais itens
+      if (previsoesVencidas.length > 10) {
+        const mais = document.createElement('li');
+        mais.className = 'text-sm text-center mt-2 opacity-70';
+        mais.textContent = `+ ${previsoesVencidas.length - 10} outras previsões vencidas`;
+        lista.appendChild(mais);
+      }
+      
+      container.innerHTML = '';
+      container.appendChild(lista);
+    }
+    
+    // ==========================================
+    // FUNÇÕES DA TABELA DE CLIENTES
+    // ==========================================
+    
+    // Renderizar tabela de clientes
+    function renderizarTabelaClientes(dados) {
+      const tbody = document.getElementById('corpo-tabela-clientes');
+      const totalRegistros = document.getElementById('total-registros');
+      const paginacao = document.getElementById('paginacao');
+      const btnAnterior = document.getElementById('btn-anterior');
+      const btnProximo = document.getElementById('btn-proximo');
+      
+      // Atualizar contadores
+      totalRegistros.textContent = dados.length;
+      
+      // Calcular total de páginas
+      window.paginacao.totalPaginas = Math.ceil(dados.length / window.paginacao.itensPorPagina);
+      
+      // Ajustar página atual se necessário
+      if (window.paginacao.paginaAtual > window.paginacao.totalPaginas) {
+        window.paginacao.paginaAtual = Math.max(1, window.paginacao.totalPaginas);
+      }
+      
+      // Atualizar texto de paginação
+      paginacao.textContent = `Página ${window.paginacao.paginaAtual} de ${window.paginacao.totalPaginas}`;
+      
+      // Habilitar/desabilitar botões de navegação
+      btnAnterior.disabled = window.paginacao.paginaAtual <= 1;
+      btnProximo.disabled = window.paginacao.paginaAtual >= window.paginacao.totalPaginas;
+      
+      btnAnterior.style.opacity = btnAnterior.disabled ? '0.5' : '1';
+      btnProximo.style.opacity = btnProximo.disabled ? '0.5' : '1';
+      
+      // Calcular índices para a página atual
+      const inicio = (window.paginacao.paginaAtual - 1) * window.paginacao.itensPorPagina;
+      const fim = Math.min(inicio + window.paginacao.itensPorPagina, dados.length);
+      
+      // Limpar tabela
+      tbody.innerHTML = '';
+      
+      // Verificar se não há dados
+      if (dados.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="7" class="text-center py-4">Nenhum registro encontrado</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      // Renderizar linhas da página atual
+      const dadosPagina = dados.slice(inicio, fim);
+      
+      dadosPagina.forEach(cliente => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+          <td class="cursor-pointer hover:text-primary" data-cliente="${cliente.Cliente}">${cliente.Cliente}</td>
+          <td>${cliente.UF || '-'}</td>
+          <td>${cliente.Status || '-'}</td>
+          <td>${cliente.Ativo || '-'}</td>
+          <td>${cliente.Motivo || '-'}</td>
+          <td>${cliente.Data ? formatarData(cliente.Data) : '-'}</td>
+          <td>${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</td>
+        `;
+        
+        // Adicionar evento de clique para exibir detalhes
+        const tdCliente = tr.querySelector('td[data-cliente]');
+        if (tdCliente) {
+          tdCliente.addEventListener('click', () => {
+            abrirModalDetalhes(cliente);
+          });
+        }
+        
+        tbody.appendChild(tr);
+      });
+    }
+    
+    // Filtrar tabela por texto de pesquisa e status
+    function filtrarTabela() {
+      const pesquisa = document.getElementById('pesquisa-cliente').value.toLowerCase();
+      const statusFiltro = document.getElementById('filtro-tabela-status').value;
+      
+      // Aplicar filtros aos dados já filtrados globalmente
+      const dadosFiltrados = window.dadosFiltrados.filter(cliente => {
+        // Filtro de texto
+        const matchTexto = !pesquisa || 
+                         (cliente.Cliente && cliente.Cliente.toLowerCase().includes(pesquisa)) ||
+                         (cliente.UF && cliente.UF.toLowerCase().includes(pesquisa)) ||
+                         (cliente.Motivo && cliente.Motivo.toLowerCase().includes(pesquisa));
+        
+        // Filtro de status
+        const matchStatus = !statusFiltro || cliente.Ativo === statusFiltro;
+        
+        return matchTexto && matchStatus;
+      });
+      
+      // Resetar paginação
+      window.paginacao.paginaAtual = 1;
+      
+      // Renderizar tabela
+      renderizarTabelaClientes(dadosFiltrados);
+    }
+    
+    // Abrir modal com detalhes do cliente
+    function abrirModalDetalhes(cliente) {
+      const modal = document.getElementById('modal-detalhes');
+      const conteudo = document.getElementById('modal-conteudo');
+      
+      // Formatar dados para o modal
+      conteudo.innerHTML = `
+        <div class="mb-4 pb-3 border-b" style="border-color: var(--border);">
+          <div class="text-xl font-bold mb-1">${cliente.Cliente}</div>
+          <div class="flex items-center opacity-70 text-sm">
+            <span class="mr-2">${cliente.UF || '-'}</span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full mx-2" style="background-color: var(--border);"></span>
+            <span>${cliente.Aba || ''}</span>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-sm opacity-70 mb-1">Status Principal</p>
+            <p class="font-medium">${cliente.Status || '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Status Atual</p>
+            <p class="font-medium">${cliente.Ativo || '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Motivo</p>
+            <p class="font-medium">${cliente.Motivo || '-'}</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm opacity-70 mb-1">Último Contato</p>
+            <p class="font-medium">${cliente.Data ? formatarData(cliente.Data) : '-'}</p>
+            ${cliente.Data ? `<p class="text-xs opacity-50 mt-1">Há ${diasDesde(cliente.Data)} dias</p>` : ''}
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Próximo Contato</p>
+            <p class="font-medium">${cliente.ProxContato ? formatarData(cliente.ProxContato) : '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Previsão de Recompra</p>
+            <p class="font-medium">${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</p>
+          </div>
+        </div>
       `;
-    } else {
-      painel.innerHTML = `
-        <h2 class="text-red-500 text-lg font-semibold mb-2">Previsões de Recompra Vencidas</h2>
-        <p class="text-gray-400">Nenhum cliente com previsão vencida e status pendente.</p>
-      `;
+      
+      // Exibir o modal
+      modal.style.display = 'flex';
     }
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(atualizarPrevisoesVencidas, 1000);
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 19 - PREVISÕES VENCIDAS ============== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 20 - NEGOCIAÇÕES COM PREVISÃO PRÓXIMA ===== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
-<script>
-  function atualizarNegociacoesComPrevisao() {
-    const agora = new Date();
-    const emSeteDias = new Date();
-    emSeteDias.setDate(agora.getDate() + 7);
-
-    const lista = allData.filter(x => {
-      return x.Ativo === 'Em negociação' &&
-             x.Recompra instanceof Date &&
-             !isNaN(x.Recompra) &&
-             x.Recompra >= agora && x.Recompra <= emSeteDias;
-    });
-
-    const painel = document.getElementById('negociacoes-previsao-proxima');
-    painel.innerHTML = lista.length > 0
-      ? '<ul class="list-disc pl-4">' + lista.map(x => `<li>${x.Cliente} - ${x.Recompra.toLocaleDateString()}</li>`).join('') + '</ul>'
-      : '<p class="text-sm text-gray-400">Nenhum cliente com previsão próxima.</p>';
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    atualizarNegociacoesComPrevisao();
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 20 - NEGOCIAÇÕES COM PREVISÃO PRÓXIMA ====== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
-
-<!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO ===== -->
-<!-- ========================================================== -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const deInput = document.getElementById('filter-from');
-    const ateInput = document.getElementById('filter-to');
-
-    function parseInputDate(value) {
-      if (!value) return null;
-      const parsed = new Date(value);
-      if (!isNaN(parsed)) return parsed;
-
-      // Tenta converter formatos tipo "12 de mai. de 2025" ou "12/05/2025"
-      const match = value.match(/(\d{1,2})\D+(\d{1,2}|[a-zç]+)\D+(\d{4})/i);
-      if (!match) return null;
-
-      const day = parseInt(match[1]);
-      let month = isNaN(match[2]) ?
-        ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-          .findIndex(m => m.startsWith(match[2].toLowerCase().slice(0,3))) + 1
-        : parseInt(match[2]);
-
-      const year = parseInt(match[3]);
-      if (!day || !month || !year) return null;
-      return new Date(year, month - 1, day);
+    
+    // ==========================================
+    // FUNÇÕES DE EVENTO E INICIALIZAÇÃO
+    // ==========================================
+    
+    // Aplicar os filtros aos dados
+    function aplicarFiltrosDashboard() {
+      // Coletar valores dos filtros
+      const statusValue = document.getElementById('filter-status').value;
+      const ufValue = document.getElementById('filter-uf').value;
+      const fromValue = document.getElementById('filter-from').value;
+      const toValue = document.getElementById('filter-to').value;
+      
+      // Atualizar objeto de filtros
+      window.filtros = {
+        status: statusValue,
+        uf: ufValue,
+        dataInicio: fromValue ? converterStringParaData(fromValue) : null,
+        dataFim: toValue ? converterStringParaData(toValue) : null
+      };
+      
+      // Se a data final for válida, ajustar para o final do dia
+      if (window.filtros.dataFim) {
+        window.filtros.dataFim.setHours(23, 59, 59, 999);
+      }
+      
+      // Aplicar filtros aos dados
+      window.dadosFiltrados = aplicarFiltros(window.dadosClientes, window.filtros);
+      
+      // Calcular KPIs
+      const kpis = calcularKPIs(window.dadosFiltrados);
+      
+      // Atualizar gráficos e KPIs
+      atualizarKPIs(kpis);
+      desenharGraficoInativosReativados(window.dadosFiltrados);
+      desenharGraficoStatus(window.dadosFiltrados);
+      desenharGraficoMotivos(window.dadosFiltrados);
+      desenharGraficoTaxaReativacao(window.dadosFiltrados);
+      atualizarAlertaSemContato(window.dadosFiltrados);
+      atualizarAlertaPrevisoesVencidas(window.dadosFiltrados);
+      renderizarTabelaClientes(window.dadosFiltrados);
     }
-
-    function marcarErroInput(input, erro = true) {
-      if (erro) {
-        input.classList.add('border-red-500');
-        input.title = 'Data inválida';
-      } else {
-        input.classList.remove('border-red-500');
-        input.title = '';
+    
+    // Limpar todos os filtros
+    function limparFiltros() {
+      document.getElementById('filter-status').value = '';
+      document.getElementById('filter-uf').value = '';
+      
+      // Restaurar datas para o último mês
+      inicializarFiltros();
+      
+      // Aplicar filtros
+      aplicarFiltrosDashboard();
+    }
+    
+    // Alternar entre temas claro e escuro
+    function alternarTema() {
+      const html = document.documentElement;
+      const novoTema = html.dataset.theme === 'light' ? 'dark' : 'light';
+      
+      html.dataset.theme = novoTema;
+      window.temaAtual = novoTema;
+      
+      // Salvar preferência
+      localStorage.setItem('tema', novoTema);
+      
+      // Atualizar gráficos se existirem
+      if (window.dadosFiltrados) {
+        desenharGraficoInativosReativados(window.dadosFiltrados);
+        desenharGraficoStatus(window.dadosFiltrados);
+        desenharGraficoMotivos(window.dadosFiltrados);
+        desenharGraficoTaxaReativacao(window.dadosFiltrados);
       }
     }
-
-    function aplicarFiltroSeValido() {
-      const de = parseInputDate(deInput.value);
-      const ate = parseInputDate(ateInput.value);
-
-      const deValido = de instanceof Date && !isNaN(de);
-      const ateValido = ate instanceof Date && !isNaN(ate);
-
-      marcarErroInput(deInput, !deValido && deInput.value);
-      marcarErroInput(ateInput, !ateValido && ateInput.value);
-
-      if ((deInput.value && !deValido) || (ateInput.value && !ateValido)) return;
-
-      // Chamamos diretamente o updateDashboard ao invés de aplicarTodosFiltros
-      updateDashboard();
+    
+    // Navegar para página anterior da tabela
+    function paginaAnterior() {
+      if (window.paginacao.paginaAtual > 1) {
+        window.paginacao.paginaAtual--;
+        renderizarTabelaClientes(window.dadosFiltrados);
+      }
     }
-
-    // Escutadores para validação ao sair do campo e ao digitar (real-time)
-    deInput.addEventListener('change', aplicarFiltroSeValido);
-    ateInput.addEventListener('change', aplicarFiltroSeValido);
-    deInput.addEventListener('input', aplicarFiltroSeValido);
-    ateInput.addEventListener('input', aplicarFiltroSeValido);
-  });
-</script>
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO JS 21 - FILTRO POR DATA (VERSÃO FINAL) ===== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
+    
+    // Navegar para próxima página da tabela
+    function paginaProxima() {
+      if (window.paginacao.paginaAtual < window.paginacao.totalPaginas) {
+        window.paginacao.paginaAtual++;
+        renderizarTabelaClientes(window.dadosFiltrados);
+      }
+    }
+    
+    // Configuração de todos os event listeners
+    function configurarEventListeners() {
+      // Botão de alternar tema
+      document.getElementById('theme-toggle').addEventListener('click', alternarTema);
+      
+      // Botões de filtro
+      document.getElementById('btn-aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
+      document.getElementById('btn-limpar-filtros').addEventListener('click', limparFiltros);
+      
+      // Filtros da tabela
+      document.getElementById('pesquisa-cliente').addEventListener('input', filtrarTabela);
+      document.getElementById('filtro-tabela-status').addEventListener('change', filtrarTabela);
+      
+      // Paginação da tabela
+      document.getElementById('btn-anterior').addEventListener('click', paginaAnterior);
+      document.getElementById('btn-proximo').addEventListener('click', paginaProxima);
+      
+      // Modal de detalhes
+      document.getElementById('btn-fechar-modal').addEventListener('click', () => {
+        document.getElementById('modal-detalhes').style.display = 'none';
+      });
+      
+      // Fechar modal ao clicar fora
+      const modal = document.getElementById('modal-detalhes');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+      
+      // Tecla ESC para fechar modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+      });
+    }
+    
+    // Inicialização do dashboard
+    async function inicializarDashboard() {
+      try {
+        // Aplicar tema salvo
+        document.documentElement.dataset.theme = window.temaAtual;
+        
+        // Inicializar filtros de data
+        inicializarFiltros();
+        
+        // Configurar event listeners
+        configurarEventListeners();
+        
+        // Carregar dados
+        const dados = await carregarTodosDados();
+        
+        // Verificar se há dados
+        if (!dados || dados.length === 0) {
+          mostrarErro('Não foram encontrados dados na planilha. Verifique se há registros nas abas.');
+          toggleLoader(false);
+          return;
+        }
+        
+        console.log(`Carregados ${dados.length} registros no total`);
+        
+        // Armazenar dados globalmente
+        window.dadosClientes = dados;
+        window.dadosFiltrados = dados;
+        
+        // Popular filtros
+        popularFiltros(dados);
+        
+        // Aplicar filtros iniciais e atualizar dashboard
+        aplicarFiltrosDashboard();
+        
+        // Esconder loader
+        toggleLoader(false);
+      } catch (erro) {
+        console.error('Erro ao inicializar dashboard:', erro);
+        mostrarErro('Ocorreu um erro ao inicializar o dashboard. Tente novamente mais tarde.');
+        toggleLoader(false);
+      }
+    }
+    
+    // Iniciar o dashboard quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', inicializarDashboard);
+  </script>
+</body>
+</html>
