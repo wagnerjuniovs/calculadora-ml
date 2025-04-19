@@ -514,93 +514,92 @@
     // FUNÇÕES DE CARREGAMENTO DE DADOS
     // ==========================================
     
-    // Obter a lista de abas da planilha
-    async function obterListaAbas() {
-      try {
-        // Busca os metadados da planilha
-        const response = await fetch(`${API_BASE}?info=true`);
-        const info = await response.json();
-        
-        // Extrai os nomes das abas
-        if (info && info.sheets) {
-          return info.sheets;
-        }
-        
-        return [];
-      } catch (erro) {
-        console.error('Erro ao obter lista de abas:', erro);
-        mostrarErro('Não foi possível obter a lista de abas da planilha');
-        return [];
+// Obter a lista de abas da planilha (Opção B)
+async function obterListaAbas() {
+  try {
+    const response = await fetch(`${API_BASE}?info=true`);
+    const info = await response.json();
+
+    // Se a API retornar direto um array de registros, força uma "aba vazia"
+    if (Array.isArray(info)) {
+      return [''];
+    }
+    // Caso padrão, quando existe info.sheets
+    if (info && info.sheets) {
+      return info.sheets;
+    }
+    return [];
+  } catch (erro) {
+    console.error('Erro ao obter lista de abas:', erro);
+    mostrarErro('Não foi possível obter a lista de abas da planilha');
+    return [];
+  }
+}
+
+// Carregar dados de uma aba específica (Opção B)
+async function carregarDadosAba(nomeAba) {
+  try {
+    // Se nomeAba for vazio, busca pelo endpoint principal; caso contrário, filtra pela aba
+    const url = nomeAba
+      ? `${API_BASE}?sheet=${nomeAba}`
+      : API_BASE;
+
+    const response = await fetch(url);
+    const dados = await response.json();
+
+    if (Array.isArray(dados) && dados.length > 0) {
+      console.log(`✅ Carregados ${dados.length} registros da aba "${nomeAba || 'principal'}"`);
+      return dados.map(registro => ({
+        Cliente: (registro.Cliente || '').trim(),
+        UF: (registro.UF || '').trim(),
+        Status: (registro['Status Principal'] || '').trim(),
+        Ativo: (registro['Status Atual'] || '').trim(),
+        Motivo: (registro['Motivo do Status'] || '').trim(),
+        Data: converterStringParaData(registro['Último Contato']),
+        ProxContato: converterStringParaData(registro['Próximo Contato']),
+        Recompra: converterStringParaData(registro['Previsão de Recompra']),
+        Aba: nomeAba || registro['Mês de Referência']
+      }));
+    }
+    return [];
+  } catch (erro) {
+    console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
+    mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
+    return [];
+  }
+}
+
+// Carregar todos os dados de todas as abas com conteúdo
+async function carregarTodosDados() {
+  toggleLoader(true);
+  try {
+    const listaAbas = await obterListaAbas();
+    window.abas = listaAbas;
+
+    let dadosCombinados = [];
+    for (const aba of listaAbas) {
+      const dadosAba = await carregarDadosAba(aba);
+      if (dadosAba.length > 0) {
+        dadosCombinados = [...dadosCombinados, ...dadosAba];
       }
     }
-    
-    // Carregar dados de uma aba específica
-    async function carregarDadosAba(nomeAba) {
-      try {
-        const response = await fetch(`${API_BASE}?sheet=${nomeAba}`);
-        const dados = await response.json();
-        
-        // Verifica se a aba tem dados
-        if (Array.isArray(dados) && dados.length > 0) {
-          console.log(`Carregados ${dados.length} registros da aba ${nomeAba}`);
-          
-          // Adiciona o nome da aba aos registros e faz o processamento dos dados
-          return dados.map(registro => ({
-            Cliente: (registro.Cliente || '').trim(),
-            UF: (registro.UF || '').trim(),
-            Status: (registro['Status Principal'] || '').trim(),
-            Ativo: (registro['Status Atual'] || '').trim(),
-            Motivo: (registro['Motivo do Status'] || '').trim(),
-            Data: converterStringParaData(registro['Último Contato']),
-            ProxContato: converterStringParaData(registro['Próximo Contato']),
-            Recompra: converterStringParaData(registro['Previsão de Recompra']),
-            Aba: nomeAba
-          }));
-        }
-        
-        return [];
-      } catch (erro) {
-        console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
-        mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
-        return [];
-      }
+
+    // Atualiza data de última atualização
+    const dataAtualizacao = document.getElementById('data-update');
+    if (dataAtualizacao) {
+      const agora = new Date();
+      dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
     }
-    
-    // Carregar todos os dados de todas as abas com conteúdo
-    async function carregarTodosDados() {
-      toggleLoader(true);
-      
-      try {
-        // Obtém a lista de abas disponíveis
-        const listaAbas = await obterListaAbas();
-        window.abas = listaAbas;
-        
-        // Carrega os dados de cada aba sequencialmente
-        let dadosCombinados = [];
-        
-        for (const aba of listaAbas) {
-          const dadosAba = await carregarDadosAba(aba);
-          if (dadosAba.length > 0) {
-            dadosCombinados = [...dadosCombinados, ...dadosAba];
-          }
-        }
-        
-        // Atualiza a data da última atualização
-        const dataAtualizacao = document.getElementById('data-update');
-        if (dataAtualizacao) {
-          const agora = new Date();
-          dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
-        }
-        
-        return dadosCombinados;
-      } catch (erro) {
-        console.error('Erro ao carregar todos os dados:', erro);
-        mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
-        return [];
-      } finally {
-        toggleLoader(false);
-      }
-    }
+
+    return dadosCombinados;
+  } catch (erro) {
+    console.error('Erro ao carregar todos os dados:', erro);
+    mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
+    return [];
+  } finally {
+    toggleLoader(false);
+  }
+}
     
     // ==========================================
     // FUNÇÕES DE FILTRO E PROCESSAMENTO
