@@ -653,20 +653,18 @@ async function carregarTodosDados() {
       };
     }
     
-    // Modificação na função agruparPorMes para adicionar mais logs de depuração
+    // Agrupamento por mês com classificação baseada em dias
 function agruparPorMes(dados) {
   console.log("Agrupando dados baseado em Último Pedido em Dias");
   
   const contadores = {};
-  let totalInativos = 0;
-  let totalExClientes = 0;
-  let totalReativados = 0;
   
   dados.forEach((item, index) => {
-    // Obter mês de referência para agrupar
-    const mesReferencia = item['Mês de Referência'];
+    // Obter mês de referência para agrupar (usando coluna exata)
+    const mesReferencia = item["Mês de Referência"];
+    
     if (!mesReferencia) {
-      console.log(`Item ${index} não tem Mês de Referência`, item);
+      console.log(`Item ${index} não tem Mês de Referência:`, item);
       return;
     }
     
@@ -678,9 +676,8 @@ function agruparPorMes(dados) {
     // Verificar status atual para Reativados (prioridade #1)
     if (item['Status Atual'] === 'Reativado') {
       contadores[mesReferencia].reativados++;
-      totalReativados++;
       console.log(`Item ${index} classificado como Reativado`);
-      return; // Reativado tem prioridade sobre as outras classificações
+      return; // Reativado tem prioridade
     }
     
     // Usar a nova coluna "Último Pedido em Dias" para classificação
@@ -692,12 +689,10 @@ function agruparPorMes(dados) {
       if (diasDesdeUltimoPedido <= 180) {
         // Se último pedido foi há 180 dias ou menos = Inativo
         contadores[mesReferencia].inativos++;
-        totalInativos++;
         console.log(`Item ${index} classificado como Inativo (${diasDesdeUltimoPedido} dias)`);
       } else {
         // Se último pedido foi há mais de 180 dias = Ex-cliente
         contadores[mesReferencia].exClientes++;
-        totalExClientes++;
         console.log(`Item ${index} classificado como Ex-cliente (${diasDesdeUltimoPedido} dias)`);
       }
     } else {
@@ -705,10 +700,7 @@ function agruparPorMes(dados) {
     }
   });
   
-  console.log(`Totais: Inativos=${totalInativos}, Ex-clientes=${totalExClientes}, Reativados=${totalReativados}`);
-  console.log("Contadores por mês:", contadores);
-  
-  // Ordenar meses cronologicamente
+  // Ordenar meses cronologicamente (formato: Abril/2025)
   const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
     const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -725,12 +717,13 @@ function agruparPorMes(dados) {
     return mesesNomes.indexOf(mesA) - mesesNomes.indexOf(mesB);
   });
   
+  console.log("Meses ordenados:", mesesOrdenados);
+  
   // Criar arrays para o resultado final
   const exClientes = mesesOrdenados.map(mes => contadores[mes].exClientes);
   const inativos = mesesOrdenados.map(mes => contadores[mes].inativos);
   const reativados = mesesOrdenados.map(mes => contadores[mes].reativados);
   
-  console.log("Meses ordenados:", mesesOrdenados);
   console.log("Valores de Ex-clientes:", exClientes);
   console.log("Valores de Inativos:", inativos);
   console.log("Valores de Reativados:", reativados);
@@ -743,7 +736,7 @@ function agruparPorMes(dados) {
     reativados: reativados
   };
 }
-   
+  
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
       const statusCount = {};
