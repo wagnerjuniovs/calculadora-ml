@@ -653,49 +653,15 @@ async function carregarTodosDados() {
       };
     }
     
-    // Nova implementação simplificada da função de agrupamento por mês
+    // Agrupamento por mês com classificação baseada em Último Pedido
 function agruparPorMes(dados) {
-  console.log("Processando dados para o gráfico...");
-  
-  // Encontrar a coluna de mês de referência
-  const chavesMesReferencia = ['Mês de Referência', 'MesReferencia', 'Mês', 'Mes', 'mes_referencia'];
-  const chaveMesReferencia = chavesMesReferencia.find(chave => 
-    dados.some(item => item[chave]));
-  
-  // Encontrar a coluna de último pedido
-  const chavesUltimoPedido = ['Último Pedido', 'UltimoPedido', 'ultimo_pedido'];
-  const chaveUltimoPedido = chavesUltimoPedido.find(chave => 
-    dados.some(item => item[chave]));
-  
-  // Encontrar a coluna de status atual
-  const chavesStatusAtual = ['Status Atual', 'StatusAtual', 'status_atual', 'Ativo'];
-  const chaveStatusAtual = chavesStatusAtual.find(chave => 
-    dados.some(item => item[chave]));
-  
-  // Encontrar a coluna de status principal
-  const chavesStatusPrincipal = ['Status Principal', 'StatusPrincipal', 'status_principal', 'Status'];
-  const chaveStatusPrincipal = chavesStatusPrincipal.find(chave => 
-    dados.some(item => item[chave]));
-  
-  console.log("Campos encontrados:", {
-    mesReferencia: chaveMesReferencia,
-    ultimoPedido: chaveUltimoPedido,
-    statusAtual: chaveStatusAtual,
-    statusPrincipal: chaveStatusPrincipal
-  });
-  
-  // Se faltar algum campo crucial, usar um método simplificado
-  if (!chaveMesReferencia || !chaveUltimoPedido) {
-    console.log("Usando método simplificado devido a campos ausentes");
-    return agruparPorMesSimplificado(dados);
-  }
+  console.log("Agrupando dados baseado em Último Pedido");
   
   const contadores = {};
   
-  // Processar cada registro
   dados.forEach(item => {
-    // Obter mês de referência
-    const mesReferencia = item[chaveMesReferencia];
+    // Obter mês de referência para agrupar
+    const mesReferencia = item['Mês de Referência'];
     if (!mesReferencia) return;
     
     // Inicializar contadores para este mês
@@ -703,127 +669,72 @@ function agruparPorMes(dados) {
       contadores[mesReferencia] = { exClientes: 0, inativos: 0, reativados: 0 };
     }
     
-    // Obter último pedido
-    const ultimoPedidoStr = item[chaveUltimoPedido];
-    if (!ultimoPedidoStr) {
-      // Sem último pedido, usamos uma lógica simplificada baseada no status
-      if (chaveStatusAtual && item[chaveStatusAtual] === 'Reativado') {
-        contadores[mesReferencia].reativados++;
-      } 
-      else if (chaveStatusPrincipal && item[chaveStatusPrincipal] === 'Ex-cliente') {
-        contadores[mesReferencia].exClientes++;
-      }
-      else if (chaveStatusPrincipal && item[chaveStatusPrincipal] === 'Inativo') {
-        contadores[mesReferencia].inativos++;
-      }
-      return;
+    // Verificar status atual para Reativados (prioridade #1)
+    if (item['Status Atual'] === 'Reativado') {
+      contadores[mesReferencia].reativados++;
+      return; // Reativado tem prioridade sobre as outras classificações
     }
     
-    // Se temos último pedido, aplicamos a lógica completa
+    // Obter último pedido e classificar por tempo (prioridade #2)
+    const ultimoPedidoStr = item['Último Pedido'];
+    if (!ultimoPedidoStr) return;
+    
     try {
-      // Método simplificado: Classificar baseado em Status para garantir que temos dados visíveis
-      if (chaveStatusAtual && item[chaveStatusAtual] === 'Reativado') {
-        contadores[mesReferencia].reativados++;
-      } 
-      else if (chaveStatusPrincipal && item[chaveStatusPrincipal] === 'Ex-cliente') {
+      // Converter data do último pedido
+      const ultimoPedido = converterStringParaData(ultimoPedidoStr);
+      if (!ultimoPedido) return;
+      
+      // Obter data do mês de referência para comparação
+      const [nomeMes, anoStr] = mesReferencia.split('/');
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      
+      const mesIndex = meses.findIndex(m => m === nomeMes);
+      if (mesIndex === -1) return;
+      
+      const ano = parseInt(anoStr);
+      if (isNaN(ano)) return;
+      
+      // Criar data do primeiro dia do mês de referência
+      const mesReferenciaData = new Date(ano, mesIndex, 1);
+      
+      // Calcular diferença em meses
+      const diffMeses = Math.floor(
+        (mesReferenciaData.getFullYear() - ultimoPedido.getFullYear()) * 12 + 
+        (mesReferenciaData.getMonth() - ultimoPedido.getMonth())
+      );
+      
+      // Classificar com base no tempo desde o último pedido
+      if (diffMeses >= 6) {
+        // Se último pedido foi há 6 meses ou mais = Ex-cliente
         contadores[mesReferencia].exClientes++;
-      }
-      else if (chaveStatusPrincipal && item[chaveStatusPrincipal] === 'Inativo') {
+      } else {
+        // Se último pedido foi há menos de 6 meses = Inativo
         contadores[mesReferencia].inativos++;
       }
     } catch (error) {
-      console.error("Erro ao processar item:", error, item);
+      console.error("Erro ao processar data:", error);
     }
   });
   
-  // Ordenar meses (simplificado)
-  const mesesOrdenados = Object.keys(contadores).sort();
-  
-  // Retornar dados no formato esperado pelo gráfico
-  const resultado = {
-    meses: mesesOrdenados,
-    exClientes: mesesOrdenados.map(mes => contadores[mes].exClientes),
-    inativos: mesesOrdenados.map(mes => contadores[mes].inativos),
-    reativados: mesesOrdenados.map(mes => contadores[mes].reativados)
-  };
-  
-  console.log("Resultado final para o gráfico:", resultado);
-  return resultado;
-}
-
-// Método simplificado para agrupar dados - usa apenas status sem lógica complexa
-function agruparPorMesSimplificado(dados) {
-  console.log("Usando método simplificado para agrupar dados");
-  
-  // Tenta encontrar algum campo para usar como mês
-  let campoDeMes = null;
-  for (const chave of Object.keys(dados[0] || {})) {
-    if (chave.toLowerCase().includes('mes') || chave.toLowerCase().includes('mês')) {
-      campoDeMes = chave;
-      break;
-    }
-  }
-  
-  // Se não encontrar, usa a propriedade 'Aba'
-  if (!campoDeMes && dados[0] && 'Aba' in dados[0]) {
-    campoDeMes = 'Aba';
-  }
-  
-  // Se mesmo assim não tiver, cria um mês artificial
-  if (!campoDeMes) {
-    // Usa o mês atual como valor padrão
-    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    const agora = new Date();
-    const mesAtual = `${meses[agora.getMonth()]}/${agora.getFullYear()}`;
+  // Ordenar meses cronologicamente
+  const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
+    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
     
-    // Retorna um único mês com contagens baseadas em Status
-    const exClientes = dados.filter(item => 
-      item['Status Principal'] === 'Ex-cliente' || 
-      item['Status'] === 'Ex-cliente').length;
+    const [mesA, anoA] = a.split('/');
+    const [mesB, anoB] = b.split('/');
     
-    const inativos = dados.filter(item => 
-      item['Status Principal'] === 'Inativo' || 
-      item['Status'] === 'Inativo').length;
-    
-    const reativados = dados.filter(item => 
-      item['Status Atual'] === 'Reativado' || 
-      item['Ativo'] === 'Reativado').length;
-    
-    return {
-      meses: [mesAtual],
-      exClientes: [exClientes],
-      inativos: [inativos],
-      reativados: [reativados]
-    };
-  }
-  
-  // Agrupa por mês usando o campo encontrado
-  const contadores = {};
-  
-  dados.forEach(item => {
-    const mes = item[campoDeMes];
-    if (!mes) return;
-    
-    if (!contadores[mes]) {
-      contadores[mes] = { exClientes: 0, inativos: 0, reativados: 0 };
+    // Comparar anos primeiro
+    if (anoA !== anoB) {
+      return parseInt(anoA) - parseInt(anoB);
     }
     
-    // Determina o tipo baseado nos campos de status que existirem
-    if ((item['Status Atual'] === 'Reativado') || (item['Ativo'] === 'Reativado')) {
-      contadores[mes].reativados++;
-    }
-    else if ((item['Status Principal'] === 'Ex-cliente') || (item['Status'] === 'Ex-cliente')) {
-      contadores[mes].exClientes++;
-    }
-    else if ((item['Status Principal'] === 'Inativo') || (item['Status'] === 'Inativo')) {
-      contadores[mes].inativos++;
-    }
+    // Se anos iguais, comparar meses
+    return mesesNomes.indexOf(mesA) - mesesNomes.indexOf(mesB);
   });
   
-  // Ordenar meses (simplificado)
-  const mesesOrdenados = Object.keys(contadores).sort();
-  
+  // Retornar resultado final
   return {
     meses: mesesOrdenados,
     exClientes: mesesOrdenados.map(mes => contadores[mes].exClientes),
@@ -997,7 +908,7 @@ function desenharGraficoInativosReativados(dados) {
   const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
   if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
 
-  // Agrupar os dados e adicionar logs para depuração
+  // Agrupar os dados por mês
   const dadosAgrupados = agruparPorMes(dados);
   console.log("Dados agrupados para o gráfico:", dadosAgrupados);
 
