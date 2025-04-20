@@ -653,9 +653,9 @@ async function carregarTodosDados() {
       };
     }
     
-    // Agrupamento por mês com classificação baseada em Último Pedido
+    // Agrupamento por mês com classificação baseada em Último Pedido em Dias
 function agruparPorMes(dados) {
-  console.log("Agrupando dados baseado em Último Pedido");
+  console.log("Agrupando dados baseado em Último Pedido em Dias");
   
   const contadores = {};
   
@@ -675,45 +675,19 @@ function agruparPorMes(dados) {
       return; // Reativado tem prioridade sobre as outras classificações
     }
     
-    // Obter último pedido e classificar por tempo (prioridade #2)
-    const ultimoPedidoStr = item['Último Pedido'];
-    if (!ultimoPedidoStr) return;
+    // Usar a nova coluna "Último Pedido em Dias" para classificação
+    const diasDesdeUltimoPedido = parseInt(item['Último Pedido em Dias']);
     
-    try {
-      // Converter data do último pedido
-      const ultimoPedido = converterStringParaData(ultimoPedidoStr);
-      if (!ultimoPedido) return;
-      
-      // Obter data do mês de referência para comparação
-      const [nomeMes, anoStr] = mesReferencia.split('/');
-      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      
-      const mesIndex = meses.findIndex(m => m === nomeMes);
-      if (mesIndex === -1) return;
-      
-      const ano = parseInt(anoStr);
-      if (isNaN(ano)) return;
-      
-      // Criar data do primeiro dia do mês de referência
-      const mesReferenciaData = new Date(ano, mesIndex, 1);
-      
-      // Calcular diferença em meses
-      const diffMeses = Math.floor(
-        (mesReferenciaData.getFullYear() - ultimoPedido.getFullYear()) * 12 + 
-        (mesReferenciaData.getMonth() - ultimoPedido.getMonth())
-      );
-      
-      // Classificar com base no tempo desde o último pedido
-      if (diffMeses >= 6) {
-        // Se último pedido foi há 6 meses ou mais = Ex-cliente
-        contadores[mesReferencia].exClientes++;
-      } else {
-        // Se último pedido foi há menos de 6 meses = Inativo
+    // Verificar se o valor é um número válido
+    if (!isNaN(diasDesdeUltimoPedido)) {
+      // Classificar baseado nos dias desde o último pedido
+      if (diasDesdeUltimoPedido <= 180) {
+        // Se último pedido foi há 180 dias ou menos = Inativo
         contadores[mesReferencia].inativos++;
+      } else {
+        // Se último pedido foi há mais de 180 dias = Ex-cliente
+        contadores[mesReferencia].exClientes++;
       }
-    } catch (error) {
-      console.error("Erro ao processar data:", error);
     }
   });
   
@@ -742,7 +716,7 @@ function agruparPorMes(dados) {
     reativados: mesesOrdenados.map(mes => contadores[mes].reativados)
   };
 }
-    
+   
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
       const statusCount = {};
