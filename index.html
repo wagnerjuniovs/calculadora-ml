@@ -897,8 +897,55 @@ function inicializarFiltros() {
       });
     }
 
-    // Desenhar gráfico Inativos vs Reativados com 3 barras
+    // Função para inspecionar e depurar os dados
+function depurarDados(dados) {
+  console.log("=== DEPURAÇÃO DOS DADOS ===");
+  console.log(`Total de registros: ${dados.length}`);
+  
+  if (dados.length === 0) {
+    console.log("ERRO: Não há dados para processar");
+    return;
+  }
+  
+  // Verificar todas as colunas disponíveis
+  const primeiroItem = dados[0];
+  const colunas = Object.keys(primeiroItem);
+  console.log("Colunas disponíveis:", colunas);
+  
+  // Verificar se as colunas necessárias existem
+  const temMesReferencia = colunas.includes("Mês de Referência");
+  const temUltimoPedidoEmDias = colunas.includes("Último Pedido em Dias");
+  const temStatusAtual = colunas.includes("Status Atual");
+  
+  console.log(`Tem coluna "Mês de Referência"? ${temMesReferencia}`);
+  console.log(`Tem coluna "Último Pedido em Dias"? ${temUltimoPedidoEmDias}`);
+  console.log(`Tem coluna "Status Atual"? ${temStatusAtual}`);
+  
+  // Imprimir os primeiros itens (máximo 5) para inspeção
+  console.log("Amostra dos dados:");
+  for (let i = 0; i < Math.min(5, dados.length); i++) {
+    console.log(`Item ${i}:`, dados[i]);
+  }
+  
+  // Se a coluna "Mês de Referência" não existir, verificar nomes similares
+  if (!temMesReferencia) {
+    const colunasSimilares = colunas.filter(col => 
+      col.toLowerCase().includes('mes') || 
+      col.toLowerCase().includes('mês') ||
+      col.toLowerCase().includes('referência') ||
+      col.toLowerCase().includes('referencia')
+    );
+    console.log("Colunas similares a 'Mês de Referência':", colunasSimilares);
+  }
+}
+
+// Modificar a função desenharGraficoInativosReativados para chamar a depuração
 function desenharGraficoInativosReativados(dados) {
+  console.log("Iniciando desenho do gráfico");
+  
+  // Depurar os dados antes de processar
+  depurarDados(dados);
+  
   const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
   if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
 
@@ -946,7 +993,7 @@ function desenharGraficoInativosReativados(dados) {
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false // Remove a legenda automática do Chart.js
+          display: false
         },
         tooltip: {
           mode: 'index',
