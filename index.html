@@ -659,73 +659,81 @@ async function carregarTodosDados() {
 // ==========================================================
 /* Utilitário global – mapeamento de colunas depois da importação  */
 window.__MAP_COLUNAS__ = {
-  mes:    'Aba',    // "Mês de Referência" virou "Aba" na importação
-  dias:   'Data',   // "Último Pedido em Dias" veio como "Data"
-  status: 'Status'  // "Status Atual" virou "Status"
+ mes:    'Aba',    // "Mês de Referência" virou "Aba" na importação
+ dias:   'Data',   // "Último Pedido em Dias" veio como "Data"
+ status: 'Status'  // "Status Atual" virou "Status"
 };
 
 /* ---------- Funções auxiliares ---------- */
 function normalizeDias(raw) {
-  if (typeof raw === 'number') return raw;
-  if (raw instanceof Date)     return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
-  const n = parseInt(raw, 10);
-  return isNaN(n) ? null : n;
+ if (typeof raw === 'number') return raw;
+ if (raw instanceof Date)     return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
+ const n = parseInt(raw, 10);
+ return isNaN(n) ? null : n;
 }
 
 function diagnosticarDados(dados) {
-  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
-  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
+ console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
+ if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
 
-  console.table(Object.keys(dados[0]).map(k => ({
-    coluna: k,
-    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
-    exemplo: String(dados[0][k]).slice(0,40)
-  })));
-  console.groupEnd();
+ console.table(Object.keys(dados[0]).map(k => ({
+   coluna: k,
+   tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
+   exemplo: String(dados[0][k]).slice(0,40)
+ })));
+ console.groupEnd();
 }
 
 /* ---------- Agrupamento propriamente dito ---------- */
 function agruparPorMes(dados) {
-  console.time('⏱️  agruparPorMes');
+ console.time('⏱️  agruparPorMes');
 
-  const MAP = window.__MAP_COLUNAS__;
-  const cont = {};      // { mes: {ex,ina,rea} }
+ const MAP = window.__MAP_COLUNAS__;
+ const cont = {};      // { mes: {ex,ina,rea} }
 
-  dados.forEach((row, idx) => {
-    const mes = row[MAP.mes];
-    if (!mes) { console.warn(`#${idx} sem mês`); return; }
-    
-    cont[mes] ??= { ex:0, ina:0, rea:0 };
-    
-    const dias = normalizeDias(row[MAP.dias]);
-    if (dias == null) { console.warn(`#${idx} dias inválido`, row[MAP.dias]); return; }
-    
-    if (dias >= 0 && dias <= 120) {
-      // Clientes REATIVADOS: DE 0 A 120 DIAS
-      cont[mes].rea++;
-    } else if (dias >= 121 && dias <= 180) {
-      // Clientes INATIVOS: DE 121 DIAS ATÉ 180 DIAS
-      cont[mes].ina++;
-    } else if (dias >= 181 && dias <= 5000) {
-      // Clientes EXCLIENTES: DE 181 DIAS ATÉ 5000 DIAS
-      cont[mes].ex++;
-    }
-    // Valores acima de 5000 dias não seriam contabilizados
-  });
+ dados.forEach((row, idx) => {
+   const mes = row[MAP.mes];
+   if (!mes) { console.warn(`#${idx} sem mês`); return; }
+   
+   cont[mes] ??= { ex:0, ina:0, rea:0 };
+   
+   // Depuração mais detalhada para mostrar o valor exato recebido
+   const valorOriginal = row[MAP.dias];
+   console.log(`Registro #${idx}: Valor original dias: "${valorOriginal}" (${typeof valorOriginal})`);
+   
+   const dias = normalizeDias(valorOriginal);
+   
+   // Classificação baseada apenas nos intervalos de dias
+   if (dias === null) {
+     console.warn(`#${idx} dias inválido`, valorOriginal);
+     return; // Pular registros com dias nulos por enquanto
+   }
+   
+   if (dias >= 0 && dias <= 120) {
+     // Clientes REATIVADOS: DE 0 A 120 DIAS
+     cont[mes].rea++;
+   } else if (dias >= 121 && dias <= 180) {
+     // Clientes INATIVOS: DE 121 DIAS ATÉ 180 DIAS
+     cont[mes].ina++;
+   } else if (dias >= 181) {
+     // Clientes EXCLIENTES: ACIMA DE 181 DIAS
+     cont[mes].ex++;
+   }
+ });
 
-  /* ordenação prática: divide em [mês,ano] e usa Date.parse */
-  const ordem = Object.keys(cont).sort((a,b)=>{
-    const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
-    return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
-  });
+ /* ordenação prática: divide em [mês,ano] e usa Date.parse */
+ const ordem = Object.keys(cont).sort((a,b)=>{
+   const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
+   return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
+ });
 
-  console.timeEnd('⏱️  agruparPorMes');
-  return {
-    meses:       ordem,
-    exClientes:  ordem.map(m=>cont[m].ex),
-    inativos:    ordem.map(m=>cont[m].ina),
-    reativados:  ordem.map(m=>cont[m].rea)
-  };
+ console.timeEnd('⏱️  agruparPorMes');
+ return {
+   meses:       ordem,
+   exClientes:  ordem.map(m=>cont[m].ex),
+   inativos:    ordem.map(m=>cont[m].ina),
+   reativados:  ordem.map(m=>cont[m].rea)
+ };
 }
 // ==========================================================
 // ===== FIM: BLOCO 08 - agruparPorMes ======================
@@ -897,74 +905,74 @@ function inicializarFiltros() {
 // ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
 // ==========================================================
 function desenharGraficoInativosReativados(dados) {
-  /* ---------- DIAGNÓSTICO INICIAL ---------- */
-  diagnosticarDados(dados);      // log "monstruoso" (definido no outro bloco)
+ /* ---------- DIAGNÓSTICO INICIAL ---------- */
+ diagnosticarDados(dados);      // log "monstruoso" (definido no outro bloco)
 
-  console.groupCollapsed('🏁 Iniciando desenho do gráfico');
+ console.groupCollapsed('🏁 Iniciando desenho do gráfico');
 
-  if (!Array.isArray(dados) || dados.length === 0) {
-    console.error('🛑 dados[] vazio – nada a processar');
-    console.groupEnd();
-    return;
-  }
+ if (!Array.isArray(dados) || dados.length === 0) {
+   console.error('🛑 dados[] vazio – nada a processar');
+   console.groupEnd();
+   return;
+ }
 
-  // --- mapeamento flexível de cabeçalhos (foi carregado no outro bloco) ---
-  const MAP = window.__MAP_COLUNAS__;
-  const faltaColuna = Object.values(MAP).some(c => !Object.keys(dados[0]).includes(c));
+ // --- mapeamento flexível de cabeçalhos (foi carregado no outro bloco) ---
+ const MAP = window.__MAP_COLUNAS__;
+ const faltaColuna = Object.values(MAP).some(c => !Object.keys(dados[0]).includes(c));
 
-  if (faltaColuna) {
-    console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
-    console.table(Object.keys(dados[0]));
-    console.groupEnd();
-    return;
-  }
+ if (faltaColuna) {
+   console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
+   console.table(Object.keys(dados[0]));
+   console.groupEnd();
+   return;
+ }
 
-  /* ---------- agrupamento ---------- */
-  const dadosAgrupados = agruparPorMes(dados);
+ /* ---------- agrupamento ---------- */
+ const dadosAgrupados = agruparPorMes(dados);
 
-  const temDados =
-        dadosAgrupados.exClientes.some(v => v > 0) ||
-        dadosAgrupados.inativos.some(v => v > 0) ||
-        dadosAgrupados.reativados.some(v => v > 0);
+ const temDados =
+       dadosAgrupados.exClientes.some(v => v > 0) ||
+       dadosAgrupados.inativos.some(v => v > 0) ||
+       dadosAgrupados.reativados.some(v => v > 0);
 
-  if (!temDados) {
-    console.warn('⚠️  Não há valores > 0 para plotar');
-    console.groupEnd();
-    return;
-  }
+ if (!temDados) {
+   console.warn('⚠️  Não há valores > 0 para plotar');
+   console.groupEnd();
+   return;
+ }
 
-  /* ---------- plot ---------- */
-  const ctx = document
-    .getElementById('chart-inativos-reativados')
-    .getContext('2d');
+ /* ---------- plot ---------- */
+ const ctx = document
+   .getElementById('chart-inativos-reativados')
+   .getContext('2d');
 
-  if (window.graficoInativosReativados) {
-    window.graficoInativosReativados.destroy();
-  }
+ if (window.graficoInativosReativados) {
+   window.graficoInativosReativados.destroy();
+ }
 
-  window.graficoInativosReativados = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: dadosAgrupados.meses,
-      datasets: [
-        { label: 'Ex‑clientes', data: dadosAgrupados.exClientes, backgroundColor: '#ff9800' },
-        { label: 'Inativos',     data: dadosAgrupados.inativos,   backgroundColor: '#4caf50' },
-        { label: 'Reativados',   data: dadosAgrupados.reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } }
-      }
-    }
-  });
+ window.graficoInativosReativados = new Chart(ctx, {
+   type: 'bar',
+   data: {
+     labels: dadosAgrupados.meses,
+     datasets: [
+       { label: 'Ex‑clientes', data: dadosAgrupados.exClientes, backgroundColor: '#ff9800' },
+       { label: 'Inativos',     data: dadosAgrupados.inativos,   backgroundColor: '#4caf50' },
+       { label: 'Reativados',   data: dadosAgrupados.reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
+     ]
+   },
+   options: {
+     responsive: true,
+     maintainAspectRatio: false,
+     plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+     scales: {
+       x: { grid: { display: false } },
+       y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } }
+     }
+   }
+ });
 
-  console.info('✅ Gráfico criado');
-  console.groupEnd();
+ console.info('✅ Gráfico criado');
+ console.groupEnd();
 }
 // ==========================================================
 // ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
