@@ -659,18 +659,16 @@ async function carregarTodosDados() {
 // ==========================================================
 /* Utilitário global – mapeamento de colunas depois da importação  */
 window.__MAP_COLUNAS__ = {
-  mes:    'Aba',       // "Mês de Referência" virou "Aba" na importação
-  dias:   'N',         // Coluna N - "Último Pedido em Dias"
-  status: 'Status'     // "Status Atual" virou "Status"
+  mes:  'Aba',                         // "Mês de Referência" virou "Aba" na importação
+  dias: '\u00daltimo Pedido em Dias'   // Coluna N com codificação unicode
 };
 
 /* ---------- Funções auxiliares ---------- */
 function normalizeDias(raw) {
   if (raw === null || raw === undefined) return null;
   if (typeof raw === 'number') return raw;
-  if (raw instanceof Date) return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
   if (typeof raw === 'string') {
-    const cleaned = raw.trim().replace(/[^\d.-]/g, ''); // Remove tudo exceto números, pontos e hífens
+    const cleaned = raw.trim().replace(/[^\d.-]/g, ''); // Remove tudo exceto números
     const n = parseFloat(cleaned);
     return isNaN(n) ? null : Math.round(n);
   }
@@ -697,7 +695,7 @@ function agruparPorMes(dados) {
   const cont = {};      // { mes: {ex,ina,rea} }
 
   // Log para mostrar qual coluna está sendo usada
-  console.log(`Usando coluna '${MAP.dias}' para cálculo de dias (Último Pedido em Dias)`);
+  console.log(`Usando coluna '${MAP.dias}' para cálculo de dias`);
 
   dados.forEach((row, idx) => {
     const mes = row[MAP.mes];
@@ -710,7 +708,7 @@ function agruparPorMes(dados) {
     
     // Log para os primeiros registros para verificação
     if (idx < 5) {
-      console.log(`Registro #${idx}: dias originais (coluna N) = "${valorDias}" (${typeof valorDias})`);
+      console.log(`Registro #${idx}: dias originais = "${valorDias}" (${typeof valorDias})`);
     }
     
     // Normalizar para número
@@ -721,7 +719,7 @@ function agruparPorMes(dados) {
       return;
     }
     
-    // Classificação por intervalos
+    // Classificação baseada APENAS nos intervalos de dias da coluna N
     if (dias >= 0 && dias <= 120) {
       // Clientes REATIVADOS: DE 0 A 120 DIAS
       cont[mes].rea++;
