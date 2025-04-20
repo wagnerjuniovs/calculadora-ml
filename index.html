@@ -694,16 +694,23 @@ function agruparPorMes(dados) {
   dados.forEach((row, idx) => {
     const mes = row[MAP.mes];
     if (!mes) { console.warn(`#${idx} sem mês`); return; }
+    
     cont[mes] ??= { ex:0, ina:0, rea:0 };
+    
     const dias = normalizeDias(row[MAP.dias]);
     if (dias == null) { console.warn(`#${idx} dias inválido`, row[MAP.dias]); return; }
-    if (dias <= 120) {
+    
+    if (dias >= 0 && dias <= 120) {
+      // Clientes REATIVADOS: DE 0 A 120 DIAS
       cont[mes].rea++;
-    } else if (dias <= 180) {
+    } else if (dias >= 121 && dias <= 180) {
+      // Clientes INATIVOS: DE 121 DIAS ATÉ 180 DIAS
       cont[mes].ina++;
-    } else {
+    } else if (dias >= 181 && dias <= 5000) {
+      // Clientes EXCLIENTES: DE 181 DIAS ATÉ 5000 DIAS
       cont[mes].ex++;
     }
+    // Valores acima de 5000 dias não seriam contabilizados
   });
 
   /* ordenação prática: divide em [mês,ano] e usa Date.parse */
