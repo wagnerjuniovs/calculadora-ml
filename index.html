@@ -653,90 +653,84 @@ async function carregarTodosDados() {
       };
     }
     
-    // ==========================================================
-// ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
-// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
-// ==========================================================
-// Agrupamento por mês com classificação baseada em dias
-function agruparPorMes(dados) {
-  console.log("Agrupando dados baseado em dias desde o último pedido");
+    <!-- ========================================================== -->
+<!-- ===== INÍCIO: BLOCO 2 - AGRUPAR POR MÊS ================== -->
+<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
+<!-- ========================================================== -->
 
-  // nomes de colunas já mapeados pela etapa de importação
-  const colunaMesReferencia   = "Aba";   // ex‑“abril/2025”
-  const colunaUltimoPedidoRaw = "Data";  // pode vir número OU objeto Date
+// Agrupamento por mês com nova lógica de classificação
+// (≤120 → Reativado · 121‑180 → Inativo · >180 → Ex‑cliente)
+function agruparPorMes(dados) {
+  console.log("Agrupando dados usando a regra 120 / 180 dias");
+
+  const COL_MES  = "Aba";   // ex.: "abril/2025"
+  const COL_DIAS = "Data";  // número, Date ou string numérica
 
   const hoje       = new Date();
   const contadores = {};
 
-  dados.forEach((item, index) => {
-    const mesReferencia = item[colunaMesReferencia];
-    if (!mesReferencia) {
-      console.warn(`#${index} sem mês de referência`, item);
-      return;
+  dados.forEach((item, idx) => {
+    const mesRef = item[COL_MES];
+    if (!mesRef) return;                                // sem mês → ignora
+
+    // cria bucket do mês se não existir
+    if (!contadores[mesRef]) {
+      contadores[mesRef] = { exClientes: 0, inativos: 0, reativados: 0 };
     }
 
-    // Inicializa o bucket do mês, se necessário
-    if (!contadores[mesReferencia]) {
-      contadores[mesReferencia] = { exClientes: 0, inativos: 0, reativados: 0 };
-    }
-
-    /* --------------------------------------------------------
-       Normaliza o campo "Data" para obter “diasDesdeUltimoPedido”
-       Aceita:
-       – número já em dias
-       – objeto Date   -> calcula diff
-       – string numérica
-    --------------------------------------------------------- */
-    let diasDesdeUltimoPedido = null;
-    const bruto = item[colunaUltimoPedidoRaw];
-
-    if (bruto === null || bruto === undefined || bruto === "") {
-      console.warn(`#${index} dias inválido`, bruto);
-      return;
-    }
+    /* -------- converte campo Data p/ diasDesdeUltimoPedido -------- */
+    let dias = null;
+    const bruto = item[COL_DIAS];
 
     if (typeof bruto === "number") {
-      diasDesdeUltimoPedido = bruto;
+      dias = bruto;
     } else if (bruto instanceof Date && !isNaN(bruto.getTime())) {
-      const diffMs = hoje.getTime() - bruto.getTime();
-      diasDesdeUltimoPedido = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      dias = Math.floor((hoje - bruto) / 86_400_000);   // 1000*60*60*24
     } else if (!isNaN(parseInt(bruto))) {
-      diasDesdeUltimoPedido = parseInt(bruto);
+      dias = parseInt(bruto);
     }
 
-    if (diasDesdeUltimoPedido === null || isNaN(diasDesdeUltimoPedido)) {
-      console.warn(`#${index} dias inválido`, bruto);
+    if (dias === null || isNaN(dias)) {
+      console.warn(`#${idx} dias inválido`, bruto);
       return;
     }
 
-    /* ----------  Lógica solicitada  -------------------------
-       <=120  dias  -> REATIVADOS
-       121‑180 dias -> INATIVOS
-       >180  dias   -> EX‑CLIENTES
-    --------------------------------------------------------- */
-    if (diasDesdeUltimoPedido <= 120) {
-      contadores[mesReferencia].reativados++;
-    } else if (diasDesdeUltimoPedido <= 180) {
-      contadores[mesReferencia].inativos++;
+    /* ------------------- regra solicitada -------------------- */
+    if (dias <= 120) {
+      contadores[mesRef].reativados++;
+    } else if (dias <= 180) {
+      contadores[mesRef].inativos++;
     } else {
-      contadores[mesReferencia].exClientes++;
+      contadores[mesRef].exClientes++;
     }
   });
 
-  // mantemos a ordem de aparição; se desejar cronológico, ordenar aqui
-  const meses = Object.keys(contadores);
+  /* ---------- ordena meses cronologicamente ano↑ mês↑ -------- */
+  const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
+    const mesesPT = [
+      "janeiro","fevereiro","março","abril","maio","junho",
+      "julho","agosto","setembro","outubro","novembro","dezembro"
+    ];
+    const [mA, yA] = a.split("/");
+    const [mB, yB] = b.split("/");
+
+    if (+yA !== +yB) return +yA - +yB;                       // ano primeiro
+    return mesesPT.indexOf(mA.toLowerCase()) -               // depois mês
+           mesesPT.indexOf(mB.toLowerCase());
+  });
 
   return {
-    meses,
-    exClientes: meses.map(m => contadores[m].exClientes),
-    inativos:   meses.map(m => contadores[m].inativos),
-    reativados: meses.map(m => contadores[m].reativados)
+    meses:       mesesOrdenados,
+    exClientes:  mesesOrdenados.map(m => contadores[m].exClientes),
+    inativos:    mesesOrdenados.map(m => contadores[m].inativos),
+    reativados:  mesesOrdenados.map(m => contadores[m].reativados)
   };
 }
-// ==========================================================
-// ===== FIM: BLOCO 08 - agruparPorMes ======================
-// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
-// ==========================================================
+
+<!-- ========================================================== -->
+<!-- ===== FIM: BLOCO 2 - AGRUPAR POR MÊS ===================== -->
+<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
+<!-- ========================================================== -->
  
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
