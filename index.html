@@ -653,83 +653,76 @@ async function carregarTodosDados() {
       };
     }
     
-    // Agrupamento por mês com classificação baseada em dias
+    // ==========================================================
+// ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
+// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
+// ==========================================================
+/* Utilitário global – mapeamento de colunas depois da importação  */
+window.__MAP_COLUNAS__ = {
+  mes:    'Aba',    // “Mês de Referência” virou “Aba” na importação
+  dias:   'Data',   // “Último Pedido em Dias” veio como “Data”
+  status: 'Status'  // “Status Atual” virou “Status”
+};
+
+/* ---------- Funções auxiliares ---------- */
+function normalizeDias(raw) {
+  if (typeof raw === 'number') return raw;
+  if (raw instanceof Date)     return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? null : n;
+}
+
+function diagnosticarDados(dados) {
+  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
+  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
+
+  console.table(Object.keys(dados[0]).map(k => ({
+    coluna: k,
+    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
+    exemplo: String(dados[0][k]).slice(0,40)
+  })));
+  console.groupEnd();
+}
+
+/* ---------- Agrupamento propriamente dito ---------- */
 function agruparPorMes(dados) {
-  console.log("Agrupando dados baseado em dias desde o último pedido");
-  
-  // Usar os nomes de colunas que realmente existem nos dados
-  const colunaMesReferencia = "Aba";
-  const colunaUltimoPedidoEmDias = "Data";
-  const colunaStatusAtual = "Status";
-  
-  console.log(`Usando coluna "${colunaMesReferencia}" para Mês de Referência`);
-  console.log(`Usando coluna "${colunaUltimoPedidoEmDias}" para Último Pedido em Dias`);
-  console.log(`Usando coluna "${colunaStatusAtual}" para Status Atual`);
-  
-  const contadores = {};
-  
-  dados.forEach((item, index) => {
-    // Obter mês de referência para agrupar
-    const mesReferencia = item[colunaMesReferencia];
-    
-    if (!mesReferencia) {
-      console.log(`Item ${index} não tem Mês de Referência:`, item);
-      return;
-    }
-    
-    // Inicializar contadores para este mês
-    if (!contadores[mesReferencia]) {
-      contadores[mesReferencia] = { exClientes: 0, inativos: 0, reativados: 0 };
-    }
-    
-    // Verificar status atual para Reativados (prioridade #1)
-    if (item[colunaStatusAtual] === 'Reativado') {
-      contadores[mesReferencia].reativados++;
-      console.log(`Item ${index} classificado como Reativado`);
-      return; // Reativado tem prioridade
-    }
-    
-    // Usar a coluna para dias desde o último pedido
-    const diasDesdeUltimoPedido = parseInt(item[colunaUltimoPedidoEmDias]);
-    
-    // Verificar se o valor é um número válido
-    if (!isNaN(diasDesdeUltimoPedido)) {
-      // Classificar baseado nos dias desde o último pedido
-      if (diasDesdeUltimoPedido <= 180) {
-        // Se último pedido foi há 180 dias ou menos = Inativo
-        contadores[mesReferencia].inativos++;
-        console.log(`Item ${index} classificado como Inativo (${diasDesdeUltimoPedido} dias)`);
-      } else {
-        // Se último pedido foi há mais de 180 dias = Ex-cliente
-        contadores[mesReferencia].exClientes++;
-        console.log(`Item ${index} classificado como Ex-cliente (${diasDesdeUltimoPedido} dias)`);
-      }
-    } else {
-      console.log(`Item ${index} tem valor inválido para Último Pedido em Dias: ${item[colunaUltimoPedidoEmDias]}`);
-    }
+  console.time('⏱️  agruparPorMes');
+
+  const MAP = window.__MAP_COLUNAS__;
+  const cont = {};      // { mes: {ex,ina,rea} }
+
+  dados.forEach((row, idx) => {
+    const mes = row[MAP.mes];
+    if (!mes) { console.warn(`#${idx} sem mês`); return; }
+
+    cont[mes] ??= { ex:0, ina:0, rea:0 };
+
+    if (row[MAP.status] === 'Reativado') { cont[mes].rea++; return; }
+
+    const dias = normalizeDias(row[MAP.dias]);
+    if (dias == null) { console.warn(`#${idx} dias inválido`, row[MAP.dias]); return; }
+
+    dias <= 180 ? cont[mes].ina++ : cont[mes].ex++;
   });
-  
-  // Ordenar meses cronologicamente
-  const mesesOrdenados = Object.keys(contadores);
-  console.log("Meses encontrados:", mesesOrdenados);
-  
-  // Criar arrays para o resultado final
-  const exClientes = mesesOrdenados.map(mes => contadores[mes].exClientes);
-  const inativos = mesesOrdenados.map(mes => contadores[mes].inativos);
-  const reativados = mesesOrdenados.map(mes => contadores[mes].reativados);
-  
-  console.log("Valores de Ex-clientes:", exClientes);
-  console.log("Valores de Inativos:", inativos);
-  console.log("Valores de Reativados:", reativados);
-  
-  // Retornar resultado final
+
+  /* ordenação prática: divide em [mês,ano] e usa Date.parse */
+  const ordem = Object.keys(cont).sort((a,b)=>{
+    const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
+    return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
+  });
+
+  console.timeEnd('⏱️  agruparPorMes');
   return {
-    meses: mesesOrdenados,
-    exClientes: exClientes,
-    inativos: inativos,
-    reativados: reativados
+    meses:       ordem,
+    exClientes:  ordem.map(m=>cont[m].ex),
+    inativos:    ordem.map(m=>cont[m].ina),
+    reativados:  ordem.map(m=>cont[m].rea)
   };
 }
+// ==========================================================
+// ===== FIM: BLOCO 08 - agruparPorMes ======================
+// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
+// ==========================================================
  
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
@@ -891,104 +884,85 @@ function inicializarFiltros() {
       });
     }
 
-    // Desenhar gráfico Inativos vs Reativados com 3 barras
+    // ==========================================================
+// ===== INÍCIO: BLOCO 07 - desenharGraficoInativosReativados =
+// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
+// ==========================================================
 function desenharGraficoInativosReativados(dados) {
-  console.log("Iniciando desenho do gráfico");
-  
-  // Verificar se as colunas necessárias existem
-  const primeiroItem = dados[0];
-  if (!primeiroItem) {
-    console.error("Não há dados para processar");
-    return;
-  }
-  
-  const colunas = Object.keys(primeiroItem);
-  const temAba = colunas.includes("Aba");
-  const temData = colunas.includes("Data");
-  const temStatus = colunas.includes("Status");
-  
-  console.log(`Tem coluna "Aba"? ${temAba}`);
-  console.log(`Tem coluna "Data"? ${temData}`);
-  console.log(`Tem coluna "Status"? ${temStatus}`);
-  
-  if (!temAba || !temData || !temStatus) {
-    console.error("Colunas necessárias não encontradas!");
-    console.log("Colunas disponíveis:", colunas);
-    return;
-  }
-  
-  const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
-  if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
+  /* ---------- DIAGNÓSTICO INICIAL ---------- */
+  diagnosticarDados(dados);      // log “monstruoso” (definido no outro bloco)
 
-  // Agrupar os dados por mês
+  console.groupCollapsed('🏁 Iniciando desenho do gráfico');
+
+  if (!Array.isArray(dados) || dados.length === 0) {
+    console.error('🛑 dados[] vazio – nada a processar');
+    console.groupEnd();
+    return;
+  }
+
+  // --- mapeamento flexível de cabeçalhos (foi carregado no outro bloco) ---
+  const MAP = window.__MAP_COLUNAS__;
+  const faltaColuna = Object.values(MAP).some(c => !Object.keys(dados[0]).includes(c));
+
+  if (faltaColuna) {
+    console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
+    console.table(Object.keys(dados[0]));
+    console.groupEnd();
+    return;
+  }
+
+  /* ---------- agrupamento ---------- */
   const dadosAgrupados = agruparPorMes(dados);
-  console.log("Dados agrupados para o gráfico:", dadosAgrupados);
-  
-  // Verificar se há algum valor diferente de zero
-  const temDados = dadosAgrupados.exClientes.some(v => v > 0) || 
-                  dadosAgrupados.inativos.some(v => v > 0) || 
-                  dadosAgrupados.reativados.some(v => v > 0);
-                  
-  console.log("Tem dados para exibir no gráfico?", temDados);
-  
+
+  const temDados =
+        dadosAgrupados.exClientes.some(v => v > 0) ||
+        dadosAgrupados.inativos.some(v => v > 0) ||
+        dadosAgrupados.reativados.some(v => v > 0);
+
   if (!temDados) {
-    console.error("Não há dados para exibir no gráfico!");
+    console.warn('⚠️  Não há valores > 0 para plotar');
+    console.groupEnd();
     return;
   }
 
-  // Criar o gráfico com os dados agrupados
+  /* ---------- plot ---------- */
+  const ctx = document
+    .getElementById('chart-inativos-reativados')
+    .getContext('2d');
+
+  if (window.graficoInativosReativados) {
+    window.graficoInativosReativados.destroy();
+  }
+
   window.graficoInativosReativados = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: dadosAgrupados.meses,
       datasets: [
-        { 
-          label: 'Ex‑clientes', 
-          data: dadosAgrupados.exClientes, 
-          backgroundColor: '#ff9800' 
-        },
-        { 
-          label: 'Inativos', 
-          data: dadosAgrupados.inativos, 
-          backgroundColor: '#4caf50' 
-        },
-        { 
-          label: 'Reativados', 
-          data: dadosAgrupados.reativados, 
-          backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() 
-        }
+        { label: 'Ex‑clientes', data: dadosAgrupados.exClientes, backgroundColor: '#ff9800' },
+        { label: 'Inativos',     data: dadosAgrupados.inativos,   backgroundColor: '#4caf50' },
+        { label: 'Reativados',   data: dadosAgrupados.reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          mode: 'index',
-          intersect: false
-        }
-      },
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
       scales: {
-        x: {
-          grid: {
-            display: false
-          }
-        },
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(200,200,200,0.1)'
-          }
-        }
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } }
       }
     }
   });
-  
-  console.log("Gráfico criado com sucesso");
+
+  console.info('✅ Gráfico criado');
+  console.groupEnd();
 }
+
+// ==========================================================
+// ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
+// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
+// ==========================================================
    
     // Desenhar gráfico de status (rosca)
     function desenharGraficoStatus(dados) {
