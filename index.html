@@ -653,84 +653,77 @@ async function carregarTodosDados() {
       };
     }
     
-    <!-- ========================================================== -->
-<!-- ===== INÍCIO: BLOCO 2 - AGRUPAR POR MÊS ================== -->
-<!-- ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO -->
-<!-- ========================================================== -->
+    // ==========================================================
+// ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
+// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
+// ==========================================================
+/* Utilitário global – mapeamento de colunas depois da importação  */
+window.__MAP_COLUNAS__ = {
+  mes:    'Aba',    // "Mês de Referência" virou "Aba" na importação
+  dias:   'Data',   // "Último Pedido em Dias" veio como "Data"
+  status: 'Status'  // "Status Atual" virou "Status"
+};
 
-// Agrupamento por mês com nova lógica de classificação
-// (≤120 → Reativado · 121‑180 → Inativo · >180 → Ex‑cliente)
-function agruparPorMes(dados) {
-  console.log("Agrupando dados usando a regra 120 / 180 dias");
-
-  const COL_MES  = "Aba";   // ex.: "abril/2025"
-  const COL_DIAS = "Data";  // número, Date ou string numérica
-
-  const hoje       = new Date();
-  const contadores = {};
-
-  dados.forEach((item, idx) => {
-    const mesRef = item[COL_MES];
-    if (!mesRef) return;                                // sem mês → ignora
-
-    // cria bucket do mês se não existir
-    if (!contadores[mesRef]) {
-      contadores[mesRef] = { exClientes: 0, inativos: 0, reativados: 0 };
-    }
-
-    /* -------- converte campo Data p/ diasDesdeUltimoPedido -------- */
-    let dias = null;
-    const bruto = item[COL_DIAS];
-
-    if (typeof bruto === "number") {
-      dias = bruto;
-    } else if (bruto instanceof Date && !isNaN(bruto.getTime())) {
-      dias = Math.floor((hoje - bruto) / 86_400_000);   // 1000*60*60*24
-    } else if (!isNaN(parseInt(bruto))) {
-      dias = parseInt(bruto);
-    }
-
-    if (dias === null || isNaN(dias)) {
-      console.warn(`#${idx} dias inválido`, bruto);
-      return;
-    }
-
-    /* ------------------- regra solicitada -------------------- */
-    if (dias <= 120) {
-      contadores[mesRef].reativados++;
-    } else if (dias <= 180) {
-      contadores[mesRef].inativos++;
-    } else {
-      contadores[mesRef].exClientes++;
-    }
-  });
-
-  /* ---------- ordena meses cronologicamente ano↑ mês↑ -------- */
-  const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
-    const mesesPT = [
-      "janeiro","fevereiro","março","abril","maio","junho",
-      "julho","agosto","setembro","outubro","novembro","dezembro"
-    ];
-    const [mA, yA] = a.split("/");
-    const [mB, yB] = b.split("/");
-
-    if (+yA !== +yB) return +yA - +yB;                       // ano primeiro
-    return mesesPT.indexOf(mA.toLowerCase()) -               // depois mês
-           mesesPT.indexOf(mB.toLowerCase());
-  });
-
-  return {
-    meses:       mesesOrdenados,
-    exClientes:  mesesOrdenados.map(m => contadores[m].exClientes),
-    inativos:    mesesOrdenados.map(m => contadores[m].inativos),
-    reativados:  mesesOrdenados.map(m => contadores[m].reativados)
-  };
+/* ---------- Funções auxiliares ---------- */
+function normalizeDias(raw) {
+  if (typeof raw === 'number') return raw;
+  if (raw instanceof Date)     return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
+  const n = parseInt(raw, 10);
+  return isNaN(n) ? null : n;
 }
 
-<!-- ========================================================== -->
-<!-- ===== FIM: BLOCO 2 - AGRUPAR POR MÊS ===================== -->
-<!-- ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ===== -->
-<!-- ========================================================== -->
+function diagnosticarDados(dados) {
+  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
+  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
+
+  console.table(Object.keys(dados[0]).map(k => ({
+    coluna: k,
+    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
+    exemplo: String(dados[0][k]).slice(0,40)
+  })));
+  console.groupEnd();
+}
+
+/* ---------- Agrupamento propriamente dito ---------- */
+function agruparPorMes(dados) {
+  console.time('⏱️  agruparPorMes');
+
+  const MAP = window.__MAP_COLUNAS__;
+  const cont = {};      // { mes: {ex,ina,rea} }
+
+  dados.forEach((row, idx) => {
+    const mes = row[MAP.mes];
+    if (!mes) { console.warn(`#${idx} sem mês`); return; }
+    cont[mes] ??= { ex:0, ina:0, rea:0 };
+    const dias = normalizeDias(row[MAP.dias]);
+    if (dias == null) { console.warn(`#${idx} dias inválido`, row[MAP.dias]); return; }
+    if (dias <= 120) {
+      cont[mes].rea++;
+    } else if (dias <= 180) {
+      cont[mes].ina++;
+    } else {
+      cont[mes].ex++;
+    }
+  });
+
+  /* ordenação prática: divide em [mês,ano] e usa Date.parse */
+  const ordem = Object.keys(cont).sort((a,b)=>{
+    const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
+    return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
+  });
+
+  console.timeEnd('⏱️  agruparPorMes');
+  return {
+    meses:       ordem,
+    exClientes:  ordem.map(m=>cont[m].ex),
+    inativos:    ordem.map(m=>cont[m].ina),
+    reativados:  ordem.map(m=>cont[m].rea)
+  };
+}
+// ==========================================================
+// ===== FIM: BLOCO 08 - agruparPorMes ======================
+// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
+// ==========================================================
  
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
@@ -893,12 +886,12 @@ function inicializarFiltros() {
     }
 
     // ==========================================================
-// ===== INÍCIO: BLOCO 07 - desenharGraficoInativosReativados =
+// ===== INÍCIO: BLOCO 07 - desenharGraficoInativosReativados =
 // ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
 // ==========================================================
 function desenharGraficoInativosReativados(dados) {
   /* ---------- DIAGNÓSTICO INICIAL ---------- */
-  diagnosticarDados(dados);      // log “monstruoso” (definido no outro bloco)
+  diagnosticarDados(dados);      // log "monstruoso" (definido no outro bloco)
 
   console.groupCollapsed('🏁 Iniciando desenho do gráfico');
 
@@ -966,9 +959,8 @@ function desenharGraficoInativosReativados(dados) {
   console.info('✅ Gráfico criado');
   console.groupEnd();
 }
-
 // ==========================================================
-// ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
+// ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
 // ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
 // ==========================================================
    
