@@ -657,66 +657,80 @@ async function carregarTodosDados() {
 // ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
 // ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
 // ==========================================================
-/* Utilitário global – mapeamento de colunas depois da importação  */
-window.__MAP_COLUNAS__ = {
-  mes:    'Aba',    // “Mês de Referência” virou “Aba” na importação
-  dias:   'Data',   // “Último Pedido em Dias” veio como “Data”
-  status: 'Status'  // “Status Atual” virou “Status”
-};
-
-/* ---------- Funções auxiliares ---------- */
-function normalizeDias(raw) {
-  if (typeof raw === 'number') return raw;
-  if (raw instanceof Date)     return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
-  const n = parseInt(raw, 10);
-  return isNaN(n) ? null : n;
-}
-
-function diagnosticarDados(dados) {
-  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
-  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
-
-  console.table(Object.keys(dados[0]).map(k => ({
-    coluna: k,
-    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
-    exemplo: String(dados[0][k]).slice(0,40)
-  })));
-  console.groupEnd();
-}
-
-/* ---------- Agrupamento propriamente dito ---------- */
+// Agrupamento por mês com classificação baseada em dias
 function agruparPorMes(dados) {
-  console.time('⏱️  agruparPorMes');
+  console.log("Agrupando dados baseado em dias desde o último pedido");
 
-  const MAP = window.__MAP_COLUNAS__;
-  const cont = {};      // { mes: {ex,ina,rea} }
+  // nomes de colunas já mapeados pela etapa de importação
+  const colunaMesReferencia   = "Aba";   // ex‑“abril/2025”
+  const colunaUltimoPedidoRaw = "Data";  // pode vir número OU objeto Date
 
-  dados.forEach((row, idx) => {
-    const mes = row[MAP.mes];
-    if (!mes) { console.warn(`#${idx} sem mês`); return; }
+  const hoje       = new Date();
+  const contadores = {};
 
-    cont[mes] ??= { ex:0, ina:0, rea:0 };
+  dados.forEach((item, index) => {
+    const mesReferencia = item[colunaMesReferencia];
+    if (!mesReferencia) {
+      console.warn(`#${index} sem mês de referência`, item);
+      return;
+    }
 
-    if (row[MAP.status] === 'Reativado') { cont[mes].rea++; return; }
+    // Inicializa o bucket do mês, se necessário
+    if (!contadores[mesReferencia]) {
+      contadores[mesReferencia] = { exClientes: 0, inativos: 0, reativados: 0 };
+    }
 
-    const dias = normalizeDias(row[MAP.dias]);
-    if (dias == null) { console.warn(`#${idx} dias inválido`, row[MAP.dias]); return; }
+    /* --------------------------------------------------------
+       Normaliza o campo "Data" para obter “diasDesdeUltimoPedido”
+       Aceita:
+       – número já em dias
+       – objeto Date   -> calcula diff
+       – string numérica
+    --------------------------------------------------------- */
+    let diasDesdeUltimoPedido = null;
+    const bruto = item[colunaUltimoPedidoRaw];
 
-    dias <= 180 ? cont[mes].ina++ : cont[mes].ex++;
+    if (bruto === null || bruto === undefined || bruto === "") {
+      console.warn(`#${index} dias inválido`, bruto);
+      return;
+    }
+
+    if (typeof bruto === "number") {
+      diasDesdeUltimoPedido = bruto;
+    } else if (bruto instanceof Date && !isNaN(bruto.getTime())) {
+      const diffMs = hoje.getTime() - bruto.getTime();
+      diasDesdeUltimoPedido = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    } else if (!isNaN(parseInt(bruto))) {
+      diasDesdeUltimoPedido = parseInt(bruto);
+    }
+
+    if (diasDesdeUltimoPedido === null || isNaN(diasDesdeUltimoPedido)) {
+      console.warn(`#${index} dias inválido`, bruto);
+      return;
+    }
+
+    /* ----------  Lógica solicitada  -------------------------
+       <=120  dias  -> REATIVADOS
+       121‑180 dias -> INATIVOS
+       >180  dias   -> EX‑CLIENTES
+    --------------------------------------------------------- */
+    if (diasDesdeUltimoPedido <= 120) {
+      contadores[mesReferencia].reativados++;
+    } else if (diasDesdeUltimoPedido <= 180) {
+      contadores[mesReferencia].inativos++;
+    } else {
+      contadores[mesReferencia].exClientes++;
+    }
   });
 
-  /* ordenação prática: divide em [mês,ano] e usa Date.parse */
-  const ordem = Object.keys(cont).sort((a,b)=>{
-    const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
-    return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
-  });
+  // mantemos a ordem de aparição; se desejar cronológico, ordenar aqui
+  const meses = Object.keys(contadores);
 
-  console.timeEnd('⏱️  agruparPorMes');
   return {
-    meses:       ordem,
-    exClientes:  ordem.map(m=>cont[m].ex),
-    inativos:    ordem.map(m=>cont[m].ina),
-    reativados:  ordem.map(m=>cont[m].rea)
+    meses,
+    exClientes: meses.map(m => contadores[m].exClientes),
+    inativos:   meses.map(m => contadores[m].inativos),
+    reativados: meses.map(m => contadores[m].reativados)
   };
 }
 // ==========================================================
