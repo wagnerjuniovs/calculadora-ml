@@ -660,7 +660,7 @@ function agruparPorMes(dados) {
   const contadores = {};
   
   dados.forEach((item, index) => {
-    // Obter mês de referência para agrupar (usando coluna exata)
+    // Obter mês de referência para agrupar (usando o nome correto da coluna)
     const mesReferencia = item["Mês de Referência"];
     
     if (!mesReferencia) {
@@ -680,7 +680,7 @@ function agruparPorMes(dados) {
       return; // Reativado tem prioridade
     }
     
-    // Usar a nova coluna "Último Pedido em Dias" para classificação
+    // Usar a coluna "Último Pedido em Dias" para classificação
     const diasDesdeUltimoPedido = parseInt(item['Último Pedido em Dias']);
     
     // Verificar se o valor é um número válido
@@ -700,7 +700,7 @@ function agruparPorMes(dados) {
     }
   });
   
-  // Ordenar meses cronologicamente (formato: Abril/2025)
+  // Ordenar meses cronologicamente
   const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
     const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -897,22 +897,18 @@ function inicializarFiltros() {
       });
     }
 
-    // Função para inspecionar e depurar os dados
-function depurarDados(dados) {
-  console.log("=== DEPURAÇÃO DOS DADOS ===");
-  console.log(`Total de registros: ${dados.length}`);
+    // Desenhar gráfico Inativos vs Reativados com 3 barras
+function desenharGraficoInativosReativados(dados) {
+  console.log("Iniciando desenho do gráfico");
   
-  if (dados.length === 0) {
-    console.log("ERRO: Não há dados para processar");
+  // Verificar se as colunas necessárias existem
+  const primeiroItem = dados[0];
+  if (!primeiroItem) {
+    console.error("Não há dados para processar");
     return;
   }
   
-  // Verificar todas as colunas disponíveis
-  const primeiroItem = dados[0];
   const colunas = Object.keys(primeiroItem);
-  console.log("Colunas disponíveis:", colunas);
-  
-  // Verificar se as colunas necessárias existem
   const temMesReferencia = colunas.includes("Mês de Referência");
   const temUltimoPedidoEmDias = colunas.includes("Último Pedido em Dias");
   const temStatusAtual = colunas.includes("Status Atual");
@@ -921,30 +917,11 @@ function depurarDados(dados) {
   console.log(`Tem coluna "Último Pedido em Dias"? ${temUltimoPedidoEmDias}`);
   console.log(`Tem coluna "Status Atual"? ${temStatusAtual}`);
   
-  // Imprimir os primeiros itens (máximo 5) para inspeção
-  console.log("Amostra dos dados:");
-  for (let i = 0; i < Math.min(5, dados.length); i++) {
-    console.log(`Item ${i}:`, dados[i]);
+  if (!temMesReferencia || !temUltimoPedidoEmDias || !temStatusAtual) {
+    console.error("Colunas necessárias não encontradas!");
+    console.log("Colunas disponíveis:", colunas);
+    return;
   }
-  
-  // Se a coluna "Mês de Referência" não existir, verificar nomes similares
-  if (!temMesReferencia) {
-    const colunasSimilares = colunas.filter(col => 
-      col.toLowerCase().includes('mes') || 
-      col.toLowerCase().includes('mês') ||
-      col.toLowerCase().includes('referência') ||
-      col.toLowerCase().includes('referencia')
-    );
-    console.log("Colunas similares a 'Mês de Referência':", colunasSimilares);
-  }
-}
-
-// Modificar a função desenharGraficoInativosReativados para chamar a depuração
-function desenharGraficoInativosReativados(dados) {
-  console.log("Iniciando desenho do gráfico");
-  
-  // Depurar os dados antes de processar
-  depurarDados(dados);
   
   const ctx = document.getElementById('chart-inativos-reativados').getContext('2d');
   if (window.graficoInativosReativados) window.graficoInativosReativados.destroy();
