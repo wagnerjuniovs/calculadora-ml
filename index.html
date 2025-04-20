@@ -659,26 +659,21 @@ async function carregarTodosDados() {
 // ==========================================================
 /* Utilitário global – mapeamento de colunas depois da importação  */
 window.__MAP_COLUNAS__ = {
-  mes:    'Aba',                    // "Mês de Referência" virou "Aba" na importação
-  dias:   'Último Pedido em Dias',  // Corrigido para apontar diretamente para a coluna correta
-  status: 'Status'                  // "Status Atual" virou "Status"
+  mes:    'Aba',       // "Mês de Referência" virou "Aba" na importação
+  dias:   'N',         // Coluna N - "Último Pedido em Dias"
+  status: 'Status'     // "Status Atual" virou "Status"
 };
 
 /* ---------- Funções auxiliares ---------- */
 function normalizeDias(raw) {
-  // Se já for um número, retorna diretamente
+  if (raw === null || raw === undefined) return null;
   if (typeof raw === 'number') return raw;
-  
-  // Se for uma data, calcula os dias de diferença
   if (raw instanceof Date) return Math.floor((Date.now() - raw.getTime()) / 86_400_000);
-  
-  // Se for uma string, tenta converter para número
   if (typeof raw === 'string') {
-    const n = parseInt(raw.trim(), 10);
-    return isNaN(n) ? null : n;
+    const cleaned = raw.trim().replace(/[^\d.-]/g, ''); // Remove tudo exceto números, pontos e hífens
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? null : Math.round(n);
   }
-  
-  // Se for null ou undefined, retorna um valor padrão (null para ser ignorado)
   return null;
 }
 
@@ -701,61 +696,43 @@ function agruparPorMes(dados) {
   const MAP = window.__MAP_COLUNAS__;
   const cont = {};      // { mes: {ex,ina,rea} }
 
-  // Log inicial para diagnóstico
-  console.log(`Total de registros a processar: ${dados.length}`);
-  console.log(`Usando coluna "${MAP.dias}" para classificação por dias`);
-  
-  // Contadores para diagnóstico
-  let totalReativados = 0;
-  let totalInativos = 0;
-  let totalExClientes = 0;
-  let naoProcessados = 0;
+  // Log para mostrar qual coluna está sendo usada
+  console.log(`Usando coluna '${MAP.dias}' para cálculo de dias (Último Pedido em Dias)`);
 
   dados.forEach((row, idx) => {
     const mes = row[MAP.mes];
-    if (!mes) { 
-      console.warn(`#${idx} sem mês`); 
-      naoProcessados++;
-      return; 
-    }
+    if (!mes) { console.warn(`#${idx} sem mês`); return; }
     
     cont[mes] ??= { ex:0, ina:0, rea:0 };
     
-    // Obter o valor de dias diretamente da coluna "Último Pedido em Dias"
+    // Obter o valor de dias da coluna N
     const valorDias = row[MAP.dias];
     
-    // Log para diagnóstico dos primeiros registros
+    // Log para os primeiros registros para verificação
     if (idx < 5) {
-      console.log(`Registro #${idx}: dias originais = "${valorDias}" (${typeof valorDias})`);
+      console.log(`Registro #${idx}: dias originais (coluna N) = "${valorDias}" (${typeof valorDias})`);
     }
     
-    // Normalizar o valor para garantir que seja um número
+    // Normalizar para número
     const dias = normalizeDias(valorDias);
     
     if (dias === null) {
       console.warn(`#${idx} dias inválido: "${valorDias}"`);
-      naoProcessados++;
       return;
     }
     
-    // Classificação baseada nos intervalos definidos
+    // Classificação por intervalos
     if (dias >= 0 && dias <= 120) {
       // Clientes REATIVADOS: DE 0 A 120 DIAS
       cont[mes].rea++;
-      totalReativados++;
     } else if (dias >= 121 && dias <= 180) {
       // Clientes INATIVOS: DE 121 DIAS ATÉ 180 DIAS
       cont[mes].ina++;
-      totalInativos++;
     } else if (dias >= 181) {
       // Clientes EXCLIENTES: ACIMA DE 181 DIAS
       cont[mes].ex++;
-      totalExClientes++;
     }
   });
-
-  // Log final para diagnóstico
-  console.log(`RESUMO: ${totalReativados} reativados, ${totalInativos} inativos, ${totalExClientes} ex-clientes, ${naoProcessados} não processados`);
 
   /* ordenação prática: divide em [mês,ano] e usa Date.parse */
   const ordem = Object.keys(cont).sort((a,b)=>{
