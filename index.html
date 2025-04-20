@@ -655,13 +655,22 @@ async function carregarTodosDados() {
     
     // Agrupamento por mês com classificação baseada em dias
 function agruparPorMes(dados) {
-  console.log("Agrupando dados baseado em Último Pedido em Dias");
+  console.log("Agrupando dados baseado em dias desde o último pedido");
+  
+  // Usar os nomes de colunas que realmente existem nos dados
+  const colunaMesReferencia = "Aba";
+  const colunaUltimoPedidoEmDias = "Data";
+  const colunaStatusAtual = "Status";
+  
+  console.log(`Usando coluna "${colunaMesReferencia}" para Mês de Referência`);
+  console.log(`Usando coluna "${colunaUltimoPedidoEmDias}" para Último Pedido em Dias`);
+  console.log(`Usando coluna "${colunaStatusAtual}" para Status Atual`);
   
   const contadores = {};
   
   dados.forEach((item, index) => {
-    // Obter mês de referência para agrupar (usando o nome correto da coluna)
-    const mesReferencia = item["Mês de Referência"];
+    // Obter mês de referência para agrupar
+    const mesReferencia = item[colunaMesReferencia];
     
     if (!mesReferencia) {
       console.log(`Item ${index} não tem Mês de Referência:`, item);
@@ -674,14 +683,14 @@ function agruparPorMes(dados) {
     }
     
     // Verificar status atual para Reativados (prioridade #1)
-    if (item['Status Atual'] === 'Reativado') {
+    if (item[colunaStatusAtual] === 'Reativado') {
       contadores[mesReferencia].reativados++;
       console.log(`Item ${index} classificado como Reativado`);
       return; // Reativado tem prioridade
     }
     
-    // Usar a coluna "Último Pedido em Dias" para classificação
-    const diasDesdeUltimoPedido = parseInt(item['Último Pedido em Dias']);
+    // Usar a coluna para dias desde o último pedido
+    const diasDesdeUltimoPedido = parseInt(item[colunaUltimoPedidoEmDias]);
     
     // Verificar se o valor é um número válido
     if (!isNaN(diasDesdeUltimoPedido)) {
@@ -696,28 +705,13 @@ function agruparPorMes(dados) {
         console.log(`Item ${index} classificado como Ex-cliente (${diasDesdeUltimoPedido} dias)`);
       }
     } else {
-      console.log(`Item ${index} tem valor inválido para Último Pedido em Dias: ${item['Último Pedido em Dias']}`);
+      console.log(`Item ${index} tem valor inválido para Último Pedido em Dias: ${item[colunaUltimoPedidoEmDias]}`);
     }
   });
   
   // Ordenar meses cronologicamente
-  const mesesOrdenados = Object.keys(contadores).sort((a, b) => {
-    const mesesNomes = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    
-    const [mesA, anoA] = a.split('/');
-    const [mesB, anoB] = b.split('/');
-    
-    // Comparar anos primeiro
-    if (anoA !== anoB) {
-      return parseInt(anoA) - parseInt(anoB);
-    }
-    
-    // Se anos iguais, comparar meses
-    return mesesNomes.indexOf(mesA) - mesesNomes.indexOf(mesB);
-  });
-  
-  console.log("Meses ordenados:", mesesOrdenados);
+  const mesesOrdenados = Object.keys(contadores);
+  console.log("Meses encontrados:", mesesOrdenados);
   
   // Criar arrays para o resultado final
   const exClientes = mesesOrdenados.map(mes => contadores[mes].exClientes);
@@ -736,7 +730,7 @@ function agruparPorMes(dados) {
     reativados: reativados
   };
 }
-  
+ 
     // Agrupar por status atual para gráfico de pizza
     function agruparPorStatus(dados) {
       const statusCount = {};
@@ -909,15 +903,15 @@ function desenharGraficoInativosReativados(dados) {
   }
   
   const colunas = Object.keys(primeiroItem);
-  const temMesReferencia = colunas.includes("Mês de Referência");
-  const temUltimoPedidoEmDias = colunas.includes("Último Pedido em Dias");
-  const temStatusAtual = colunas.includes("Status Atual");
+  const temAba = colunas.includes("Aba");
+  const temData = colunas.includes("Data");
+  const temStatus = colunas.includes("Status");
   
-  console.log(`Tem coluna "Mês de Referência"? ${temMesReferencia}`);
-  console.log(`Tem coluna "Último Pedido em Dias"? ${temUltimoPedidoEmDias}`);
-  console.log(`Tem coluna "Status Atual"? ${temStatusAtual}`);
+  console.log(`Tem coluna "Aba"? ${temAba}`);
+  console.log(`Tem coluna "Data"? ${temData}`);
+  console.log(`Tem coluna "Status"? ${temStatus}`);
   
-  if (!temMesReferencia || !temUltimoPedidoEmDias || !temStatusAtual) {
+  if (!temAba || !temData || !temStatus) {
     console.error("Colunas necessárias não encontradas!");
     console.log("Colunas disponíveis:", colunas);
     return;
