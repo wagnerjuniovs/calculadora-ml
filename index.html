@@ -657,18 +657,16 @@ async function carregarTodosDados() {
 // ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
 // ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
 // ==========================================================
-/* Utilitário global – mapeamento de colunas depois da importação  */
 window.__MAP_COLUNAS__ = {
-  mes:  'Aba',                         // "Mês de Referência" virou "Aba" na importação
-  dias: '\u00daltimo Pedido em Dias'   // Coluna N com codificação unicode
+  mes:  'mesReferencia',        // coluna "Mês de Referência" renomeada
+  dias: 'ultimoPedidoEmDias'    // coluna N renomeada
 };
 
-/* ---------- Funções auxiliares ---------- */
 function normalizeDias(raw) {
-  if (raw === null || raw === undefined) return null;
+  if (raw == null) return null;
   if (typeof raw === 'number') return raw;
   if (typeof raw === 'string') {
-    const cleaned = raw.trim().replace(/[^\d.-]/g, ''); // Remove tudo exceto números
+    const cleaned = raw.trim().replace(/[^\d.-]/g, '');
     const n = parseFloat(cleaned);
     return isNaN(n) ? null : Math.round(n);
   }
@@ -678,7 +676,6 @@ function normalizeDias(raw) {
 function diagnosticarDados(dados) {
   console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
   if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
-
   console.table(Object.keys(dados[0]).map(k => ({
     coluna: k,
     tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
@@ -687,63 +684,40 @@ function diagnosticarDados(dados) {
   console.groupEnd();
 }
 
-/* ---------- Agrupamento propriamente dito ---------- */
 function agruparPorMes(dados) {
-  console.time('⏱️  agruparPorMes');
+  console.time('⏱️ agruparPorMes');
+  const { mes, dias } = window.__MAP_COLUNAS__;
+  const cont = {};
 
-  const MAP = window.__MAP_COLUNAS__;
-  const cont = {};      // { mes: {ex,ina,rea} }
-
-  // Log para mostrar qual coluna está sendo usada
-  console.log(`Usando coluna '${MAP.dias}' para cálculo de dias`);
+  console.log(`🛠️ Agrupando por '${mes}', usando '${dias}'`);
 
   dados.forEach((row, idx) => {
-    const mes = row[MAP.mes];
-    if (!mes) { console.warn(`#${idx} sem mês`); return; }
-    
-    cont[mes] ??= { ex:0, ina:0, rea:0 };
-    
-    // Obter o valor de dias da coluna N
-    const valorDias = row[MAP.dias];
-    
-    // Log para os primeiros registros para verificação
-    if (idx < 5) {
-      console.log(`Registro #${idx}: dias originais = "${valorDias}" (${typeof valorDias})`);
-    }
-    
-    // Normalizar para número
-    const dias = normalizeDias(valorDias);
-    
-    if (dias === null) {
-      console.warn(`#${idx} dias inválido: "${valorDias}"`);
-      return;
-    }
-    
-    // Classificação baseada APENAS nos intervalos de dias da coluna N
-    if (dias >= 0 && dias <= 120) {
-      // Clientes REATIVADOS: DE 0 A 120 DIAS
-      cont[mes].rea++;
-    } else if (dias >= 121 && dias <= 180) {
-      // Clientes INATIVOS: DE 121 DIAS ATÉ 180 DIAS
-      cont[mes].ina++;
-    } else if (dias >= 181) {
-      // Clientes EXCLIENTES: ACIMA DE 181 DIAS
-      cont[mes].ex++;
-    }
+    const m = row[mes];
+    if (!m) { console.warn(`#${idx} sem mês`); return; }
+    cont[m] ??= { ex:0, ina:0, rea:0 };
+
+    const raw = row[dias];
+    if (idx < 5) console.log(`Registro #${idx}: rawDias="${raw}"`);
+
+    const v = normalizeDias(raw);
+    if (v == null) { console.warn(`#${idx} dias inválido: "${raw}"`); return; }
+
+    if (v <= 120)      cont[m].rea++;
+    else if (v <= 180) cont[m].ina++;
+    else               cont[m].ex++;
   });
 
-  /* ordenação prática: divide em [mês,ano] e usa Date.parse */
-  const ordem = Object.keys(cont).sort((a,b)=>{
-    const [mA,yA] = a.split('/'); const [mB,yB] = b.split('/');
-    return new Date(`${mA} 01, ${yA}`) - new Date(`${mB} 01, ${yB}`);
+  const mesesOrdenados = Object.keys(cont).sort((a,b) => {
+    const [mA,yA] = a.split('/'), [mB,yB] = b.split('/');
+    return new Date(`${mA} 1, ${yA}`) - new Date(`${mB} 1, ${yB}`);
   });
 
-  console.timeEnd('⏱️  agruparPorMes');
+  console.timeEnd('⏱️ agruparPorMes');
   return {
-    meses:       ordem,
-    exClientes:  ordem.map(m=>cont[m].ex),
-    inativos:    ordem.map(m=>cont[m].ina),
-    reativados:  ordem.map(m=>cont[m].rea)
+    meses:       mesesOrdenados,
+    exClientes:  mesesOrdenados.map(m => cont[m].ex),
+    inativos:    mesesOrdenados.map(m => cont[m].ina),
+    reativados:  mesesOrdenados.map(m => cont[m].rea)
   };
 }
 // ==========================================================
@@ -917,7 +891,7 @@ function inicializarFiltros() {
 // ==========================================================
 function desenharGraficoInativosReativados(dados) {
   /* ---------- DIAGNÓSTICO INICIAL ---------- */
-  diagnosticarDados(dados);      // log "monstruoso" (definido no outro bloco)
+  diagnosticarDados(dados);
 
   console.groupCollapsed('🏁 Iniciando desenho do gráfico');
 
@@ -927,10 +901,8 @@ function desenharGraficoInativosReativados(dados) {
     return;
   }
 
-  // --- mapeamento flexível de cabeçalhos (foi carregado no outro bloco) ---
   const MAP = window.__MAP_COLUNAS__;
-  const faltaColuna = Object.values(MAP).some(c => !Object.keys(dados[0]).includes(c));
-
+  const faltaColuna = [MAP.mes, MAP.dias].some(c => !Object.keys(dados[0]).includes(c));
   if (faltaColuna) {
     console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
     console.table(Object.keys(dados[0]));
@@ -942,9 +914,9 @@ function desenharGraficoInativosReativados(dados) {
   const dadosAgrupados = agruparPorMes(dados);
 
   const temDados =
-        dadosAgrupados.exClientes.some(v => v > 0) ||
-        dadosAgrupados.inativos.some(v => v > 0) ||
-        dadosAgrupados.reativados.some(v => v > 0);
+       dadosAgrupados.exClientes.some(v => v > 0) ||
+       dadosAgrupados.inativos.some(v => v > 0) ||
+       dadosAgrupados.reativados.some(v => v > 0);
 
   if (!temDados) {
     console.warn('⚠️  Não há valores > 0 para plotar');
