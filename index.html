@@ -1,1578 +1,1577 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard de Reativação de Clientes</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Radar de Retenção</title>
+
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Tailwind CSS (via CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#007aff',
+            bgLight: '#f9f9f9',
+            bgDark: '#1c1c1e',
+            cardLight: '#ffffff',
+            cardDark: '#2c2c2e',
+            textLight: '#1c1c1e',
+            textDark: '#f9f9f9',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 10px 30px rgba(0,0,0,0.1)'
+          },
+          borderRadius: {
+            xl: '1.5rem',
+            full: '9999px'
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    /* ===== Variáveis e Temas Apple ===== */
+    /* Tema escuro/claro - Variáveis de cores */
     :root {
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
-      --radius-sm: 0.75rem;
-      --radius: 1.125rem;
-      --radius-lg: 1.5rem;
-      --shadow: 0 2px 14px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
-      --shadow-hover: 0 4px 18px rgba(0,0,0,0.08), 0 10px 28px rgba(0,0,0,0.06);
-      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      
-      /* Cores iOS/macOS Light */
-      --bg: #F5F5F7;
-      --card-bg: #FFFFFF;
-      --input-bg: rgba(142, 142, 147, 0.12);
-      --text: #1D1D1F;
-      --text-secondary: #86868B;
-      --primary: #0066CC;
-      --primary-light: #147CE5;
-      --success: #34C759;
-      --warning: #FF9F0A;
-      --danger: #FF3B30;
-      --border: rgba(0,0,0,0.08);
-      --chart-grid: rgba(0,0,0,0.04);
+      --bg-main: #f9fafb;
+      --text-main: #111827;
+      --card-bg: #ffffff;
+      --card-shadow: rgba(0, 0, 0, 0.1);
+      --primary: #007aff;
+      --primary-hover: #0056b3;
+      --danger: #dc2626;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --border: #e5e7eb;
     }
-    
+
     [data-theme="dark"] {
-      /* Cores iOS/macOS Dark */
-      --bg: #1D1D1F;
-      --card-bg: #2C2C2E;
-      --input-bg: rgba(142, 142, 147, 0.18);
-      --text: #F5F5F7;
-      --text-secondary: #98989D;
-      --primary: #0A84FF;
-      --primary-light: #5AC8FA;
-      --success: #30D158;
-      --warning: #FF9F0A;
-      --danger: #FF453A;
-      --border: rgba(255,255,255,0.12);
-      --chart-grid: rgba(255,255,255,0.06);
+      --bg-main: #1f1f1f;
+      --text-main: #f1f1f1;
+      --card-bg: #2a2a2a;
+      --card-shadow: rgba(0, 0, 0, 0.4);
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --info: #60a5fa;
+      --border: #374151;
     }
-    
-    /* ===== Reset e Configurações Base ===== */
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0;
-      padding: 0;
-    }
-    
-    html, body { 
-      font-family: var(--font-sans); 
-      background: var(--bg); 
-      color: var(--text); 
-      transition: var(--transition);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      font-size: 16px;
-      line-height: 1.5;
-      width: 100%;
-      overflow-x: hidden;
-    }
-    
-    /* ===== Layout e Componentes ===== */
-    .container { 
-      max-width: 1280px; 
-      margin: 0 auto; 
-      padding: 2rem; 
-    }
-    
-    .header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 2rem; 
-    }
-    
-    h1 { 
-      font-size: 2rem; 
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.025em;
-    }
-    
-    .filters { 
-      display: flex; 
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-    
-    /* Select estilo Apple */
-select { 
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 0.625rem 2rem 0.625rem 1rem;
-  border-radius: var(--radius-sm); 
-  border: none;
-  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none'%3E%3Cpath fill='%2386868b' d='M6 6 0 0h12L6 6Z'/%3E%3C/svg%3E") no-repeat;
-  background-position: right 0.75rem center;
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 0.9375rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-}
 
-select:hover {
-  background-color: rgba(142, 142, 147, 0.18);
-}
+    /* Estilos globais */
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      transition: background-color 0.3s, color 0.3s;
+      font-family: 'Inter', sans-serif;
+    }
 
-select option {
-  background-color: var(--card-bg);
-  color: var(--text);
-}
-    
-    /* Botão toggle theme */
-    .theme-toggle {
-      background: var(--input-bg);
-      border: none;
-      border-radius: 50%;
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text);
-      transition: var(--transition);
-    }
-    
-    .theme-toggle:hover {
-      background-color: rgba(142, 142, 147, 0.2);
-    }
-    
-    .theme-toggle svg {
-      width: 1.25rem;
-      height: 1.25rem;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    
-    /* Cards de KPIs */
-    .kpis { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-      gap: 1rem; 
-      margin-bottom: 2rem; 
-    }
-    
     .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      background-color: var(--card-bg);
+      box-shadow: 0 4px 6px var(--card-shadow);
+      border-radius: 1rem;
       padding: 1.5rem;
-      transition: var(--transition);
-      overflow: hidden;
-      position: relative;
+      margin-bottom: 1.5rem;
+      transition: background-color 0.3s, box-shadow 0.3s;
     }
-    
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-hover);
+
+    .text-primary {
+      color: var(--primary);
     }
-    
-    .kpi-card {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+
+    /* Controles e inputs */
+    select, input, button {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 0.5rem;
+      padding: 0.5rem 1rem;
+      transition: all 0.2s;
     }
-    
-    .kpi-title {
-      font-size: 0.9375rem;
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
       font-weight: 500;
-      color: var(--text-secondary);
     }
-    
-    .kpi-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
+
+    button:hover {
+      background-color: var(--primary-hover);
     }
-    
-    /* Gráficos */
-    .charts { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 1.5rem; 
+
+    /* Tabelas */
+    table {
+      width: 100%;
+      border-spacing: 0;
     }
-    
-    .chart-container {
-      position: relative;
-      margin-top: 0.5rem;
-      height: 260px;
-    }
-    
-    .chart-title {
-      font-size: 1.125rem;
+
+    th {
+      text-align: left;
       font-weight: 600;
-      margin-bottom: 1rem;
-      letter-spacing: -0.01em;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      opacity: 0.7;
     }
-    
-    .full { 
-      grid-column: 1 / -1; 
+
+    td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
     }
-    
-    .full .chart-container {
-      height: 300px;
-    }
-    
-    /* Loading Estado */
-    .loading-indicator {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    
-    .loading-indicator.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    
-    .spinner {
-      width: 2.5rem;
-      height: 2.5rem;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
+
+    /* Animação de loading */
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-    
-    /* Status Cores */
-    .status-reativados {
-      color: var(--success);
+    .animate-spin {
+      animation: spin 1s linear infinite;
     }
     
-    .status-inativos {
-      color: var(--warning);
+    /* Classe para erros */
+    .border-error {
+      border-color: var(--danger) !important;
     }
-    
-    .status-ex {
-      color: var(--danger);
+
+    /* Tooltip personalizado */
+    .tooltip {
+      position: relative;
+      display: inline-block;
     }
-    
-    /* Responsividade */
-    @media (max-width: 1024px) {
-      .container {
-        padding: 1.5rem;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      
-      .header-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-      
-      .filters {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-      
-      select {
-        font-size: 0.875rem;
-        padding: 0.5rem 1.75rem 0.5rem 0.75rem;
-      }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
     }
-    
-    @media (max-width: 768px) {
-      .charts {
-        grid-template-columns: 1fr;
-      }
-      
-      .kpis {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      }
-      
-      .kpi-value {
-        font-size: 1.25rem;
-      }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <!-- Header e Filtros -->
-    <div class="header">
-      <h1>Dashboard de Reativação de Clientes</h1>
-      <div class="header-right" style="display:flex;align-items:center;gap:1rem;">
-        <div class="filters">
-          <select id="filter-uf"><option value="Todos">Todas UFs</option></select>
-          <select id="filter-categoria"><option value="Todas">Todas Categorias</option></select>
-          <select id="filter-statusPrincipal"><option value="Todos">Status Principal</option></select>
-          <select id="filter-statusAtual"><option value="Todos">Status Atual</option></select>
+<body class="font-sans min-h-screen">
+  <header class="flex justify-between items-center px-6 py-4 bg-opacity-90 backdrop-blur-sm sticky top-0 z-10" style="background-color: var(--card-bg);">
+    <h1 class="text-2xl font-bold" style="color: var(--primary);">Radar de Retenção</h1>
+    <div class="flex items-center gap-4">
+      <span id="data-update" class="text-sm opacity-70"></span>
+      <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm transition-colors">
+        Alternar Tema
+      </button>
+    </div>
+  </header>
+
+  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
+    <div class="flex flex-col items-center space-y-4">
+      <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
+      <p class="font-medium" style="color: var(--primary);">Carregando dados...</p>
+    </div>
+  </div>
+
+  <main class="container mx-auto px-4 py-6">
+    <!-- Filtros -->
+    <section class="card mb-6">
+      <div class="mb-4">
+        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
+            <select id="filter-status" class="w-full">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
+            <select id="filter-uf" class="w-full">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div>
+            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
+            <input type="date" id="filter-from" class="w-full">
+          </div>
+          <div>
+            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
+            <input type="date" id="filter-to" class="w-full">
+          </div>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema">
-          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
-          </svg>
+      </div>
+      <div class="flex justify-end">
+        <button id="btn-limpar-filtros" class="px-4 py-2 rounded text-sm mr-2" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
+          Limpar Filtros
+        </button>
+        <button id="btn-aplicar-filtros" class="px-4 py-2 rounded text-sm" style="background-color: var(--primary);">
+          Aplicar Filtros
         </button>
       </div>
-    </div>
+    </section>
 
     <!-- KPIs -->
-    <div class="kpis">
-      <div class="card kpi-card">
-        <div class="kpi-title">Total de Clientes</div>
-        <div class="kpi-value" id="kpi-total">0</div>
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
+        <p id="count-inativos" class="text-2xl font-bold" style="color: var(--primary);">0</p>
       </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Reativados</div>
-        <div class="kpi-value status-reativados" id="kpi-reativados">0%</div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
+        <p id="count-exclientes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
       </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Inativos</div>
-        <div class="kpi-value status-inativos" id="kpi-inativos">0%</div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
+        <p id="count-reativacoes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
       </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Ex‑clientes</div>
-        <div class="kpi-value status-ex" id="kpi-ex">0%</div>
+      <div class="card !p-4 !m-0 text-center">
+        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
+        <p id="count-retencao" class="text-2xl font-bold" style="color: var(--primary);">0%</p>
       </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Semana</div>
-        <div class="kpi-value" id="kpi-contatosSemana">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Mês</div>
-        <div class="kpi-value" id="kpi-contatosMes">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Atrasados</div>
-        <div class="kpi-value" id="kpi-contatosAtrasados">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Média Dias</div>
-        <div class="kpi-value" id="kpi-mediaDias">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Taxa Reativação</div>
-        <div class="kpi-value" id="kpi-taxaReativacao">0%</div>
+    </section>
+
+    <!-- Gráficos principais -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <!-- Gráfico Inativos vs Reativados -->
+  <section class="card">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
+      <div id="inativos-reativados-info" class="text-xs opacity-70">
+        <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #ff9800;"></span> Ex‑clientes
+        <span class="inline-block w-3 h-3 rounded-full mx-3" style="background-color: #4caf50;"></span> Inativos
+        <span class="inline-block w-3 h-3 rounded-full ml-3" style="background-color: var(--primary);"></span> Reativados
       </div>
     </div>
+    <div class="h-72 relative">
+      <canvas id="chart-inativos-reativados"></canvas>
+    </div>
+  </section>
 
-    <!-- Gráficos -->
-    <div class="charts">
-      <div class="card">
-        <div class="chart-title">Quantidade por Status</div>
-        <div class="chart-container">
-          <canvas id="chart-status"></canvas>
+  <!-- Gráfico Status Atual -->
+  <section class="card">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold">Status Atual</h2>
+    </div>
+    <div class="h-72 relative">
+      <canvas id="chart-status"></canvas>
+    </div>
+  </section>
+</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Gráfico Motivos de Evasão -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Motivos de Evasão</h2>
         </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Evolução Mensal - Inativos vs Ex-clientes</div>
-        <div class="chart-container">
-          <canvas id="chart-evolucao"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Motivos de Inatividade</div>
-        <div class="chart-container">
+        <div class="h-72 relative">
           <canvas id="chart-motivos"></canvas>
         </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Status por UF</div>
-        <div class="chart-container">
-          <canvas id="chart-uf"></canvas>
+      </section>
+
+      <!-- Taxa de Reativação por Mês -->
+      <section class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">Taxa de Reativação por Mês</h2>
+        </div>
+        <div class="h-72 relative">
+          <canvas id="chart-taxa-reativacao"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <!-- Alertas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Clientes sem contato há mais de 30 dias -->
+      <section class="card border-l-4" style="border-left-color: var(--danger);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
+        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
+
+      <!-- Previsões de recompra vencidas -->
+      <section class="card border-l-4" style="border-left-color: var(--warning);">
+        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
+        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
+          <p class="text-sm opacity-70">Carregando...</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tabela de clientes -->
+    <section class="card">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
+        <div class="flex items-center">
+          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." class="text-sm px-3 py-1 mr-2">
+          <select id="filtro-tabela-status" class="text-sm px-3 py-1">
+            <option value="">Todos os status</option>
+          </select>
         </div>
       </div>
-      <div class="card">
-  <div class="chart-title">Previsão de Recompra por Mês</div>
-  <div class="chart-container">
-    <canvas id="chart-previsao"></canvas>
-  </div>
-</div>
-<div class="card">
-  <div class="chart-title">Distribuição por Recorrência</div>
-  <div class="chart-container">
-    <canvas id="chart-recorrencia"></canvas>
-         </div>
-       </div>
-    </div>
-  </div>
+      <div class="overflow-x-auto">
+        <table id="tabela-clientes" class="min-w-full">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>UF</th>
+              <th>Status Principal</th>
+              <th>Status Atual</th>
+              <th>Motivo</th>
+              <th>Último Contato</th>
+              <th>Previsão de Recompra</th>
+            </tr>
+          </thead>
+          <tbody id="corpo-tabela-clientes">
+            <tr>
+              <td colspan="7" class="text-center py-4">Carregando dados...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm">
+          <span id="total-registros">0</span> registros encontrados
+        </div>
+        <div class="flex items-center">
+          <button id="btn-anterior" class="px-3 py-1 rounded mr-2" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
+          <span id="paginacao" class="text-sm mx-2">Página 1 de 1</span>
+          <button id="btn-proximo" class="px-3 py-1 rounded" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-  <!-- Loading Indicator -->
-  <div class="loading-indicator" id="loading">
-    <div class="spinner"></div>
+  <!-- Modal para detalhes do cliente -->
+  <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="max-w-md w-full mx-4 rounded-xl overflow-hidden" style="background-color: var(--card-bg);">
+      <div class="flex justify-between items-center p-4 border-b" style="border-color: var(--border);">
+        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
+        <button id="btn-fechar-modal" class="text-2xl font-bold hover:opacity-70">&times;</button>
+      </div>
+      <div class="p-4" id="modal-conteudo">
+        <p class="text-sm opacity-70">Carregando...</p>
+      </div>
+    </div>
   </div>
 
   <script>
-    // ===== Configurações e Variáveis Globais =====
-    const API_URL = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
-    const root = document.documentElement;
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const loading = document.getElementById('loading');
-    let rawData = [];
-    let charts = {};
+    // ==========================================
+    // CONFIGURAÇÕES INICIAIS
+    // ==========================================
     
-    // ===== Utilitários e Helpers =====
+    // API e configurações
+    const API_BASE = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
     
-    // Função para formatar números decimais com casas específicas
-    function formatNumber(num, digits = 1) {
-      return Number(num).toFixed(digits);
-    }
-    
-    // Parsing de datas no formato brasileiro (DD/MM/YYYY)
-    function parseBRDate(str) {
-      if (!str || typeof str !== 'string') return null;
-      const parts = str.split('/');
-      if (parts.length !== 3) return null;
-      
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; // JS meses são 0-11
-      const year = parseInt(parts[2], 10);
-      
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-      
-      const date = new Date(year, month, day);
-      // Validação de data válida
-      if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
-        return null;
-      }
-      
-      return date;
-    }
-    
-    // Formatar mês/ano
-    function formatMonthYear(date) {
-      if (!date) return '';
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return `${months[date.getMonth()]}/${date.getFullYear()}`;
-    }
-    
-    // Classificar cliente por dias sem pedido
-    function classifyClient(dias) {
-      if (dias <= 120) return 'Reativados';
-      if (dias <= 180) return 'Inativos';
-      return 'Ex‑clientes';
-    }
-    
-    // Mostrar indicador de carregamento
-    function showLoading() {
-      loading.classList.add('active');
-    }
-    
-    // Esconder indicador de carregamento
-    function hideLoading() {
-      loading.classList.remove('active');
-    }
-    
-    // Atualizar ícone do toggle de tema
-    function updateThemeIcon(theme) {
-      if (theme === 'dark') {
-        themeIcon.innerHTML = '<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M16.95 7.05a6 6 0 1 1-8.49 8.49 6 6 0 0 1 8.49-8.49z" />';
-      } else {
-        themeIcon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />';
-      }
-    }
-    
-    // Setup do tema baseado em preferências do sistema
-    function setupTheme() {
-      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-      const currentTheme = localStorage.getItem('theme');
-      
-      if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-        root.setAttribute('data-theme', 'dark');
-        updateThemeIcon('dark');
-      } else {
-        root.setAttribute('data-theme', 'light');
-        updateThemeIcon('light');
-      }
-    }
-    
-    // Toggle de tema claro/escuro
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = root.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      
-      root.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeIcon(newTheme);
-      
-      // Atualizar gráficos para o novo tema
-      updateCharts(prepareData());
-    });
-    
-    // ===== Carregamento e Processamento de Dados =====
-    
-    async function fetchData() {
-      try {
-        showLoading();
-        const res = await fetch(API_URL);
-        
-        if (!res.ok) {
-          throw new Error(`Erro na API: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        rawData = data.filter(item => item.cliente && item.cliente.trim() !== '').map(item => ({
-          cliente: item.cliente,
-          uf: item.uf || '',
-          categoria: item.categoria || '',
-          statusPrincipal: item.statusPrincipal || '',
-          motivoStatus: item.motivoStatus || '',
-          ultimoPedido: parseBRDate(item.ultimoPedido),
-          ultimoContato: parseBRDate(item.ultimoContato),
-          statusAtual: item.statusAtual || '',
-          proximoContato: parseBRDate(item.proximoContato),
-          previsaoRecompra: parseBRDate(item.previsaoRecompra),
-          mesReferencia: item.mesReferencia || '',
-          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias),
-          recorrencia: item.recorrencia || ''
-        }));
-        
-        console.log(`Dados carregados: ${rawData.length} registros`);
-        
-        initFilters();
-        updateAll();
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        alert('Erro ao carregar dados da API. Verifique o console para mais detalhes.');
-      } finally {
-        hideLoading();
-      }
-    }
-    
-    // ===== Inicialização de Filtros =====
-    
-    function initFilters() {
-      const filterFields = ['uf', 'categoria', 'statusPrincipal', 'statusAtual'];
-      
-      filterFields.forEach(field => {
-        const selectElement = document.getElementById(`filter-${field}`);
-        
-        // Limpar opções existentes (exceto a primeira)
-        while (selectElement.options.length > 1) {
-          selectElement.remove(1);
-        }
-        
-        const uniqueValues = [...new Set(rawData.map(item => item[field]).filter(val => val && val.trim() !== ''))];
-        
-        uniqueValues.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(value => {
-          const option = new Option(value, value);
-          selectElement.appendChild(option);
-        });
-        
-        // Adicionar event listener apenas se ainda não existir
-        const hasListener = selectElement.getAttribute('data-has-listener') === 'true';
-        if (!hasListener) {
-          selectElement.addEventListener('change', updateAll);
-          selectElement.setAttribute('data-has-listener', 'true');
-        }
-      });
-    }
-    
-    // ===== Preparação de Dados Filtrados =====
-    
-    function prepareData() {
-      const uf = document.getElementById('filter-uf').value;
-      const categoria = document.getElementById('filter-categoria').value;
-      const statusPrincipal = document.getElementById('filter-statusPrincipal').value;
-      const statusAtual = document.getElementById('filter-statusAtual').value;
-      
-      return rawData
-        .filter(item => {
-          return (uf === 'Todos' || item.uf === uf) &&
-                 (categoria === 'Todas' || item.categoria === categoria) &&
-                 (statusPrincipal === 'Todos' || item.statusPrincipal === statusPrincipal) &&
-                 (statusAtual === 'Todos' || item.statusAtual === statusAtual);
-        })
-        .map(item => ({
-          ...item,
-          status: classifyClient(item.ultPedDias)
-        }));
-    }
-    
-    // ===== Atualização de KPIs =====
-    
-    function updateKPIs(data) {
-      const total = data.length;
-      document.getElementById('kpi-total').textContent = total;
-      
-      // Contagens por status
-      const statusCounts = {
-        'Reativados': 0,
-        'Inativos': 0,
-        'Ex‑clientes': 0
-      };
-      
-      data.forEach(item => {
-        statusCounts[item.status]++;
-      });
-      
-      // Percentuais por status
-      document.getElementById('kpi-reativados').textContent = `${formatNumber((statusCounts['Reativados'] / total) * 100)}%`;
-      document.getElementById('kpi-inativos').textContent = `${formatNumber((statusCounts['Inativos'] / total) * 100)}%`;
-      document.getElementById('kpi-ex').textContent = `${formatNumber((statusCounts['Ex‑clientes'] / total) * 100)}%`;
-      
-      // Contatos Agendados
-      const hoje = new Date();
-      
-      // Definir início da semana (segunda-feira)
-      const diaDaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
-      const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1; // Ajuste para segunda-feira
-      
-      const inicioSemana = new Date(hoje);
-      inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
-      inicioSemana.setHours(0, 0, 0, 0);
-      
-      // Definir fim da semana (sexta-feira)
-      const fimSemana = new Date(inicioSemana);
-      fimSemana.setDate(inicioSemana.getDate() + 4);
-      fimSemana.setHours(23, 59, 59, 999);
-      
-      // Início e fim do mês atual
-      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
-      
-      // Contadores de contatos
-      const contatosSemana = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
-      }).length;
-      
-      const contatosMes = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && 
-               proximoContato >= hoje && 
-               proximoContato <= fimMes && 
-               !(proximoContato >= inicioSemana && proximoContato <= fimSemana); // Excluir já contados na semana
-      }).length;
-      
-      const contatosAtrasados = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && proximoContato < hoje;
-      }).length;
-      
-      document.getElementById('kpi-contatosSemana').textContent = contatosSemana;
-      document.getElementById('kpi-contatosMes').textContent = contatosMes;
-      document.getElementById('kpi-contatosAtrasados').textContent = contatosAtrasados;
-      
-      // Média de dias sem pedido
-      const mediaDias = data.reduce((sum, item) => sum + item.ultPedDias, 0) / (total || 1);
-      document.getElementById('kpi-mediaDias').textContent = formatNumber(mediaDias, 0);
-      
-      // Taxa de Reativação (Reativados / (Inativos + Ex-clientes))
-      const baseInativaTotal = statusCounts['Inativos'] + statusCounts['Ex‑clientes'];
-      const taxaReativacao = baseInativaTotal === 0 ? 0 : (statusCounts['Reativados'] / baseInativaTotal) * 100;
-      document.getElementById('kpi-taxaReativacao').textContent = `${formatNumber(taxaReativacao)}%`;
-    }
-    
-    // ===== Atualização de Gráficos =====
-    
-    function updateCharts(data) {
-      const isDark = root.getAttribute('data-theme') === 'dark';
-      const textColor = isDark ? '#F5F5F7' : '#1D1D1F';
-      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-      
-      // Configurações comuns para todos os gráficos
-      const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            align: 'end',
-            labels: {
-              boxWidth: 12,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              color: textColor,
-              font: {
-                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            backgroundColor: isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-            titleColor: textColor,
-            bodyColor: textColor,
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 12,
-            boxPadding: 6,
-            usePointStyle: true,
-            titleFont: {
-              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-              size: 13,
-              weight: 'bold'
-            },
-            bodyFont: {
-              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-              size: 12
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: {
-              color: gridColor
-            },
-            ticks: {
-              color: textColor,
-              font: {
-                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                size: 11
-              }
-            }
-          },
-          y: {
-            grid: {
-              color: gridColor
-            },
-            ticks: {
-              color: textColor,
-              font: {
-                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                size: 11
-              }
-            }
-          }
-        }
-      };
-      
-      // 1. Gráfico de Barras - Quantidade por Status
-      const statusLabels = ['Reativados', 'Inativos', 'Ex‑clientes'];
-      const statusCounts = statusLabels.map(status => data.filter(item => item.status === status).length);
-      
-      const statusColors = [
-        getComputedStyle(root).getPropertyValue('--success').trim(),
-        getComputedStyle(root).getPropertyValue('--warning').trim(),
-        getComputedStyle(root).getPropertyValue('--danger').trim()
-      ];
-      
-      if (charts.status) {
-        charts.status.destroy();
-      }
-      
-      charts.status = new Chart(document.getElementById('chart-status'), {
-        type: 'bar',
-        data: {
-          labels: statusLabels,
-          datasets: [{
-            label: 'Quantidade',
-            data: statusCounts,
-            backgroundColor: statusColors,
-            borderColor: statusColors,
-            borderWidth: 1,
-            borderRadius: 6,
-            maxBarThickness: 40
-          }]
-        },
-        options: {
-          ...commonOptions,
-          plugins: {
-            ...commonOptions.plugins,
-            legend: {
-              display: false
-            }
-          }
-        }
-      });
-      
-      // 2. Gráfico de Linhas - Evolução Mensal Inativos vs Ex-clientes
-      const evolucaoMensal = {};
-      
-      // Ordenar todos os meses de referência
-      const todosOsMeses = [...new Set(data.map(item => item.mesReferencia))]
-        .filter(mes => mes && mes.trim() !== '')
-        .sort((a, b) => {
-          const [mesA, anoA] = a.split('/').map(Number);
-          const [mesB, anoB] = b.split('/').map(Number);
-          return anoA !== anoB ? anoA - anoB : mesA - mesB;
-        });
-      
-      // Inicializar dados para todos os meses
-      todosOsMeses.forEach(mes => {
-        evolucaoMensal[mes] = { 'Inativos': 0, 'Ex‑clientes': 0 };
-      });
-      
-      // Contar inativos e ex-clientes por mês
-      data.forEach(item => {
-        if (item.mesReferencia && (item.status === 'Inativos' || item.status === 'Ex‑clientes')) {
-          evolucaoMensal[item.mesReferencia][item.status]++;
-        }
-      });
-      
-      // Preparar datasets para o gráfico
-      const evolucaoDatasets = [
-        {
-          label: 'Inativos',
-          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Inativos']),
-          borderColor: getComputedStyle(root).getPropertyValue('--warning').trim(),
-          backgroundColor: isDark ? 'rgba(255, 159, 10, 0.1)' : 'rgba(255, 159, 10, 0.05)',
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true
-        },
-        {
-          label: 'Ex‑clientes',
-          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Ex‑clientes']),
-          borderColor: getComputedStyle(root).getPropertyValue('--danger').trim(),
-          backgroundColor: isDark ? 'rgba(255, 55, 95, 0.1)' : 'rgba(255, 55, 95, 0.05)',
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true
-        }
-      ];
-      
-      if (charts.evolucao) {
-        charts.evolucao.destroy();
-      }
-      
-      charts.evolucao = new Chart(document.getElementById('chart-evolucao'), {
-        type: 'line',
-        data: {
-          labels: todosOsMeses,
-          datasets: evolucaoDatasets
-        },
-        options: commonOptions
-      });
-      
-      // 3. Gráfico de Pizza - Motivos de Inatividade
-      const motivosInatividade = {};
-      
-      // Filtrar apenas clientes inativos e ex-clientes
-      data.filter(item => item.ultPedDias > 120)
-        .forEach(item => {
-          const motivo = item.motivoStatus && item.motivoStatus.trim() !== '' ? item.motivoStatus : 'Não Informado';
-          motivosInatividade[motivo] = (motivosInatividade[motivo] || 0) + 1;
-        });
-      
-      const motivosLabels = Object.keys(motivosInatividade);
-      const motivosData = motivosLabels.map(motivo => motivosInatividade[motivo]);
-      
-      // Gerar cores dinâmicas para motivos
-      const motivosColors = [];
-      const baseColors = [
-        isDark ? '#FF9F0A' : '#FF9F0A', // warning
-        isDark ? '#FF453A' : '#FF3B30', // danger
-        isDark ? '#0A84FF' : '#0066CC', // primary
-        isDark ? '#30D158' : '#34C759', // success
-        isDark ? '#64D2FF' : '#5AC8FA', // info
-        isDark ? '#BF5AF2' : '#AF52DE', // purple
-        isDark ? '#FF375F' : '#FF2D55'  // pink
-      ];
-      
-      // Gerar cores suficientes para todos os motivos
-      for (let i = 0; i < motivosLabels.length; i++) {
-        motivosColors.push(baseColors[i % baseColors.length]);
-      }
-      
-      if (charts.motivos) {
-        charts.motivos.destroy();
-      }
-      
-      charts.motivos = new Chart(document.getElementById('chart-motivos'), {
-        type: 'doughnut',
-        data: {
-          labels: motivosLabels,
-          datasets: [{
-            data: motivosData,
-            backgroundColor: motivosColors,
-            borderColor: isDark ? 'rgba(44, 44, 46, 1)' : 'rgba(255, 255, 255, 1)',
-            borderWidth: 2,
-            borderRadius: 4,
-            hoverOffset: 6
-          }]
-        },
-        options: {
-          ...commonOptions,
-          cutout: '65%',
-        }
-      });
-      
-      // 4. Gráfico de Barras Empilhadas - Status por UF
-      const statusPorUF = {};
-      
-      // Coletar todos os UFs únicos
-      const ufList = [...new Set(data.map(item => item.uf))]
-        .filter(uf => uf && uf.trim() !== '')
-        .sort();
-      
-      // Inicializar dados para todos os UFs
-      ufList.forEach(uf => {
-        statusPorUF[uf] = {
-          'Reativados': 0,
-          'Inativos': 0,
-          'Ex‑clientes': 0
-        };
-      });
-      
-      // Contar status por UF
-      data.forEach(item => {
-        if (item.uf && item.uf.trim() !== '') {
-          statusPorUF[item.uf][item.status]++;
-        }
-      });
-      
-      // Preparar datasets para o gráfico
-      const ufDatasets = statusLabels.map((status, index) => ({
-        label: status,
-        data: ufList.map(uf => statusPorUF[uf][status]),
-        backgroundColor: statusColors[index],
-        borderColor: statusColors[index],
-        borderWidth: 1,
-        borderRadius: 4,
-        stack: 'Stack 0',
-        maxBarThickness: 30
-      }));
-      
-      if (charts.uf) {
-        charts.uf.destroy();
-      }
-      
-      charts.uf = new Chart(document.getElementById('chart-uf'), {
-        type: 'bar',
-        data: {
-          labels: ufList,
-          datasets: ufDatasets
-        },
-        options: {
-          ...commonOptions,
-          scales: {
-            ...commonOptions.scales,
-            x: {
-              ...commonOptions.scales.x,
-              stacked: true
-            },
-            y: {
-              ...commonOptions.scales.y,
-              stacked: true
-            }
-          }
-        }
-      });
-      
-      // 5. Gráfico de Barras - Previsão de Recompra por Mês
-      const previsaoRecompra = {};
-      
-      // Filtrar apenas clientes inativos e ex-clientes com previsão de recompra
-      data.filter(item => 
-        item.ultPedDias > 120 && 
-        item.previsaoRecompra && 
-        item.previsaoRecompra > new Date()
-      ).forEach(item => {
-        const mesAno = formatMonthYear(item.previsaoRecompra);
-        previsaoRecompra[mesAno] = (previsaoRecompra[mesAno] || 0) + 1;
-      });
-      
-      // Ordenar meses cronologicamente
-      const mesesPrevisao = Object.keys(previsaoRecompra).sort((a, b) => {
-        const [mesA, anoA] = a.split('/');
-        const [mesB, anoB] = b.split('/');
-        
-        const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
-                          'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
-        
-        const anoNumA = parseInt(anoA);
-        const anoNumB = parseInt(anoB);
-        
-        if (anoNumA !== anoNumB) return anoNumA - anoNumB;
-        return mesesNomes[mesA] - mesesNomes[mesB];
-      });
-      
-      const dataPrevisao = mesesPrevisao.map(mes => previsaoRecompra[mes]);
-      
-      if (charts.previsao) {
-        charts.previsao.destroy();
-      }
-      
-      charts.previsao = new Chart(document.getElementById('chart-previsao'), {
-        type: 'bar',
-        data: {
-          labels: mesesPrevisao,
-          datasets: [{
-            label: 'Clientes',
-            data: dataPrevisao,
-            backgroundColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
-            borderColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
-            borderWidth: 1,
-            borderRadius: 6,
-            maxBarThickness: 40
-          }]
-        },
-        options: commonOptions
-      });
-// 6. Gráfico de Barras - Recorrência de Compras
-const recorrenciaData = {};
-
-// Coletar e contar recorrências diretamente do texto da coluna
-data.forEach(item => {
-  const recorrencia = item.recorrencia || 'Não informado';
-  recorrenciaData[recorrencia] = (recorrenciaData[recorrencia] || 0) + 1;
-});
-
-// Obter os rótulos (categorias de recorrência)
-const recorrenciaLabels = Object.keys(recorrenciaData).filter(rec => rec !== '');
-
-// Ordenar rótulos para exibição mais lógica
-recorrenciaLabels.sort((a, b) => {
-  // Tentar extrair valores numéricos para ordenação
-  const numA = parseInt(a.match(/\d+/)?.[0] || '999');
-  const numB = parseInt(b.match(/\d+/)?.[0] || '999');
-  
-  return numA - numB;
-});
-
-// Valores correspondentes a cada rótulo
-const recorrenciaValues = recorrenciaLabels.map(rec => recorrenciaData[rec]);
-
-if (charts.recorrencia) {
-  charts.recorrencia.destroy();
-}
-
-charts.recorrencia = new Chart(document.getElementById('chart-recorrencia'), {
-  type: 'bar',
-  data: {
-    labels: recorrenciaLabels,
-    datasets: [{
-      label: 'Quantidade de Clientes',
-      data: recorrenciaValues,
-      backgroundColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
-      borderColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
-      borderWidth: 1,
-      borderRadius: 6,
-      maxBarThickness: 40
-    }]
-  },
-  options: commonOptions
-});
-    }
-    
-    // ===== Função Principal de Atualização =====
-    
-    function updateAll() {
-      showLoading();
-      
-      setTimeout(() => {
-        try {
-          const filteredData = prepareData();
-          updateKPIs(filteredData);
-          updateCharts(filteredData);
-        } catch (error) {
-          console.error('Erro ao atualizar dashboard:', error);
-          alert('Erro ao atualizar dashboard. Verifique o console para mais detalhes.');
-        } finally {
-          hideLoading();
-        }
-      }, 50); // Pequeno delay para garantir que o loading seja mostrado
-    }
-    
-    // ===== Inicializar Dashboard =====
-    
-    // Configurar o tema antes de carregar os dados
-    setupTheme();
-    
-// 1. Adicionar um modal para exibir a lista de clientes
-const modalHTML = `
-  <div id="clientModal" class="client-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-title">Clientes</h2>
-        <button class="close-button">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="search-container">
-          <input type="text" id="clientSearch" placeholder="Buscar cliente...">
-        </div>
-        <div class="client-table-container">
-          <table id="clientTable">
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>UF</th>
-                <th>Categoria</th>
-                <th>Dias</th>
-                <th>Últ. Contato</th>
-                <th>Próx. Contato</th>
-              </tr>
-            </thead>
-            <tbody id="clientTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-`;
-
-// 2. Adicionar CSS para o modal
-const modalCSS = `
-  .client-modal {
-    display: none;
-    position: fixed;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    backdrop-filter: blur(5px);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .client-modal.active {
-    display: block;
-    opacity: 1;
-  }
-  
-  .modal-content {
-    position: relative;
-    background-color: var(--card-bg);
-    margin: 10vh auto;
-    width: 90%;
-    max-width: 1000px;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-hover);
-    overflow: hidden;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    transform: translateY(20px);
-    transition: transform 0.3s ease;
-  }
-  
-  .client-modal.active .modal-content {
-    transform: translateY(0);
-  }
-  
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-  }
-  
-  .modal-header h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.01em;
-  }
-  
-  .close-button {
-    background: var(--input-bg);
-    border: none;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    cursor: pointer;
-    color: var(--text);
-    transition: var(--transition);
-  }
-  
-  .close-button:hover {
-    background-color: rgba(142, 142, 147, 0.2);
-  }
-  
-  .modal-body {
-    padding: 1.5rem;
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .search-container {
-    margin-bottom: 1rem;
-  }
-  
-  #clientSearch {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: var(--input-bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 0.9375rem;
-  }
-  
-  .client-table-container {
-    overflow-x: auto;
-    flex: 1;
-  }
-  
-  #clientTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9375rem;
-  }
-  
-  #clientTable th,
-  #clientTable td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  
-  #clientTable th {
-    font-weight: 600;
-    color: var(--text-secondary);
-    position: sticky;
-    top: 0;
-    background: var(--card-bg);
-    z-index: 1;
-  }
-  
-  #clientTable tbody tr:hover {
-    background-color: var(--input-bg);
-  }
-  
-  /* Status tags */
-  .status-tag {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-  
-  .status-reativados-tag {
-    background-color: rgba(52, 199, 89, 0.1);
-    color: var(--success);
-  }
-  
-  .status-inativos-tag {
-    background-color: rgba(255, 159, 10, 0.1);
-    color: var(--warning);
-  }
-  
-  .status-ex-tag {
-    background-color: rgba(255, 59, 48, 0.1);
-    color: var(--danger);
-  }
-`;
-
-// 3. Funções para gerenciar o modal
-function setupModal() {
-  // Adicionar o modal e estilos ao DOM
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
-  
-  // Adicionar os estilos ao head
-  const styleElement = document.createElement('style');
-  styleElement.textContent = modalCSS;
-  document.head.appendChild(styleElement);
-  
-  // Configurar manipuladores de eventos
-  const modal = document.getElementById('clientModal');
-  const closeButton = modal.querySelector('.close-button');
-  const searchInput = document.getElementById('clientSearch');
-  
-  // Fechar modal quando clica no botão de fechar ou fora do conteúdo
-  closeButton.addEventListener('click', () => closeClientModal());
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      closeClientModal();
-    }
-  });
-  
-  // Filtrar a tabela quando digitar na busca
-  searchInput.addEventListener('input', filterClientTable);
-  
-  // Fechar com a tecla Escape
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) {
-      closeClientModal();
-    }
-  });
-}
-
-// Função para abrir o modal e mostrar dados filtrados
-function showClientModal(title, clientsData) {
-  const modal = document.getElementById('clientModal');
-  const modalTitle = document.getElementById('modal-title');
-  const tableBody = document.getElementById('clientTableBody');
-  
-  // Definir o título
-  modalTitle.textContent = title;
-  
-  // Limpar a tabela
-  tableBody.innerHTML = '';
-  
-  // Ordenar clientes por dias sem pedido (decrescente)
-  clientsData.sort((a, b) => b.ultPedDias - a.ultPedDias);
-  
-  // Preencher a tabela com os dados
-  clientsData.forEach(client => {
-    const row = document.createElement('tr');
-    
-    const formatDate = (date) => {
-      if (!date) return '-';
-      const d = new Date(date);
-      return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    // Armazenamento global de dados
+    window.dadosClientes = [];
+    window.dadosFiltrados = [];
+    window.abas = [];
+    window.filtros = {
+      status: '',
+      uf: '',
+      dataInicio: null,
+      dataFim: null
     };
     
-    row.innerHTML = `
-      <td>${client.cliente}</td>
-      <td>${client.uf || '-'}</td>
-      <td>${client.categoria || '-'}</td>
-      <td>${client.ultPedDias} dias</td>
-      <td>${formatDate(client.ultimoContato)}</td>
-      <td>${formatDate(client.proximoContato)}</td>
-    `;
+    // Configuração de paginação da tabela
+    window.paginacao = {
+      paginaAtual: 1,
+      itensPorPagina: 10,
+      totalPaginas: 1
+    };
     
-    tableBody.appendChild(row);
-  });
-  
-  // Abrir o modal
-  modal.classList.add('active');
-  
-  // Limpar o campo de busca
-  document.getElementById('clientSearch').value = '';
-}
-
-// Função para fechar o modal
-function closeClientModal() {
-  const modal = document.getElementById('clientModal');
-  modal.classList.remove('active');
-}
-
-// Função para filtrar a tabela quando o usuário digita na busca
-function filterClientTable() {
-  const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
-  const rows = document.getElementById('clientTableBody').getElementsByTagName('tr');
-  
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const text = row.textContent.toLowerCase();
+    // Mapas para armazenar dados dos gráficos
+    window.mapasGraficos = {
+      inativosVsReativados: {},
+      status: {},
+      motivos: {}
+    };
     
-    if (text.includes(searchTerm)) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
+    // Tema atual
+    window.temaAtual = localStorage.getItem('tema') || 'dark';
+    document.documentElement.dataset.theme = window.temaAtual;
+    
+    // ==========================================
+    // FUNÇÕES DE UTILIDADE
+    // ==========================================
+    
+    // Converter string de data DD/MM/AAAA para objeto Date
+    function converterStringParaData(dataString) {
+      if (!dataString) return null;
+      
+      // Verifica se já é um objeto Date
+      if (dataString instanceof Date) return dataString;
+      
+      // Tenta converter de DD/MM/AAAA
+      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        const [dia, mes, ano] = dataString.split('/').map(Number);
+        return new Date(ano, mes - 1, dia);
+      }
+      
+      // Tenta converter de YYYY-MM-DD (formato do input date)
+      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return new Date(dataString + 'T00:00:00');
+      }
+      
+      // Para outros formatos, tenta conversão direta
+      const data = new Date(dataString);
+      return isNaN(data) ? null : data;
     }
+    
+    // Formatar data para exibição (DD/MM/AAAA)
+    function formatarData(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
+      
+      const dia = data.getDate().toString().padStart(2, '0');
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const ano = data.getFullYear();
+      return `${dia}/${mes}/${ano}`;
+    }
+    
+    // Formatar data para o formato ISO (YYYY-MM-DD)
+    function formatarDataISO(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return '';
+      
+      const ano = data.getFullYear();
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const dia = data.getDate().toString().padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+    
+    // Calcular dias desde uma data até hoje
+    function diasDesde(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      const diff = hoje - data;
+      return Math.floor(diff / (1000 * 60 * 60 * 24));
+    }
+    
+    // Extrair mês/ano de uma data para agrupamento
+    function extrairMesAno(data) {
+      if (!data || !(data instanceof Date) || isNaN(data)) return null;
+      
+      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+      return `${meses[data.getMonth()]}/${data.getFullYear()}`;
+    }
+    
+    // Mostrar mensagem de erro
+    function mostrarErro(mensagem, duracao = 5000) {
+      const alerta = document.createElement('div');
+      alerta.className = 'fixed bottom-4 right-4 p-4 rounded-lg z-50 text-white text-sm';
+      alerta.style.backgroundColor = 'var(--danger)';
+      alerta.textContent = mensagem;
+      
+      document.body.appendChild(alerta);
+      
+      setTimeout(() => {
+        alerta.style.opacity = '0';
+        alerta.style.transition = 'opacity 0.5s';
+        
+        setTimeout(() => {
+          document.body.removeChild(alerta);
+        }, 500);
+      }, duracao);
+    }
+    
+    // Alternar visibilidade do loader
+    function toggleLoader(mostrar = true) {
+      const loader = document.getElementById('loader');
+      if (loader) {
+        loader.style.display = mostrar ? 'flex' : 'none';
+      }
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE CARREGAMENTO DE DADOS
+    // ==========================================
+    
+// Obter a lista de abas da planilha (Opção B)
+async function obterListaAbas() {
+  try {
+    const response = await fetch(`${API_BASE}?info=true`);
+    const info = await response.json();
+
+    // Se a API retornar direto um array de registros, força uma "aba vazia"
+    if (Array.isArray(info)) {
+      return [''];
+    }
+    // Caso padrão, quando existe info.sheets
+    if (info && info.sheets) {
+      return info.sheets;
+    }
+    return [];
+  } catch (erro) {
+    console.error('Erro ao obter lista de abas:', erro);
+    mostrarErro('Não foi possível obter a lista de abas da planilha');
+    return [];
   }
 }
 
-// 4. Adicionar interatividade aos elementos do dashboard
-function setupDrillDown() {
-  // KPI Cards - drill down
-  const kpiCards = {
-    'kpi-reativados': 'Reativados',
-    'kpi-inativos': 'Inativos',
-    'kpi-ex': 'Ex‑clientes',
-    'kpi-contatosSemana': 'contatos-semana',
-    'kpi-contatosMes': 'contatos-mes',
-    'kpi-contatosAtrasados': 'contatos-atrasados'
-  };
-  
-  // Adicionar clique aos KPIs
-  Object.entries(kpiCards).forEach(([id, filter]) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.closest('.kpi-card').style.cursor = 'pointer';
-      element.closest('.kpi-card').addEventListener('click', () => {
-        let title = '';
-        let filteredClients = [];
+// Carregar dados de uma aba específica (Opção B)
+async function carregarDadosAba(nomeAba) {
+  try {
+    // Se nomeAba for vazio, busca pelo endpoint principal; caso contrário, filtra pela aba
+    const url = nomeAba
+      ? `${API_BASE}?sheet=${nomeAba}`
+      : API_BASE;
+
+    const response = await fetch(url);
+    const dados = await response.json();
+
+    if (Array.isArray(dados) && dados.length > 0) {
+      console.log(`✅ Carregados ${dados.length} registros da aba "${nomeAba || 'principal'}"`);
+      return dados.map(registro => ({
+        Cliente: (registro.Cliente || '').trim(),
+        UF: (registro.UF || '').trim(),
+        Status: (registro['Status Principal'] || '').trim(),
+        Ativo: (registro['Status Atual'] || '').trim(),
+        Motivo: (registro['Motivo do Status'] || '').trim(),
+        Data: converterStringParaData(registro['Último Contato']),
+        ProxContato: converterStringParaData(registro['Próximo Contato']),
+        Recompra: converterStringParaData(registro['Previsão de Recompra']),
+        Aba: nomeAba || registro['Mês de Referência']
+      }));
+    }
+    return [];
+  } catch (erro) {
+    console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
+    mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
+    return [];
+  }
+}
+
+// Carregar todos os dados de todas as abas com conteúdo
+async function carregarTodosDados() {
+  toggleLoader(true);
+  try {
+    const listaAbas = await obterListaAbas();
+    window.abas = listaAbas;
+
+    let dadosCombinados = [];
+    for (const aba of listaAbas) {
+      const dadosAba = await carregarDadosAba(aba);
+      if (dadosAba.length > 0) {
+        dadosCombinados = [...dadosCombinados, ...dadosAba];
+      }
+    }
+
+    // Atualiza data de última atualização
+    const dataAtualizacao = document.getElementById('data-update');
+    if (dataAtualizacao) {
+      const agora = new Date();
+      dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    return dadosCombinados;
+  } catch (erro) {
+    console.error('Erro ao carregar todos os dados:', erro);
+    mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
+    return [];
+  } finally {
+    toggleLoader(false);
+  }
+}
+    
+    // ==========================================
+    // FUNÇÕES DE FILTRO E PROCESSAMENTO
+    // ==========================================
+    
+    // Aplicar filtros aos dados
+    function aplicarFiltros(dados, filtros) {
+      return dados.filter(item => {
+        // Filtro de Status
+        if (filtros.status && item.Status !== filtros.status) {
+          return false;
+        }
         
-        if (filter === 'Reativados' || filter === 'Inativos' || filter === 'Ex‑clientes') {
-          // Filtrar por status
-          title = `Clientes ${filter}`;
-          filteredClients = prepareData().filter(client => client.status === filter);
-        } else if (filter === 'contatos-semana') {
-          // Contatos da semana
-          const hoje = new Date();
-          const diaDaSemana = hoje.getDay();
-          const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1;
-          
-          const inicioSemana = new Date(hoje);
-          inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
-          inicioSemana.setHours(0, 0, 0, 0);
-          
-          const fimSemana = new Date(inicioSemana);
-          fimSemana.setDate(inicioSemana.getDate() + 4);
-          fimSemana.setHours(23, 59, 59, 999);
-          
-          title = 'Contatos Agendados para Esta Semana';
-          filteredClients = prepareData().filter(client => {
-            const proximoContato = client.proximoContato;
-            return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
-          });
-        } else if (filter === 'contatos-mes') {
-          // Contatos do mês (excluindo os da semana)
-          const hoje = new Date();
-          const inicioSemana = new Date(hoje);
-          const diaDaSemana = hoje.getDay();
-          const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1;
-          
-          inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
-          inicioSemana.setHours(0, 0, 0, 0);
-          
-          const fimSemana = new Date(inicioSemana);
-          fimSemana.setDate(inicioSemana.getDate() + 4);
-          fimSemana.setHours(23, 59, 59, 999);
-          
-          const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
-          
-          title = 'Contatos Agendados para Este Mês (excl. semana atual)';
-          filteredClients = prepareData().filter(client => {
-            const proximoContato = client.proximoContato;
-            return proximoContato && 
-                   proximoContato >= hoje && 
-                   proximoContato <= fimMes && 
-                   !(proximoContato >= inicioSemana && proximoContato <= fimSemana);
-          });
-        } else if (filter === 'contatos-atrasados') {
-          // Contatos atrasados
-          const hoje = new Date();
-          
-          title = 'Contatos Atrasados';
-          filteredClients = prepareData().filter(client => {
-            const proximoContato = client.proximoContato;
-            return proximoContato && proximoContato < hoje;
+        // Filtro de UF
+        if (filtros.uf && item.UF !== filtros.uf) {
+          return false;
+        }
+        
+        // Filtro de Data Início
+        if (filtros.dataInicio && item.Data && item.Data < filtros.dataInicio) {
+          return false;
+        }
+        
+        // Filtro de Data Fim
+        if (filtros.dataFim && item.Data && item.Data > filtros.dataFim) {
+          return false;
+        }
+        
+        return true;
+      });
+    }
+    
+    // Calcular KPIs
+    function calcularKPIs(dados) {
+      const totalInativos = dados.filter(item => item.Status === 'Inativo').length;
+      const totalExClientes = dados.filter(item => item.Status === 'Ex-cliente').length;
+      const totalReativados = dados.filter(item => item.Ativo === 'Reativado').length;
+      
+      // Base para cálculo da taxa de retenção (inativos + ex-clientes)
+      const baseChurn = totalInativos + totalExClientes;
+      
+      // Taxa de retenção (reativados / base de churn)
+      const taxaRetencao = baseChurn > 0 ? Math.round((totalReativados / baseChurn) * 100) : 0;
+      
+      return {
+        totalInativos,
+        totalExClientes,
+        totalReativados,
+        taxaRetencao
+      };
+    }
+    
+    // ==========================================================
+// ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
+// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
+// ==========================================================
+window.__MAP_COLUNAS__ = {
+  mes:  'mesReferencia',        // coluna "Mês de Referência" renomeada
+  dias: 'ultimoPedidoEmDias'    // coluna N renomeada
+};
+
+function normalizeDias(raw) {
+  if (raw == null) return null;
+  if (typeof raw === 'number') return raw;
+  if (typeof raw === 'string') {
+    const cleaned = raw.trim().replace(/[^\d.-]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? null : Math.round(n);
+  }
+  return null;
+}
+
+function diagnosticarDados(dados) {
+  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
+  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
+  console.table(Object.keys(dados[0]).map(k => ({
+    coluna: k,
+    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
+    exemplo: String(dados[0][k]).slice(0,40)
+  })));
+  console.groupEnd();
+}
+
+function agruparPorMes(dados) {
+  console.time('⏱️ agruparPorMes');
+  const { mes, dias } = window.__MAP_COLUNAS__;
+  const cont = {};
+
+  console.log(`🛠️ Agrupando por '${mes}', usando '${dias}'`);
+
+  dados.forEach((row, idx) => {
+    const m = row[mes];
+    if (!m) { console.warn(`#${idx} sem mês`); return; }
+    cont[m] ??= { ex:0, ina:0, rea:0 };
+
+    const raw = row[dias];
+    if (idx < 5) console.log(`Registro #${idx}: rawDias="${raw}"`);
+
+    const v = normalizeDias(raw);
+    if (v == null) { console.warn(`#${idx} dias inválido: "${raw}"`); return; }
+
+    if (v <= 120)      cont[m].rea++;
+    else if (v <= 180) cont[m].ina++;
+    else               cont[m].ex++;
+  });
+
+  const mesesOrdenados = Object.keys(cont).sort((a,b) => {
+    const [mA,yA] = a.split('/'), [mB,yB] = b.split('/');
+    return new Date(`${mA} 1, ${yA}`) - new Date(`${mB} 1, ${yB}`);
+  });
+
+  console.timeEnd('⏱️ agruparPorMes');
+  return {
+    meses:       mesesOrdenados,
+    exClientes:  mesesOrdenados.map(m => cont[m].ex),
+    inativos:    mesesOrdenados.map(m => cont[m].ina),
+    reativados:  mesesOrdenados.map(m => cont[m].rea)
+  };
+}
+// ==========================================================
+// ===== FIM: BLOCO 08 - agruparPorMes ======================
+// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
+// ==========================================================
+ 
+    // Agrupar por status atual para gráfico de pizza
+    function agruparPorStatus(dados) {
+      const statusCount = {};
+      
+      dados.forEach(item => {
+        if (item.Ativo) {
+          statusCount[item.Ativo] = (statusCount[item.Ativo] || 0) + 1;
+        }
+      });
+      
+      return statusCount;
+    }
+    
+    // Agrupar por motivo para gráfico de pizza
+    function agruparPorMotivo(dados) {
+      const motivoCount = {};
+      
+      dados.forEach(item => {
+        if (item.Motivo) {
+          motivoCount[item.Motivo] = (motivoCount[item.Motivo] || 0) + 1;
+        }
+      });
+      
+      return motivoCount;
+    }
+    
+    // Calcular taxa de reativação por mês
+    function calcularTaxaReativacaoPorMes(dados) {
+      const meses = {};
+      
+      dados.forEach(item => {
+        if (!item.Data) return;
+        
+        const mesAno = extrairMesAno(item.Data);
+        if (!mesAno) return;
+        
+        if (!meses[mesAno]) {
+          meses[mesAno] = { inativos: 0, reativados: 0 };
+        }
+        
+        // Contagem de inativos e ex-clientes
+        if (item.Status === 'Inativo' || item.Status === 'Ex-cliente') {
+          meses[mesAno].inativos++;
+        }
+        
+        // Contagem de reativados
+        if (item.Ativo === 'Reativado') {
+          meses[mesAno].reativados++;
+        }
+      });
+      
+      // Calcula as taxas para cada mês
+      const mesesOrdenados = Object.keys(meses).sort();
+      const taxas = mesesOrdenados.map(mes => {
+        const { inativos, reativados } = meses[mes];
+        return inativos > 0 ? (reativados / inativos) * 100 : 0;
+      });
+      
+      return {
+        meses: mesesOrdenados,
+        taxas
+      };
+    }
+    
+    // Identificar clientes sem contato há mais de 30 dias
+    function identificarClientesSemContato(dados) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      return dados.filter(item => {
+        if (!item.Data) return false;
+        
+        const dias = diasDesde(item.Data);
+        return dias > 30;
+      }).sort((a, b) => {
+        if (!a.Data) return 1;
+        if (!b.Data) return -1;
+        return a.Data - b.Data; // Mais antigos primeiro
+      });
+    }
+    
+    // Identificar previsões de recompra vencidas
+    function identificarPrevisoesVencidas(dados) {
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+      
+      return dados.filter(item => {
+        if (!item.Recompra) return false;
+        
+        // Verifica se a data de recompra já passou e o cliente não foi reativado
+        return item.Recompra < hoje && item.Ativo !== 'Reativado';
+      }).sort((a, b) => {
+        if (!a.Recompra) return 1;
+        if (!b.Recompra) return -1;
+        return a.Recompra - b.Recompra; // Mais antigos primeiro
+      });
+    }
+    
+    // ==========================================
+    // FUNÇÕES DE VISUALIZAÇÃO
+    // ==========================================
+    
+    // Atualizar os KPIs
+    function atualizarKPIs(kpis) {
+      document.getElementById('count-inativos').textContent = kpis.totalInativos;
+      document.getElementById('count-exclientes').textContent = kpis.totalExClientes;
+      document.getElementById('count-reativacoes').textContent = kpis.totalReativados;
+      document.getElementById('count-retencao').textContent = `${kpis.taxaRetencao}%`;
+    }
+    
+    // === Função ajustada para deixar os campos vazios ===
+function inicializarFiltros() {
+  // Limpa os campos de data
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value   = '';
+
+  // Zera as datas nos filtros
+  window.filtros.dataInicio = null;
+  window.filtros.dataFim    = null;
+}
+    
+    // Popular os dropdowns de filtro
+    function popularFiltros(dados) {
+      const selectStatus = document.getElementById('filter-status');
+      const selectUF = document.getElementById('filter-uf');
+      const selectStatusTabela = document.getElementById('filtro-tabela-status');
+      
+      // Limpar opções existentes
+      selectStatus.innerHTML = '<option value="">Todos</option>';
+      selectUF.innerHTML = '<option value="">Todas</option>';
+      selectStatusTabela.innerHTML = '<option value="">Todos os status</option>';
+      
+      // Extrair valores únicos
+      const status = [...new Set(dados.map(item => item.Status).filter(Boolean))].sort();
+      const ufs = [...new Set(dados.map(item => item.UF).filter(Boolean))].sort();
+      const statusAtuais = [...new Set(dados.map(item => item.Ativo).filter(Boolean))].sort();
+      
+      // Adicionar opções
+      status.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        selectStatus.appendChild(option);
+      });
+      
+      ufs.forEach(uf => {
+        const option = document.createElement('option');
+        option.value = uf;
+        option.textContent = uf;
+        selectUF.appendChild(option);
+      });
+      
+      statusAtuais.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s;
+        option.textContent = s;
+        selectStatusTabela.appendChild(option);
+      });
+    }
+
+    // ==========================================================
+// ===== INÍCIO: BLOCO 07 - desenharGraficoInativosReativados =
+// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
+// ==========================================================
+function desenharGraficoInativosReativados(dados) {
+  /* ---------- DIAGNÓSTICO INICIAL ---------- */
+  diagnosticarDados(dados);
+
+  console.groupCollapsed('🏁 Iniciando desenho do gráfico');
+
+  if (!Array.isArray(dados) || dados.length === 0) {
+    console.error('🛑 dados[] vazio – nada a processar');
+    console.groupEnd();
+    return;
+  }
+
+  const MAP = window.__MAP_COLUNAS__;
+  const faltaColuna = [MAP.mes, MAP.dias].some(c => !Object.keys(dados[0]).includes(c));
+  if (faltaColuna) {
+    console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
+    console.table(Object.keys(dados[0]));
+    console.groupEnd();
+    return;
+  }
+
+  /* ---------- agrupamento ---------- */
+  const dadosAgrupados = agruparPorMes(dados);
+
+  const temDados =
+       dadosAgrupados.exClientes.some(v => v > 0) ||
+       dadosAgrupados.inativos.some(v => v > 0) ||
+       dadosAgrupados.reativados.some(v => v > 0);
+
+  if (!temDados) {
+    console.warn('⚠️  Não há valores > 0 para plotar');
+    console.groupEnd();
+    return;
+  }
+
+  /* ---------- plot ---------- */
+  const ctx = document
+    .getElementById('chart-inativos-reativados')
+    .getContext('2d');
+
+  if (window.graficoInativosReativados) {
+    window.graficoInativosReativados.destroy();
+  }
+
+  window.graficoInativosReativados = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dadosAgrupados.meses,
+      datasets: [
+        { label: 'Ex‑clientes', data: dadosAgrupados.exClientes, backgroundColor: '#ff9800' },
+        { label: 'Inativos',     data: dadosAgrupados.inativos,   backgroundColor: '#4caf50' },
+        { label: 'Reativados',   data: dadosAgrupados.reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } }
+      }
+    }
+  });
+
+  console.info('✅ Gráfico criado');
+  console.groupEnd();
+}
+// ==========================================================
+// ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
+// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
+// ==========================================================
+   
+    // Desenhar gráfico de status (rosca)
+    function desenharGraficoStatus(dados) {
+      const ctx = document.getElementById('chart-status').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoStatus) {
+        window.graficoStatus.destroy();
+      }
+      
+      // Agrupar dados por status
+      const statusCount = agruparPorStatus(dados);
+      
+      // Preparar dados para o gráfico
+      const labels = Object.keys(statusCount);
+      const values = Object.values(statusCount);
+      
+      // Gerar cores para cada status
+      const cores = [
+        '#4caf50', // Verde
+        getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+        '#f59e0b', // Amarelo
+        '#ef4444', // Vermelho
+        '#8b5cf6', // Roxo
+        '#ec4899'  // Rosa
+      ];
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.status = statusCount;
+      
+      // Configuração do gráfico
+      window.graficoStatus = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: cores.slice(0, labels.length),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+    
+    // Desenhar gráfico de motivos (pizza)
+    function desenharGraficoMotivos(dados) {
+      const ctx = document.getElementById('chart-motivos').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoMotivos) {
+        window.graficoMotivos.destroy();
+      }
+      
+      // Agrupar dados por motivo
+      const motivoCount = agruparPorMotivo(dados);
+      
+      // Preparar dados para o gráfico
+      const labels = Object.keys(motivoCount);
+      const values = Object.values(motivoCount);
+      
+      // Gerar cores para cada motivo
+      const cores = [
+        '#4caf50', // Verde
+        '#3b82f6', // Azul
+        '#f59e0b', // Amarelo
+        '#ef4444', // Vermelho
+        '#8b5cf6', // Roxo
+        '#ec4899',  // Rosa
+        '#06b6d4', // Ciano
+        '#84cc16', // Verde-limão
+        '#14b8a6', // Teal
+        '#8b5cf6'  // Roxo
+      ];
+      
+      // Armazenar dados para interatividade
+      window.mapasGraficos.motivos = motivoCount;
+      
+      // Configuração do gráfico
+      window.graficoMotivos = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: cores.slice(0, labels.length),
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 15,
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Desenhar gráfico de taxa de reativação por mês
+    function desenharGraficoTaxaReativacao(dados) {
+      const ctx = document.getElementById('chart-taxa-reativacao').getContext('2d');
+      
+      // Destruir gráfico existente se houver
+      if (window.graficoTaxaReativacao) {
+        window.graficoTaxaReativacao.destroy();
+      }
+      
+      // Calcular taxa de reativação por mês
+      const { meses, taxas } = calcularTaxaReativacaoPorMes(dados);
+      
+      // Configuração do gráfico
+      window.graficoTaxaReativacao = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: meses,
+          datasets: [{
+            label: 'Taxa de Reativação (%)',
+            data: taxas,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Taxa: ${context.raw.toFixed(1)}%`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(200, 200, 200, 0.1)'
+              },
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Atualizar alertas
+    function atualizarAlertaSemContato(dados) {
+      const clientesSemContato = identificarClientesSemContato(dados);
+      const container = document.getElementById('alerta-sem-contato');
+      
+      if (clientesSemContato.length === 0) {
+        container.innerHTML = '<p class="text-sm opacity-70">Nenhum cliente sem contato há mais de 30 dias.</p>';
+        return;
+      }
+      
+      const lista = document.createElement('ul');
+      lista.className = 'space-y-2';
+      
+      // Limitar a 10 itens para não sobrecarregar a UI
+      clientesSemContato.slice(0, 10).forEach(cliente => {
+        const item = document.createElement('li');
+        item.className = 'text-sm flex justify-between';
+        
+        const dias = diasDesde(cliente.Data);
+        
+        item.innerHTML = `
+          <span>${cliente.Cliente} (${cliente.UF})</span>
+          <span class="opacity-70">${dias} dias</span>
+        `;
+        
+        lista.appendChild(item);
+      });
+      
+      // Adicionar contador se houver mais itens
+      if (clientesSemContato.length > 10) {
+        const mais = document.createElement('li');
+        mais.className = 'text-sm text-center mt-2 opacity-70';
+        mais.textContent = `+ ${clientesSemContato.length - 10} outros clientes`;
+        lista.appendChild(mais);
+      }
+      
+      container.innerHTML = '';
+      container.appendChild(lista);
+    }
+    
+    // Atualizar alerta de previsões vencidas
+    function atualizarAlertaPrevisoesVencidas(dados) {
+      const previsoesVencidas = identificarPrevisoesVencidas(dados);
+      const container = document.getElementById('alerta-previsoes-vencidas');
+      
+      if (previsoesVencidas.length === 0) {
+        container.innerHTML = '<p class="text-sm opacity-70">Nenhuma previsão de recompra vencida.</p>';
+        return;
+      }
+      
+      const lista = document.createElement('ul');
+      lista.className = 'space-y-2';
+      
+      // Limitar a 10 itens para não sobrecarregar a UI
+      previsoesVencidas.slice(0, 10).forEach(cliente => {
+        const item = document.createElement('li');
+        item.className = 'text-sm flex justify-between';
+        
+        item.innerHTML = `
+          <span>${cliente.Cliente} (${cliente.UF})</span>
+          <span class="opacity-70">${formatarData(cliente.Recompra)}</span>
+        `;
+        
+        lista.appendChild(item);
+      });
+      
+      // Adicionar contador se houver mais itens
+      if (previsoesVencidas.length > 10) {
+        const mais = document.createElement('li');
+        mais.className = 'text-sm text-center mt-2 opacity-70';
+        mais.textContent = `+ ${previsoesVencidas.length - 10} outras previsões vencidas`;
+        lista.appendChild(mais);
+      }
+      
+      container.innerHTML = '';
+      container.appendChild(lista);
+    }
+    
+    // ==========================================
+    // FUNÇÕES DA TABELA DE CLIENTES
+    // ==========================================
+    
+    // Renderizar tabela de clientes
+    function renderizarTabelaClientes(dados) {
+      const tbody = document.getElementById('corpo-tabela-clientes');
+      const totalRegistros = document.getElementById('total-registros');
+      const paginacao = document.getElementById('paginacao');
+      const btnAnterior = document.getElementById('btn-anterior');
+      const btnProximo = document.getElementById('btn-proximo');
+      
+      // Atualizar contadores
+      totalRegistros.textContent = dados.length;
+      
+      // Calcular total de páginas
+      window.paginacao.totalPaginas = Math.ceil(dados.length / window.paginacao.itensPorPagina);
+      
+      // Ajustar página atual se necessário
+      if (window.paginacao.paginaAtual > window.paginacao.totalPaginas) {
+        window.paginacao.paginaAtual = Math.max(1, window.paginacao.totalPaginas);
+      }
+      
+      // Atualizar texto de paginação
+      paginacao.textContent = `Página ${window.paginacao.paginaAtual} de ${window.paginacao.totalPaginas}`;
+      
+      // Habilitar/desabilitar botões de navegação
+      btnAnterior.disabled = window.paginacao.paginaAtual <= 1;
+      btnProximo.disabled = window.paginacao.paginaAtual >= window.paginacao.totalPaginas;
+      
+      btnAnterior.style.opacity = btnAnterior.disabled ? '0.5' : '1';
+      btnProximo.style.opacity = btnProximo.disabled ? '0.5' : '1';
+      
+      // Calcular índices para a página atual
+      const inicio = (window.paginacao.paginaAtual - 1) * window.paginacao.itensPorPagina;
+      const fim = Math.min(inicio + window.paginacao.itensPorPagina, dados.length);
+      
+      // Limpar tabela
+      tbody.innerHTML = '';
+      
+      // Verificar se não há dados
+      if (dados.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="7" class="text-center py-4">Nenhum registro encontrado</td>`;
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      // Renderizar linhas da página atual
+      const dadosPagina = dados.slice(inicio, fim);
+      
+      dadosPagina.forEach(cliente => {
+        const tr = document.createElement('tr');
+        
+        tr.innerHTML = `
+          <td class="cursor-pointer hover:text-primary" data-cliente="${cliente.Cliente}">${cliente.Cliente}</td>
+          <td>${cliente.UF || '-'}</td>
+          <td>${cliente.Status || '-'}</td>
+          <td>${cliente.Ativo || '-'}</td>
+          <td>${cliente.Motivo || '-'}</td>
+          <td>${cliente.Data ? formatarData(cliente.Data) : '-'}</td>
+          <td>${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</td>
+        `;
+        
+        // Adicionar evento de clique para exibir detalhes
+        const tdCliente = tr.querySelector('td[data-cliente]');
+        if (tdCliente) {
+          tdCliente.addEventListener('click', () => {
+            abrirModalDetalhes(cliente);
           });
         }
         
-        showClientModal(title, filteredClients);
+        tbody.appendChild(tr);
       });
     }
-  });
-  
-  // Adicionar interatividade aos gráficos - exemplo para o gráfico de status
-  document.getElementById('chart-status').parentElement.style.cursor = 'pointer';
-  document.getElementById('chart-status').parentElement.addEventListener('click', () => {
-    const statusLabels = ['Reativados', 'Inativos', 'Ex‑clientes'];
-    const title = 'Todos os Clientes por Status';
-    const filteredClients = prepareData();
     
-    showClientModal(title, filteredClients);
-  });
-  
-  // Para o gráfico de status, também podemos adicionar interatividade por barra
-  // Isso requer implementação mais avançada usando os eventos do Chart.js
-  
-  charts.status.options.onClick = (event, elements) => {
-    if (elements.length > 0) {
-      const index = elements[0].index;
-      const status = statusLabels[index];
-      const title = `Clientes ${status}`;
-      const filteredClients = prepareData().filter(client => client.status === status);
+    // Filtrar tabela por texto de pesquisa e status
+    function filtrarTabela() {
+      const pesquisa = document.getElementById('pesquisa-cliente').value.toLowerCase();
+      const statusFiltro = document.getElementById('filtro-tabela-status').value;
       
-      showClientModal(title, filteredClients);
-    }
-  };
-  
-  // Da mesma forma, podemos adicionar interatividade aos outros gráficos
-  // Gráfico de Motivos
-  charts.motivos.options.onClick = (event, elements) => {
-    if (elements.length > 0) {
-      const index = elements[0].index;
-      const motivo = motivosLabels[index];
-      const title = `Clientes - Motivo: ${motivo}`;
-      const filteredClients = prepareData().filter(client => client.motivoStatus === motivo);
-      
-      showClientModal(title, filteredClients);
-    }
-  };
-  
-// Adicionar interatividade ao gráfico de Previsão de Recompra por Mês
-  charts.previsao.options.onClick = function(event, elements) {
-    if (elements.length > 0) {
-      const index = elements[0].index;
-      
-      // Obter o mês/ano correspondente à barra clicada
-      const mesAnoClicado = this.data.labels[index];
-      
-      // Filtrar apenas clientes com previsão no mês/ano selecionado
-      const clientesFiltrados = prepareData().filter(cliente => {
-        if (!cliente.previsaoRecompra) return false;
+      // Aplicar filtros aos dados já filtrados globalmente
+      const dadosFiltrados = window.dadosFiltrados.filter(cliente => {
+        // Filtro de texto
+        const matchTexto = !pesquisa || 
+                         (cliente.Cliente && cliente.Cliente.toLowerCase().includes(pesquisa)) ||
+                         (cliente.UF && cliente.UF.toLowerCase().includes(pesquisa)) ||
+                         (cliente.Motivo && cliente.Motivo.toLowerCase().includes(pesquisa));
         
-        const mesAnoCliente = formatMonthYear(cliente.previsaoRecompra);
-        return mesAnoCliente === mesAnoClicado;
+        // Filtro de status
+        const matchStatus = !statusFiltro || cliente.Ativo === statusFiltro;
+        
+        return matchTexto && matchStatus;
       });
       
-      // Mostrar modal com os clientes daquele mês específico
-      const titulo = `Clientes com Previsão de Recompra em ${mesAnoClicado}`;
-      showClientModal(titulo, clientesFiltrados);
+      // Resetar paginação
+      window.paginacao.paginaAtual = 1;
+      
+      // Renderizar tabela
+      renderizarTabelaClientes(dadosFiltrados);
     }
-  };
-
-  // Adicionar cursor pointer ao gráfico para indicar que é clicável
-  document.getElementById('chart-previsao').parentElement.style.cursor = 'pointer';
-
-// Adicionar interatividade ao gráfico de Recorrência
-charts.recorrencia.options.onClick = function(event, elements) {
-  if (elements.length > 0) {
-    const index = elements[0].index;
     
-    // Obter a recorrência correspondente à barra clicada
-    const recorrenciaClicada = this.data.labels[index];
+    // Abrir modal com detalhes do cliente
+    function abrirModalDetalhes(cliente) {
+      const modal = document.getElementById('modal-detalhes');
+      const conteudo = document.getElementById('modal-conteudo');
+      
+      // Formatar dados para o modal
+      conteudo.innerHTML = `
+        <div class="mb-4 pb-3 border-b" style="border-color: var(--border);">
+          <div class="text-xl font-bold mb-1">${cliente.Cliente}</div>
+          <div class="flex items-center opacity-70 text-sm">
+            <span class="mr-2">${cliente.UF || '-'}</span>
+            <span class="inline-block w-1.5 h-1.5 rounded-full mx-2" style="background-color: var(--border);"></span>
+            <span>${cliente.Aba || ''}</span>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <p class="text-sm opacity-70 mb-1">Status Principal</p>
+            <p class="font-medium">${cliente.Status || '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Status Atual</p>
+            <p class="font-medium">${cliente.Ativo || '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Motivo</p>
+            <p class="font-medium">${cliente.Motivo || '-'}</p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm opacity-70 mb-1">Último Contato</p>
+            <p class="font-medium">${cliente.Data ? formatarData(cliente.Data) : '-'}</p>
+            ${cliente.Data ? `<p class="text-xs opacity-50 mt-1">Há ${diasDesde(cliente.Data)} dias</p>` : ''}
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Próximo Contato</p>
+            <p class="font-medium">${cliente.ProxContato ? formatarData(cliente.ProxContato) : '-'}</p>
+          </div>
+          <div>
+            <p class="text-sm opacity-70 mb-1">Previsão de Recompra</p>
+            <p class="font-medium">${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</p>
+          </div>
+        </div>
+      `;
+      
+      // Exibir o modal
+      modal.style.display = 'flex';
+    }
     
-    // Filtrar clientes com a recorrência selecionada
-    const clientesFiltrados = prepareData().filter(cliente => {
-      return cliente.recorrencia === recorrenciaClicada;
-    });
+    // ==========================================
+    // FUNÇÕES DE EVENTO E INICIALIZAÇÃO
+    // ==========================================
     
-    // Mostrar modal com os clientes daquela recorrência específica
-    const titulo = `Clientes com Recorrência: ${recorrenciaClicada}`;
-    showClientModal(titulo, clientesFiltrados);
-  }
-};
-
-// Adicionar cursor pointer ao gráfico para indicar que é clicável
-document.getElementById('chart-recorrencia').parentElement.style.cursor = 'pointer';
-
-  // Atualize cada gráfico para aplicar as novas opções
-  Object.values(charts).forEach(chart => chart.update());
-}
-
-// 5. Inicializar o modal e interatividade depois de carregar os dados
-function initializeInteractivity() {
-  setupModal();
-  setupDrillDown();
-}
-
-// 6. Modificar a função updateAll para chamar também a inicialização da interatividade
-const originalUpdateAll = updateAll;
-updateAll = function() {
-  originalUpdateAll();
-  
-  // Se a interatividade já foi inicializada, não inicialize novamente
-  if (!window.interactivityInitialized) {
-    setTimeout(() => {
-      initializeInteractivity();
-      window.interactivityInitialized = true;
-    }, 500); // Esperar os gráficos estarem prontos
-  }
-};
-
-    // Carregar dados e inicializar dashboard
-    fetchData();
+    // Aplicar os filtros aos dados
+    function aplicarFiltrosDashboard() {
+      // Coletar valores dos filtros
+      const statusValue = document.getElementById('filter-status').value;
+      const ufValue = document.getElementById('filter-uf').value;
+      const fromValue = document.getElementById('filter-from').value;
+      const toValue = document.getElementById('filter-to').value;
+      
+      // Atualizar objeto de filtros
+      window.filtros = {
+        status: statusValue,
+        uf: ufValue,
+        dataInicio: fromValue ? converterStringParaData(fromValue) : null,
+        dataFim: toValue ? converterStringParaData(toValue) : null
+      };
+      
+      // Se a data final for válida, ajustar para o final do dia
+      if (window.filtros.dataFim) {
+        window.filtros.dataFim.setHours(23, 59, 59, 999);
+      }
+      
+      // Aplicar filtros aos dados
+      window.dadosFiltrados = aplicarFiltros(window.dadosClientes, window.filtros);
+      
+      // Calcular KPIs
+      const kpis = calcularKPIs(window.dadosFiltrados);
+      
+      // Atualizar gráficos e KPIs
+      atualizarKPIs(kpis);
+      desenharGraficoInativosReativados(window.dadosFiltrados);
+      desenharGraficoStatus(window.dadosFiltrados);
+      desenharGraficoMotivos(window.dadosFiltrados);
+      desenharGraficoTaxaReativacao(window.dadosFiltrados);
+      atualizarAlertaSemContato(window.dadosFiltrados);
+      atualizarAlertaPrevisoesVencidas(window.dadosFiltrados);
+      renderizarTabelaClientes(window.dadosFiltrados);
+    }
+    
+    // Limpar todos os filtros
+    function limparFiltros() {
+      document.getElementById('filter-status').value = '';
+      document.getElementById('filter-uf').value = '';
+      
+      // Restaurar datas para o último mês
+      inicializarFiltros();
+      
+      // Aplicar filtros
+      aplicarFiltrosDashboard();
+    }
+    
+    // Alternar entre temas claro e escuro
+    function alternarTema() {
+      const html = document.documentElement;
+      const novoTema = html.dataset.theme === 'light' ? 'dark' : 'light';
+      
+      html.dataset.theme = novoTema;
+      window.temaAtual = novoTema;
+      
+      // Salvar preferência
+      localStorage.setItem('tema', novoTema);
+      
+      // Atualizar gráficos se existirem
+      if (window.dadosFiltrados) {
+        desenharGraficoInativosReativados(window.dadosFiltrados);
+        desenharGraficoStatus(window.dadosFiltrados);
+        desenharGraficoMotivos(window.dadosFiltrados);
+        desenharGraficoTaxaReativacao(window.dadosFiltrados);
+      }
+    }
+    
+    // Navegar para página anterior da tabela
+    function paginaAnterior() {
+      if (window.paginacao.paginaAtual > 1) {
+        window.paginacao.paginaAtual--;
+        renderizarTabelaClientes(window.dadosFiltrados);
+      }
+    }
+    
+    // Navegar para próxima página da tabela
+    function paginaProxima() {
+      if (window.paginacao.paginaAtual < window.paginacao.totalPaginas) {
+        window.paginacao.paginaAtual++;
+        renderizarTabelaClientes(window.dadosFiltrados);
+      }
+    }
+    
+    // Configuração de todos os event listeners
+    function configurarEventListeners() {
+      // Botão de alternar tema
+      document.getElementById('theme-toggle').addEventListener('click', alternarTema);
+      
+      // Botões de filtro
+      document.getElementById('btn-aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
+      document.getElementById('btn-limpar-filtros').addEventListener('click', limparFiltros);
+      
+      // Filtros da tabela
+      document.getElementById('pesquisa-cliente').addEventListener('input', filtrarTabela);
+      document.getElementById('filtro-tabela-status').addEventListener('change', filtrarTabela);
+      
+      // Paginação da tabela
+      document.getElementById('btn-anterior').addEventListener('click', paginaAnterior);
+      document.getElementById('btn-proximo').addEventListener('click', paginaProxima);
+      
+      // Modal de detalhes
+      document.getElementById('btn-fechar-modal').addEventListener('click', () => {
+        document.getElementById('modal-detalhes').style.display = 'none';
+      });
+      
+      // Fechar modal ao clicar fora
+      const modal = document.getElementById('modal-detalhes');
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+      
+      // Tecla ESC para fechar modal
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+      });
+    }
+    
+    // Inicialização do dashboard
+    async function inicializarDashboard() {
+      try {
+        // Aplicar tema salvo
+        document.documentElement.dataset.theme = window.temaAtual;
+        
+        // Inicializar filtros de data
+        inicializarFiltros();
+        
+        // Configurar event listeners
+        configurarEventListeners();
+        
+        // Carregar dados
+        const dados = await carregarTodosDados();
+        
+        // Verificar se há dados
+        if (!dados || dados.length === 0) {
+          mostrarErro('Não foram encontrados dados na planilha. Verifique se há registros nas abas.');
+          toggleLoader(false);
+          return;
+        }
+        
+        console.log(`Carregados ${dados.length} registros no total`);
+        
+        // Armazenar dados globalmente
+        window.dadosClientes = dados;
+        window.dadosFiltrados = dados;
+        
+        // Popular filtros
+        popularFiltros(dados);
+        
+        // Aplicar filtros iniciais e atualizar dashboard
+        aplicarFiltrosDashboard();
+        
+        // Esconder loader
+        toggleLoader(false);
+      } catch (erro) {
+        console.error('Erro ao inicializar dashboard:', erro);
+        mostrarErro('Ocorreu um erro ao inicializar o dashboard. Tente novamente mais tarde.');
+        toggleLoader(false);
+      }
+    }
+    
+    // Iniciar o dashboard quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', inicializarDashboard);
   </script>
 </body>
 </html>
