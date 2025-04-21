@@ -1449,6 +1449,49 @@ function setupDrillDown() {
     }
   };
   
+// Adicionar interatividade ao gráfico de Previsão de Recompra por Mês
+charts.previsao.options.onClick = (event, elements) => {
+  if (elements.length > 0) {
+    const index = elements[0].index;
+    const mesAno = mesesPrevisao[index]; // Obtém o mês/ano clicado
+    
+    // Filtrar apenas clientes inativos e ex-clientes com previsão no mês selecionado
+    const clientesMes = prepareData().filter(item => {
+      // Verifica se é inativo ou ex-cliente
+      const isInativoOuEx = item.ultPedDias > 120;
+      // Verifica se tem previsão de recompra
+      const temPrevisao = item.previsaoRecompra && item.previsaoRecompra > new Date();
+      // Verifica se a previsão é para o mês/ano selecionado
+      const mesAnoPrevisao = item.previsaoRecompra ? formatMonthYear(item.previsaoRecompra) : '';
+      
+      return isInativoOuEx && temPrevisao && mesAnoPrevisao === mesAno;
+    });
+    
+    // Mostra o modal com os clientes filtrados
+    const title = `Clientes com Previsão de Recompra em ${mesAno}`;
+    showClientModal(title, clientesMes);
+  }
+};
+
+// Atualizar o gráfico para aplicar a interatividade
+charts.previsao.update();
+
+// Adicionar cursor pointer ao container do gráfico para indicar que é clicável
+document.getElementById('chart-previsao').parentElement.style.cursor = 'pointer';
+
+// Adicionar interatividade ao clicar no container do gráfico (não apenas nas barras)
+document.getElementById('chart-previsao').parentElement.addEventListener('click', () => {
+  // Se não clicou em nenhuma barra específica, mostrar todos os clientes com previsão
+  const clientesComPrevisao = prepareData().filter(item => {
+    return item.ultPedDias > 120 && item.previsaoRecompra && item.previsaoRecompra > new Date();
+  });
+  
+  if (clientesComPrevisao.length > 0) {
+    const title = 'Todos os Clientes com Previsão de Recompra';
+    showClientModal(title, clientesComPrevisao);
+  }
+});
+
   // Atualize cada gráfico para aplicar as novas opções
   Object.values(charts).forEach(chart => chart.update());
 }
