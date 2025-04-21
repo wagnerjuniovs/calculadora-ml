@@ -67,8 +67,14 @@ const formatCurrency = (value) => {
 };
 
 const downloadCSV = (data, filename) => {
+  if (data.length === 0) {
+    alert('Não há dados para exportar');
+    return;
+  }
+  
   // Cria cabeçalhos CSV
   const headers = Object.keys(data[0]).join(',');
+  
   // Converte cada objeto em uma linha CSV
   const csvRows = data.map(row => 
     Object.values(row).map(value => 
@@ -92,6 +98,8 @@ const downloadCSV = (data, filename) => {
 };
 
 function App() {
+  console.log('Aplicação inicializada');
+  
   // Estado para tema claro/escuro
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
   const [darkMode, setDarkMode] = useState(() => {
@@ -191,6 +199,7 @@ function App() {
   
   // Salvar despesas no localStorage quando o estado mudar
   useEffect(() => {
+    console.log('Despesas salvas no localStorage:', expenses.length);
     localStorage.setItem('expenses', JSON.stringify(expenses));
   }, [expenses]);
   
@@ -202,207 +211,232 @@ function App() {
   // Filtrar despesas com base nos critérios atuais
   const filteredExpenses = useMemo(() => {
     return expenses.filter(expense => {
-      const expenseDate = parseISO(expense.date);
-      const startDate = filters.startDate ? parseISO(filters.startDate) : null;
-      const endDate = filters.endDate ? parseISO(filters.endDate) : null;
-      
-      // Verificar data
-      const dateMatch = !startDate || !endDate || isWithinInterval(expenseDate, { start: startDate, end: endDate });
-      
-      // Verificar categoria
-      const categoryMatch = !filters.category || expense.category === filters.category;
-      
-      // Verificar tipo
-      const typeMatch = !filters.type || expense.type === filters.type;
-      
-      // Verificar método de pagamento
-      const paymentMatch = !filters.paymentMethod || expense.paymentMethod === filters.paymentMethod;
-      
-      // Verificar pessoa
-      const personMatch = !filters.person || expense.person === filters.person;
-      
-      // Verificar valor mínimo
-      const minAmountMatch = !filters.minAmount || Number(expense.amount) >= Number(filters.minAmount);
-      
-      // Verificar valor máximo
-      const maxAmountMatch = !filters.maxAmount || Number(expense.amount) <= Number(filters.maxAmount);
-      
-      return dateMatch && categoryMatch && typeMatch && paymentMatch && personMatch && minAmountMatch && maxAmountMatch;
+      try {
+        const expenseDate = parseISO(expense.date);
+        const startDate = filters.startDate ? parseISO(filters.startDate) : null;
+        const endDate = filters.endDate ? parseISO(filters.endDate) : null;
+        
+        // Verificar data
+        const dateMatch = !startDate || !endDate || isWithinInterval(expenseDate, { start: startDate, end: endDate });
+        
+        // Verificar categoria
+        const categoryMatch = !filters.category || expense.category === filters.category;
+        
+        // Verificar tipo
+        const typeMatch = !filters.type || expense.type === filters.type;
+        
+        // Verificar método de pagamento
+        const paymentMatch = !filters.paymentMethod || expense.paymentMethod === filters.paymentMethod;
+        
+        // Verificar pessoa
+        const personMatch = !filters.person || expense.person === filters.person;
+        
+        // Verificar valor mínimo
+        const minAmountMatch = !filters.minAmount || Number(expense.amount) >= Number(filters.minAmount);
+        
+        // Verificar valor máximo
+        const maxAmountMatch = !filters.maxAmount || Number(expense.amount) <= Number(filters.maxAmount);
+        
+        return dateMatch && categoryMatch && typeMatch && paymentMatch && personMatch && minAmountMatch && maxAmountMatch;
+      } catch (error) {
+        console.error('Erro ao filtrar despesa:', error, expense);
+        return false;
+      }
     });
   }, [expenses, filters]);
   
   // Calcular KPIs
   const kpis = useMemo(() => {
-    // Total do mês
-    const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-    
-    // Média por dia (se houver pelo menos uma despesa)
-    const startDate = parseISO(filters.startDate);
-    const endDate = parseISO(filters.endDate);
-    const daysInPeriod = filteredExpenses.length > 0 
-      ? eachDayOfInterval({ start: startDate, end: endDate }).length 
-      : 1;
-    const average = total / daysInPeriod;
-    
-    // Categoria mais cara
-    const categoryTotals = {};
-    filteredExpenses.forEach(expense => {
-      const category = expense.category || 'Sem categoria';
-      categoryTotals[category] = (categoryTotals[category] || 0) + Number(expense.amount);
-    });
-    
-    let topCategory = 'Nenhuma';
-    let topCategoryAmount = 0;
-    
-    Object.entries(categoryTotals).forEach(([category, amount]) => {
-      if (amount > topCategoryAmount) {
-        topCategory = category;
-        topCategoryAmount = amount;
-      }
-    });
-    
-    // Pessoa que mais gastou
-    const personTotals = {};
-    filteredExpenses.forEach(expense => {
-      const person = expense.person || 'Não especificado';
-      personTotals[person] = (personTotals[person] || 0) + Number(expense.amount);
-    });
-    
-    let topSpender = 'Ninguém';
-    let topSpenderAmount = 0;
-    
-    Object.entries(personTotals).forEach(([person, amount]) => {
-      if (amount > topSpenderAmount) {
-        topSpender = person;
-        topSpenderAmount = amount;
-      }
-    });
-    
-    // Projeção para o final do mês (baseada na média diária)
-    const daysInMonth = eachDayOfInterval({ 
-      start: startOfMonth(currentMonth), 
-      end: endOfMonth(currentMonth) 
-    }).length;
-    
-    const projection = average * daysInMonth;
-    
-    return {
-      total,
-      average,
-      topCategory,
-      topSpender,
-      projection
-    };
+    try {
+      // Total do mês
+      const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+      
+      // Média por dia (se houver pelo menos uma despesa)
+      const startDate = parseISO(filters.startDate);
+      const endDate = parseISO(filters.endDate);
+      const daysInPeriod = filteredExpenses.length > 0 
+        ? eachDayOfInterval({ start: startDate, end: endDate }).length 
+        : 1;
+      const average = total / daysInPeriod;
+      
+      // Categoria mais cara
+      const categoryTotals = {};
+      filteredExpenses.forEach(expense => {
+        const category = expense.category || 'Sem categoria';
+        categoryTotals[category] = (categoryTotals[category] || 0) + Number(expense.amount);
+      });
+      
+      let topCategory = 'Nenhuma';
+      let topCategoryAmount = 0;
+      
+      Object.entries(categoryTotals).forEach(([category, amount]) => {
+        if (amount > topCategoryAmount) {
+          topCategory = category;
+          topCategoryAmount = amount;
+        }
+      });
+      
+      // Pessoa que mais gastou
+      const personTotals = {};
+      filteredExpenses.forEach(expense => {
+        const person = expense.person || 'Não especificado';
+        personTotals[person] = (personTotals[person] || 0) + Number(expense.amount);
+      });
+      
+      let topSpender = 'Ninguém';
+      let topSpenderAmount = 0;
+      
+      Object.entries(personTotals).forEach(([person, amount]) => {
+        if (amount > topSpenderAmount) {
+          topSpender = person;
+          topSpenderAmount = amount;
+        }
+      });
+      
+      // Projeção para o final do mês (baseada na média diária)
+      const daysInMonth = eachDayOfInterval({ 
+        start: startOfMonth(currentMonth), 
+        end: endOfMonth(currentMonth) 
+      }).length;
+      
+      const projection = average * daysInMonth;
+      
+      return {
+        total,
+        average,
+        topCategory,
+        topSpender,
+        projection
+      };
+    } catch (error) {
+      console.error('Erro ao calcular KPIs:', error);
+      return {
+        total: 0,
+        average: 0,
+        topCategory: 'Erro',
+        topSpender: 'Erro',
+        projection: 0
+      };
+    }
   }, [filteredExpenses, filters.startDate, filters.endDate, currentMonth]);
   
   // Dados para os gráficos
   const chartData = useMemo(() => {
-    // Dados para o gráfico de linha (despesas ao longo do tempo)
-    const dateLabels = eachDayOfInterval({
-      start: parseISO(filters.startDate),
-      end: parseISO(filters.endDate)
-    }).map(date => format(date, 'dd/MM'));
-    
-    const dailyExpenses = dateLabels.map(dateLabel => {
-      const day = dateLabel.split('/')[0];
-      const month = dateLabel.split('/')[1];
+    try {
+      // Dados para o gráfico de linha (despesas ao longo do tempo)
+      const dateLabels = eachDayOfInterval({
+        start: parseISO(filters.startDate),
+        end: parseISO(filters.endDate)
+      }).map(date => format(date, 'dd/MM'));
       
-      // Somar todas as despesas deste dia
-      return filteredExpenses
-        .filter(exp => {
-          const expDate = format(parseISO(exp.date), 'dd/MM');
-          return expDate === dateLabel;
-        })
-        .reduce((sum, exp) => sum + Number(exp.amount), 0);
-    });
-    
-    // Dados para o gráfico de pizza (por tipo)
-    const typeLabels = types;
-    const typeData = typeLabels.map(type => {
-      return filteredExpenses
-        .filter(exp => exp.type === type)
-        .reduce((sum, exp) => sum + Number(exp.amount), 0);
-    });
-    
-    // Dados para o gráfico de barras (por categoria)
-    const categoryLabels = categories;
-    const categoryData = categoryLabels.map(category => {
-      return filteredExpenses
-        .filter(exp => exp.category === category)
-        .reduce((sum, exp) => sum + Number(exp.amount), 0);
-    });
-    
-    // Dados para o gráfico de pessoas
-    const peopleLabels = people;
-    const peopleData = peopleLabels.map(person => {
-      return filteredExpenses
-        .filter(exp => exp.person === person)
-        .reduce((sum, exp) => sum + Number(exp.amount), 0);
-    });
-    
-    return {
-      line: {
-        labels: dateLabels,
-        datasets: [{
-          label: 'Despesas',
-          data: dailyExpenses,
-          fill: false,
-          borderColor: '#4285F4',
-          backgroundColor: 'rgba(66, 133, 244, 0.2)',
-          tension: 0.4,
-          pointRadius: 3,
-          pointBackgroundColor: '#4285F4',
-          pointBorderColor: '#FFFFFF',
-          pointBorderWidth: 1,
-          pointHoverRadius: 5,
-          pointHoverBackgroundColor: '#3367d6',
-          fill: true
-        }]
-      },
-      pie: {
-        labels: typeLabels,
-        datasets: [{
-          data: typeData,
-          backgroundColor: [
-            'rgba(66, 133, 244, 0.8)',   // Google Blue
-            'rgba(219, 68, 55, 0.8)',    // Google Red
-            'rgba(244, 180, 0, 0.8)',    // Google Yellow
-            'rgba(15, 157, 88, 0.8)',    // Google Green
-            'rgba(138, 78, 222, 0.8)',   // Purple
-            'rgba(255, 109, 0, 0.8)'     // Orange
-          ],
-          borderColor: darkMode ? '#1e1e1e' : '#fff',
-          borderWidth: 2
-        }]
-      },
-      bar: {
-        labels: categoryLabels,
-        datasets: [{
-          label: 'Gastos por Categoria',
-          data: categoryData,
-          backgroundColor: 'rgba(66, 133, 244, 0.7)',
-          borderColor: '#4285F4',
-          borderWidth: 1,
-          borderRadius: 8,
-          hoverBackgroundColor: '#3367d6'
-        }]
-      },
-      people: {
-        labels: peopleLabels,
-        datasets: [{
-          label: 'Gastos por Pessoa',
-          data: peopleData,
-          backgroundColor: [
-            'rgba(66, 133, 244, 0.8)',   // Wagner
-            'rgba(219, 68, 55, 0.8)',    // Bárbara
-            'rgba(244, 180, 0, 0.8)',    // Joaquim
-            'rgba(15, 157, 88, 0.8)'     // Família
-          ],
-          borderColor: darkMode ? '#1e1e1e' : '#fff',
-          borderWidth: 2
-        }]
-      }
-    };
+      const dailyExpenses = dateLabels.map(dateLabel => {
+        const day = dateLabel.split('/')[0];
+        const month = dateLabel.split('/')[1];
+        
+        // Somar todas as despesas deste dia
+        return filteredExpenses
+          .filter(exp => {
+            const expDate = format(parseISO(exp.date), 'dd/MM');
+            return expDate === dateLabel;
+          })
+          .reduce((sum, exp) => sum + Number(exp.amount), 0);
+      });
+      
+      // Dados para o gráfico de pizza (por tipo)
+      const typeLabels = types;
+      const typeData = typeLabels.map(type => {
+        return filteredExpenses
+          .filter(exp => exp.type === type)
+          .reduce((sum, exp) => sum + Number(exp.amount), 0);
+      });
+      
+      // Dados para o gráfico de barras (por categoria)
+      const categoryLabels = categories;
+      const categoryData = categoryLabels.map(category => {
+        return filteredExpenses
+          .filter(exp => exp.category === category)
+          .reduce((sum, exp) => sum + Number(exp.amount), 0);
+      });
+      
+      // Dados para o gráfico de pessoas
+      const peopleLabels = people;
+      const peopleData = peopleLabels.map(person => {
+        return filteredExpenses
+          .filter(exp => exp.person === person)
+          .reduce((sum, exp) => sum + Number(exp.amount), 0);
+      });
+      
+      return {
+        line: {
+          labels: dateLabels,
+          datasets: [{
+            label: 'Despesas',
+            data: dailyExpenses,
+            fill: true,
+            borderColor: '#4285F4',
+            backgroundColor: 'rgba(66, 133, 244, 0.2)',
+            tension: 0.4,
+            pointRadius: 3,
+            pointBackgroundColor: '#4285F4',
+            pointBorderColor: '#FFFFFF',
+            pointBorderWidth: 1,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#3367d6'
+          }]
+        },
+        pie: {
+          labels: typeLabels,
+          datasets: [{
+            data: typeData,
+            backgroundColor: [
+              'rgba(66, 133, 244, 0.8)',   // Google Blue
+              'rgba(219, 68, 55, 0.8)',    // Google Red
+              'rgba(244, 180, 0, 0.8)',    // Google Yellow
+              'rgba(15, 157, 88, 0.8)',    // Google Green
+              'rgba(138, 78, 222, 0.8)',   // Purple
+              'rgba(255, 109, 0, 0.8)'     // Orange
+            ],
+            borderColor: darkMode ? '#1e1e1e' : '#fff',
+            borderWidth: 2
+          }]
+        },
+        bar: {
+          labels: categoryLabels,
+          datasets: [{
+            label: 'Gastos por Categoria',
+            data: categoryData,
+            backgroundColor: 'rgba(66, 133, 244, 0.7)',
+            borderColor: '#4285F4',
+            borderWidth: 1,
+            borderRadius: 8,
+            hoverBackgroundColor: '#3367d6'
+          }]
+        },
+        people: {
+          labels: peopleLabels,
+          datasets: [{
+            label: 'Gastos por Pessoa',
+            data: peopleData,
+            backgroundColor: [
+              'rgba(66, 133, 244, 0.8)',   // Wagner
+              'rgba(219, 68, 55, 0.8)',    // Bárbara
+              'rgba(244, 180, 0, 0.8)',    // Joaquim
+              'rgba(15, 157, 88, 0.8)'     // Família
+            ],
+            borderColor: darkMode ? '#1e1e1e' : '#fff',
+            borderWidth: 2
+          }]
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao gerar dados dos gráficos:', error);
+      return {
+        line: { labels: [], datasets: [{ data: [] }] },
+        pie: { labels: [], datasets: [{ data: [] }] },
+        bar: { labels: [], datasets: [{ data: [] }] },
+        people: { labels: [], datasets: [{ data: [] }] }
+      };
+    }
   }, [filteredExpenses, filters.startDate, filters.endDate, darkMode]);
   
   // Opções para os gráficos
@@ -563,6 +597,7 @@ function App() {
   
   // Funções para navegação de mês
   const nextMonth = () => {
+    console.log('Avançando para o próximo mês');
     const next = addMonths(currentMonth, 1);
     setCurrentMonth(next);
     setFilters({
@@ -573,6 +608,7 @@ function App() {
   };
   
   const prevMonth = () => {
+    console.log('Voltando para o mês anterior');
     const prev = subMonths(currentMonth, 1);
     setCurrentMonth(prev);
     setFilters({
@@ -584,12 +620,17 @@ function App() {
   
   // Funções para abrir/fechar o diálogo
   const handleOpenDialog = () => {
-    setNewExpense(initialExpenseState);
+    console.log('Abrindo diálogo para nova despesa');
+    setNewExpense({
+      ...initialExpenseState,
+      date: format(new Date(), 'yyyy-MM-dd')
+    });
     setEditMode(false);
     setDialogOpen(true);
   };
   
   const handleCloseDialog = () => {
+    console.log('Fechando diálogo');
     setDialogOpen(false);
     setSelectedExpense(null);
   };
@@ -614,6 +655,7 @@ function App() {
   // Função para enviar o formulário
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('Submetendo formulário de despesa:', newExpense);
     
     const expenseData = {
       ...newExpense,
@@ -646,6 +688,7 @@ function App() {
   
   // Função para editar uma despesa
   const handleEditExpense = (expense) => {
+    console.log('Editando despesa:', expense);
     setSelectedExpense(expense);
     setNewExpense(expense);
     setEditMode(true);
@@ -654,6 +697,7 @@ function App() {
   
   // Função para excluir uma despesa
   const handleDeleteExpense = (id) => {
+    console.log('Excluindo despesa com ID:', id);
     setExpenses(prev => prev.filter(expense => expense.id !== id));
     setSnackbar({
       open: true, 
@@ -665,6 +709,7 @@ function App() {
   // Função para lidar com alterações nos filtros
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Alterando filtro ${name} para ${value}`);
     setFilters(prev => ({
       ...prev,
       [name]: value
@@ -673,11 +718,13 @@ function App() {
   
   // Função para aplicar os filtros atuais
   const applyFilters = () => {
+    console.log('Aplicando filtros');
     setDrawerOpen(false);
   };
   
   // Função para redefinir os filtros
   const resetFilters = () => {
+    console.log('Redefinindo filtros');
     setFilters({
       startDate: format(startOfMonth(currentMonth), 'yyyy-MM-dd'),
       endDate: format(endOfMonth(currentMonth), 'yyyy-MM-dd'),
@@ -693,14 +740,17 @@ function App() {
   
   // Funções para exportação
   const handleExportClick = (event) => {
+    console.log('Abrindo menu de exportação');
     setExportAnchorEl(event.currentTarget);
   };
   
   const handleExportClose = () => {
+    console.log('Fechando menu de exportação');
     setExportAnchorEl(null);
   };
   
   const handleExportCSV = () => {
+    console.log('Exportando para CSV');
     downloadCSV(filteredExpenses, `financas-familia-${format(currentMonth, 'MMM-yyyy')}.csv`);
     handleExportClose();
     setSnackbar({
@@ -720,8 +770,13 @@ function App() {
   
   // Função para alternar entre abas
   const handleTabChange = (event, newValue) => {
+    console.log(`Alterando para a aba ${newValue}`);
     setTabValue(newValue);
   };
+  
+  // Logging principal
+  console.log('Renderizando aplicação, tabValue:', tabValue);
+  console.log('Filtros atuais:', filters);
   
   return (
     <ThemeProvider theme={theme}>
@@ -828,30 +883,46 @@ function App() {
                 <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
                   <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
                     <DatePicker
-  label="Data Inicial"
-  value={parseISO(filters.startDate)}
-  onChange={(newValue) => {
-    if (newValue) {
-      setFilters(prev => ({
-        ...prev,
-        startDate: format(newValue, 'yyyy-MM-dd')
-      }));
-    }
-  }}
-  renderInput={(params) => <TextField {...params} fullWidth size="small" />}
-/>
+                      label="Data Inicial"
+                      value={parseISO(filters.startDate)}
+                      onChange={(newValue) => {
+                        if (newValue) {
+                          setFilters(prev => ({
+                            ...prev,
+                            startDate: format(newValue, 'yyyy-MM-dd')
+                          }));
+                        }
+                      }}
+                      slots={{
+                        textField: TextField
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small"
+                        }
+                      }}
+                    />
                     <DatePicker
-                        label="Data Final"
-                        value={parseISO(filters.endDate)}
-                        onChange={(newValue) => {
-                          if (newValue) {
-                            setFilters(prev => ({
-                              ...prev,
-                              endDate: format(newValue, 'yyyy-MM-dd')
-                            }));
-                          }
-                        }}
-                        renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                      label="Data Final"
+                      value={parseISO(filters.endDate)}
+                      onChange={(newValue) => {
+                        if (newValue) {
+                          setFilters(prev => ({
+                            ...prev,
+                            endDate: format(newValue, 'yyyy-MM-dd')
+                          }));
+                        }
+                      }}
+                      slots={{
+                        textField: TextField
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          size: "small"
+                        }
+                      }}
                     />
                   </Box>
                 </LocalizationProvider>
@@ -1285,7 +1356,14 @@ function App() {
                           }));
                         }
                       }}
-                      renderInput={(params) => <TextField {...params} fullWidth />}
+                      slots={{
+                        textField: TextField
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true
+                        }
+                      }}
                     />
                   </LocalizationProvider>
                 </Grid>
