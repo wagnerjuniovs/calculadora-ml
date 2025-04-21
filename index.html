@@ -1,718 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard de Reativação de Clientes</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-  <style>
-    /* ===== Variáveis e Temas Apple ===== */
-    :root {
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
-      --radius-sm: 0.75rem;
-      --radius: 1.125rem;
-      --radius-lg: 1.5rem;
-      --shadow: 0 2px 14px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
-      --shadow-hover: 0 4px 18px rgba(0,0,0,0.08), 0 10px 28px rgba(0,0,0,0.06);
-      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      
-      /* Cores iOS/macOS Light */
-      --bg: #F5F5F7;
-      --card-bg: #FFFFFF;
-      --input-bg: rgba(142, 142, 147, 0.12);
-      --text: #1D1D1F;
-      --text-secondary: #86868B;
-      --primary: #0066CC;
-      --primary-light: #147CE5;
-      --success: #34C759;
-      --warning: #FF9F0A;
-      --danger: #FF3B30;
-      --border: rgba(0,0,0,0.08);
-      --chart-grid: rgba(0,0,0,0.04);
-    }
-    
-    [data-theme="dark"] {
-      /* Cores iOS/macOS Dark */
-      --bg: #1D1D1F;
-      --card-bg: #2C2C2E;
-      --input-bg: rgba(142, 142, 147, 0.18);
-      --text: #F5F5F7;
-      --text-secondary: #98989D;
-      --primary: #0A84FF;
-      --primary-light: #5AC8FA;
-      --success: #30D158;
-      --warning: #FF9F0A;
-      --danger: #FF453A;
-      --border: rgba(255,255,255,0.12);
-      --chart-grid: rgba(255,255,255,0.06);
-    }
-    
-    /* ===== Reset e Configurações Base ===== */
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0;
-      padding: 0;
-    }
-    
-    html, body { 
-      font-family: var(--font-sans); 
-      background: var(--bg); 
-      color: var(--text); 
-      transition: var(--transition);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      font-size: 16px;
-      line-height: 1.5;
-      width: 100%;
-      overflow-x: hidden;
-    }
-    
-    /* ===== Layout e Componentes ===== */
-    .container { 
-      max-width: 1280px; 
-      margin: 0 auto; 
-      padding: 2rem; 
-    }
-    
-    .header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 2rem; 
-    }
-    
-    h1 { 
-      font-size: 2rem; 
-      font-weight: 700;
-      margin: 0;
-      letter-spacing: -0.025em;
-    }
-    
-    .filters { 
-      display: flex; 
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-    
-    /* Select estilo Apple */
-    select { 
-      appearance: none;
-      -webkit-appearance: none;
-      padding: 0.625rem 2rem 0.625rem 1rem;
-      border-radius: var(--radius-sm); 
-      border: none;
-      background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none'%3E%3Cpath fill='%2386868b' d='M6 6 0 0h12L6 6Z'/%3E%3C/svg%3E") no-repeat;
-      background-position: right 0.75rem center;
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    
-    select:hover {
-      background-color: rgba(142, 142, 147, 0.18);
-    }
-    
-    /* Botão toggle theme */
-    .theme-toggle {
-      background: var(--input-bg);
-      border: none;
-      border-radius: 50%;
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text);
-      transition: var(--transition);
-    }
-    
-    .theme-toggle:hover {
-      background-color: rgba(142, 142, 147, 0.2);
-    }
-    
-    .theme-toggle svg {
-      width: 1.25rem;
-      height: 1.25rem;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-    
-    /* Cards de KPIs */
-    .kpis { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
-      gap: 1rem; 
-      margin-bottom: 2rem; 
-    }
-    
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.5rem;
-      transition: var(--transition);
-      overflow: hidden;
-      position: relative;
-    }
-    
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .kpi-card {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    .kpi-title {
-      font-size: 0.9375rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-    
-    .kpi-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-    
-    /* Gráficos */
-    .charts { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 1.5rem; 
-    }
-    
-    .chart-container {
-      position: relative;
-      margin-top: 0.5rem;
-      height: 260px;
-    }
-    
-    .chart-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      letter-spacing: -0.01em;
-    }
-    
-    .full { 
-      grid-column: 1 / -1; 
-    }
-    
-    .full .chart-container {
-      height: 300px;
-    }
-    
-    /* Loading Estado */
-    .loading-indicator {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    
-    .loading-indicator.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    
-    .spinner {
-      width: 2.5rem;
-      height: 2.5rem;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Status Cores */
-    .status-reativados {
-      color: var(--success);
-    }
-    
-    .status-inativos {
-      color: var(--warning);
-    }
-    
-    .status-ex {
-      color: var(--danger);
-    }
-    
-    /* Responsividade */
-    @media (max-width: 1024px) {
-      .container {
-        padding: 1.5rem;
-      }
-      
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      
-      .header-right {
-        width: 100%;
-        justify-content: space-between;
-      }
-      
-      .filters {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-      
-      select {
-        font-size: 0.875rem;
-        padding: 0.5rem 1.75rem 0.5rem 0.75rem;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .charts {
-        grid-template-columns: 1fr;
-      }
-      
-      .kpis {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      }
-      
-      .kpi-value {
-        font-size: 1.25rem;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Header e Filtros -->
-    <div class="header">
-      <h1>Dashboard de Reativação de Clientes</h1>
-      <div class="header-right" style="display:flex;align-items:center;gap:1rem;">
-        <div class="filters">
-          <select id="filter-uf"><option value="Todos">Todas UFs</option></select>
-          <select id="filter-categoria"><option value="Todas">Todas Categorias</option></select>
-          <select id="filter-statusPrincipal"><option value="Todos">Status Principal</option></select>
-          <select id="filter-statusAtual"><option value="Todos">Status Atual</option></select>
-        </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema">
-          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpis">
-      <div class="card kpi-card">
-        <div class="kpi-title">Total de Clientes</div>
-        <div class="kpi-value" id="kpi-total">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Reativados</div>
-        <div class="kpi-value status-reativados" id="kpi-reativados">0%</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Inativos</div>
-        <div class="kpi-value status-inativos" id="kpi-inativos">0%</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Ex‑clientes</div>
-        <div class="kpi-value status-ex" id="kpi-ex">0%</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Semana</div>
-        <div class="kpi-value" id="kpi-contatosSemana">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Mês</div>
-        <div class="kpi-value" id="kpi-contatosMes">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Contatos Atrasados</div>
-        <div class="kpi-value" id="kpi-contatosAtrasados">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Média Dias</div>
-        <div class="kpi-value" id="kpi-mediaDias">0</div>
-      </div>
-      <div class="card kpi-card">
-        <div class="kpi-title">Taxa Reativação</div>
-        <div class="kpi-value" id="kpi-taxaReativacao">0%</div>
-      </div>
-    </div>
-
-    <!-- Gráficos -->
-    <div class="charts">
-      <div class="card">
-        <div class="chart-title">Quantidade por Status</div>
-        <div class="chart-container">
-          <canvas id="chart-status"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Evolução Mensal - Inativos vs Ex-clientes</div>
-        <div class="chart-container">
-          <canvas id="chart-evolucao"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Motivos de Inatividade</div>
-        <div class="chart-container">
-          <canvas id="chart-motivos"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="chart-title">Status por UF</div>
-        <div class="chart-container">
-          <canvas id="chart-uf"></canvas>
-        </div>
-      </div>
-      <div class="card full">
-        <div class="chart-title">Previsão de Recompra por Mês</div>
-        <div class="chart-container">
-          <canvas id="chart-previsao"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading Indicator -->
-  <div class="loading-indicator" id="loading">
-    <div class="spinner"></div>
-  </div>
-
-  <script>
-    // ===== Configurações e Variáveis Globais =====
-    const API_URL = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
-    const root = document.documentElement;
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    const loading = document.getElementById('loading');
-    let rawData = [];
-    let charts = {};
-    
-    // ===== Utilitários e Helpers =====
-    
-    // Função para formatar números decimais com casas específicas
-    function formatNumber(num, digits = 1) {
-      return Number(num).toFixed(digits);
-    }
-    
-    // Parsing de datas no formato brasileiro (DD/MM/YYYY)
-    function parseBRDate(str) {
-      if (!str || typeof str !== 'string') return null;
-      const parts = str.split('/');
-      if (parts.length !== 3) return null;
-      
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1; // JS meses são 0-11
-      const year = parseInt(parts[2], 10);
-      
-      if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-      
-      const date = new Date(year, month, day);
-      // Validação de data válida
-      if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
-        return null;
-      }
-      
-      return date;
-    }
-    
-    // Formatar mês/ano
-    function formatMonthYear(date) {
-      if (!date) return '';
-      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      return `${months[date.getMonth()]}/${date.getFullYear()}`;
-    }
-    
-    // Classificar cliente por dias sem pedido
-    function classifyClient(dias) {
-      if (dias <= 120) return 'Reativados';
-      if (dias <= 180) return 'Inativos';
-      return 'Ex‑clientes';
-    }
-    
-    // Mostrar indicador de carregamento
-    function showLoading() {
-      loading.classList.add('active');
-    }
-    
-    // Esconder indicador de carregamento
-    function hideLoading() {
-      loading.classList.remove('active');
-    }
-    
-    // Atualizar ícone do toggle de tema
-    function updateThemeIcon(theme) {
-      if (theme === 'dark') {
-        themeIcon.innerHTML = '<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M16.95 7.05a6 6 0 1 1-8.49 8.49 6 6 0 0 1 8.49-8.49z" />';
-      } else {
-        themeIcon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />';
-      }
-    }
-    
-    // Setup do tema baseado em preferências do sistema
-    function setupTheme() {
-      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-      const currentTheme = localStorage.getItem('theme');
-      
-      if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
-        root.setAttribute('data-theme', 'dark');
-        updateThemeIcon('dark');
-      } else {
-        root.setAttribute('data-theme', 'light');
-        updateThemeIcon('light');
-      }
-    }
-    
-    // Toggle de tema claro/escuro
-    themeToggle.addEventListener('click', () => {
-      const currentTheme = root.getAttribute('data-theme') || 'light';
-      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-      
-      root.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      updateThemeIcon(newTheme);
-      
-      // Atualizar gráficos para o novo tema
-      updateCharts(prepareData());
-    });
-    
-    // ===== Carregamento e Processamento de Dados =====
-    
-    async function fetchData() {
-      try {
-        showLoading();
-        const res = await fetch(API_URL);
-        
-        if (!res.ok) {
-          throw new Error(`Erro na API: ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        rawData = data.filter(item => item.cliente && item.cliente.trim() !== '').map(item => ({
-          cliente: item.cliente,
-          uf: item.uf || '',
-          categoria: item.categoria || '',
-          statusPrincipal: item.statusPrincipal || '',
-          motivoStatus: item.motivoStatus || '',
-          ultimoPedido: parseBRDate(item.ultimoPedido),
-          ultimoContato: parseBRDate(item.ultimoContato),
-          statusAtual: item.statusAtual || '',
-          proximoContato: parseBRDate(item.proximoContato),
-          previsaoRecompra: parseBRDate(item.previsaoRecompra),
-          mesReferencia: item.mesReferencia || '',
-          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias)
-        }));
-        
-        console.log(`Dados carregados: ${rawData.length} registros`);
-        
-        initFilters();
-        updateAll();
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-        alert('Erro ao carregar dados da API. Verifique o console para mais detalhes.');
-      } finally {
-        hideLoading();
-      }
-    }
-    
-    // ===== Inicialização de Filtros =====
-    
-    function initFilters() {
-      const filterFields = ['uf', 'categoria', 'statusPrincipal', 'statusAtual'];
-      
-      filterFields.forEach(field => {
-        const selectElement = document.getElementById(`filter-${field}`);
-        
-        // Limpar opções existentes (exceto a primeira)
-        while (selectElement.options.length > 1) {
-          selectElement.remove(1);
-        }
-        
-        const uniqueValues = [...new Set(rawData.map(item => item[field]).filter(val => val && val.trim() !== ''))];
-        
-        uniqueValues.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(value => {
-          const option = new Option(value, value);
-          selectElement.appendChild(option);
-        });
-        
-        // Adicionar event listener apenas se ainda não existir
-        const hasListener = selectElement.getAttribute('data-has-listener') === 'true';
-        if (!hasListener) {
-          selectElement.addEventListener('change', updateAll);
-          selectElement.setAttribute('data-has-listener', 'true');
-        }
-      });
-    }
-    
-    // ===== Preparação de Dados Filtrados =====
-    
-    function prepareData() {
-      const uf = document.getElementById('filter-uf').value;
-      const categoria = document.getElementById('filter-categoria').value;
-      const statusPrincipal = document.getElementById('filter-statusPrincipal').value;
-      const statusAtual = document.getElementById('filter-statusAtual').value;
-      
-      return rawData
-        .filter(item => {
-          return (uf === 'Todos' || item.uf === uf) &&
-                 (categoria === 'Todas' || item.categoria === categoria) &&
-                 (statusPrincipal === 'Todos' || item.statusPrincipal === statusPrincipal) &&
-                 (statusAtual === 'Todos' || item.statusAtual === statusAtual);
-        })
-        .map(item => ({
-          ...item,
-          status: classifyClient(item.ultPedDias)
-        }));
-    }
-    
-    // ===== Atualização de KPIs =====
-    
-    function updateKPIs(data) {
-      const total = data.length;
-      document.getElementById('kpi-total').textContent = total;
-      
-      // Contagens por status
-      const statusCounts = {
-        'Reativados': 0,
-        'Inativos': 0,
-        'Ex‑clientes': 0
-      };
-      
-      data.forEach(item => {
-        statusCounts[item.status]++;
-      });
-      
-      // Percentuais por status
-      document.getElementById('kpi-reativados').textContent = `${formatNumber((statusCounts['Reativados'] / total) * 100)}%`;
-      document.getElementById('kpi-inativos').textContent = `${formatNumber((statusCounts['Inativos'] / total) * 100)}%`;
-      document.getElementById('kpi-ex').textContent = `${formatNumber((statusCounts['Ex‑clientes'] / total) * 100)}%`;
-      
-      // Contatos Agendados
-      const hoje = new Date();
-      
-      // Definir início da semana (segunda-feira)
-      const diaDaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
-      const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1; // Ajuste para segunda-feira
-      
-      const inicioSemana = new Date(hoje);
-      inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
-      inicioSemana.setHours(0, 0, 0, 0);
-      
-      // Definir fim da semana (sexta-feira)
-      const fimSemana = new Date(inicioSemana);
-      fimSemana.setDate(inicioSemana.getDate() + 4);
-      fimSemana.setHours(23, 59, 59, 999);
-      
-      // Início e fim do mês atual
-      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
-      
-      // Contadores de contatos
-      const contatosSemana = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
-      }).length;
-      
-      const contatosMes = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && 
-               proximoContato >= hoje && 
-               proximoContato <= fimMes && 
-               !(proximoContato >= inicioSemana && proximoContato <= fimSemana); // Excluir já contados na semana
-      }).length;
-      
-      const contatosAtrasados = data.filter(item => {
-        const proximoContato = item.proximoContato;
-        return proximoContato && proximoContato < hoje;
-      }).length;
-      
-      document.getElementById('kpi-contatosSemana').textContent = contatosSemana;
-      document.getElementById('kpi-contatosMes').textContent = contatosMes;
-      document.getElementById('kpi-contatosAtrasados').textContent = contatosAtrasados;
-      
-      // Média de dias sem pedido
-      const mediaDias = data.reduce((sum, item) => sum + item.ultPedDias, 0) / (total || 1);
-      document.getElementById('kpi-mediaDias').textContent = formatNumber(mediaDias, 0);
-      
-      // Taxa de Reativação (Reativados / (Inativos + Ex-clientes))
-      const baseInativaTotal = statusCounts['Inativos'] + statusCounts['Ex‑clientes'];
-      const taxaReativacao = baseInativaTotal === 0 ? 0 : (statusCounts['Reativados'] / baseInativaTotal) * 100;
-      document.getElementById('kpi-taxaReativacao').textContent = `${formatNumber(taxaReativacao)}%`;
-    }
-    
-    // ===== Atualização de Gráficos =====
-    
-    function updateCharts(data) {
-      const isDark = root.getAttribute('data-theme') === 'dark';
-      const textColor = isDark ? '#F5F5F7' : '#1D1D1F';
-      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
-      
-      // Configurações comuns para todos os gráficos
-      const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            align: 'end',
-            labels: {
-              boxWidth: 12,
-              usePointStyle: true,
-              pointStyle: 'circle',
-              color: textColor,
-              font: {
-                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                size: 12
-              }
-            }
-          },
-          tooltip: {
-            backgroundColor: isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-            titleColor: textColor,
-            bodyColor: textColor,
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            borderWidth: 1,
-            cornerRadius: 8,
-            padding: 12,
-            boxPadding: 6,
-            usePointStyle: true,
-            titleFont: {
-              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-              size: 13,
-              weight: 'bold'
-            },
-            bodyFont: {
+bodyFont: {
               family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
               size: 12
             }
@@ -780,6 +66,13 @@
             ...commonOptions.plugins,
             legend: {
               display: false
+            }
+          },
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const status = statusLabels[index];
+              filterClientTable(status);
             }
           }
         }
@@ -894,6 +187,15 @@
         options: {
           ...commonOptions,
           cutout: '65%',
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const motivo = motivosLabels[index];
+              
+              // Filtrar a tabela de clientes por motivo
+              filterTableByMotivo(motivo);
+            }
+          }
         }
       });
       
@@ -955,6 +257,19 @@
               ...commonOptions.scales.y,
               stacked: true
             }
+          },
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              const clickedElement = elements[0];
+              const datasetIndex = clickedElement.datasetIndex;
+              const index = clickedElement.index;
+              
+              const uf = ufList[index];
+              const status = statusLabels[datasetIndex];
+              
+              // Filtrar a tabela de clientes por UF e status
+              filterTableByUfAndStatus(uf, status);
+            }
           }
         }
       });
@@ -978,7 +293,7 @@
         const [mesB, anoB] = b.split('/');
         
         const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
-                          'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
+                         'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
         
         const anoNumA = parseInt(anoA);
         const anoNumB = parseInt(anoB);
@@ -1007,7 +322,493 @@
             maxBarThickness: 40
           }]
         },
-        options: commonOptions
+        options: {
+          ...commonOptions,
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const mesAno = mesesPrevisao[index];
+              
+              // Filtrar a tabela de clientes por mês de previsão
+              filterTableByPrevisaoMes(mesAno);
+            }
+          }
+        }
+      });
+    }
+    
+    // ===== Funções para Tabela de Clientes =====
+    
+    // Renderizar tabela de clientes
+    function renderClientTable(data) {
+      // Filtrar dados conforme o filtro da tabela
+      const searchTerm = clientSearch.value.toLowerCase();
+      const statusFilter = filterTableStatus.value;
+      
+      // Aplicar filtros adicionais com base no KPI selecionado
+      let filteredData = data;
+      
+      if (activeKpiFilter !== 'all') {
+        if (['Reativados', 'Inativos', 'Ex‑clientes'].includes(activeKpiFilter)) {
+          filteredData = data.filter(item => item.status === activeKpiFilter);
+        } else if (activeKpiFilter === 'semana' && window.kpiData.semana) {
+          // Filtrar por contatos da semana
+          const clientesIds = window.kpiData.semana.map(c => c.cliente);
+          filteredData = data.filter(item => clientesIds.includes(item.cliente));
+        } else if (activeKpiFilter === 'mes' && window.kpiData.mes) {
+          // Filtrar por contatos do mês
+          const clientesIds = window.kpiData.mes.map(c => c.cliente);
+          filteredData = data.filter(item => clientesIds.includes(item.cliente));
+        } else if (activeKpiFilter === 'atrasados' && window.kpiData.atrasados) {
+          // Filtrar por contatos atrasados
+          const clientesIds = window.kpiData.atrasados.map(c => c.cliente);
+          filteredData = data.filter(item => clientesIds.includes(item.cliente));
+        }
+      }
+      
+      // Aplicar filtros de pesquisa e status
+      filteredTableData = filteredData.filter(item => {
+        const matchesSearch = searchTerm === '' || 
+          item.cliente.toLowerCase().includes(searchTerm) || 
+          (item.uf && item.uf.toLowerCase().includes(searchTerm)) ||
+          (item.categoria && item.categoria.toLowerCase().includes(searchTerm)) ||
+          (item.motivoStatus && item.motivoStatus.toLowerCase().includes(searchTerm));
+        
+        const matchesStatus = statusFilter === 'Todos' || item.status === statusFilter;
+        
+        return matchesSearch && matchesStatus;
+      });
+      
+      // Ordenar dados (por padrão, ordenar por dias sem pedido decrescente)
+      filteredTableData.sort((a, b) => b.ultPedDias - a.ultPedDias);
+      
+      // Paginar os dados
+      const startIndex = (currentPage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      const paginatedData = filteredTableData.slice(startIndex, endIndex);
+      
+      // Limpar a tabela
+      clientsTableBody.innerHTML = '';
+      
+      // Se não houver dados, mostrar mensagem
+      if (paginatedData.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="9" style="text-align: center; padding: 2rem;">Nenhum cliente encontrado</td>`;
+        clientsTableBody.appendChild(tr);
+      } else {
+        // Renderizar linhas da tabela
+        paginatedData.forEach(client => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${client.cliente}</td>
+            <td>${client.uf || '-'}</td>
+            <td>${client.categoria || '-'}</td>
+            <td><span class="badge badge-${client.status.toLowerCase()}">${client.status}</span></td>
+            <td>${client.ultimoPedido ? formatDateBR(client.ultimoPedido) : '-'}</td>
+            <td>${client.ultPedDias}</td>
+            <td>${client.motivoStatus || '-'}</td>
+            <td>${client.proximoContato ? formatDateBR(client.proximoContato) : '-'}</td>
+            <td>
+              <button class="btn btn-sm btn-ghost view-client" data-client="${client.cliente}">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+              </button>
+            </td>
+          `;
+          clientsTableBody.appendChild(tr);
+        });
+        
+        // Adicionar event listeners para as ações da tabela
+        document.querySelectorAll('.view-client').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const clientName = this.getAttribute('data-client');
+            const client = filteredTableData.find(c => c.cliente === clientName);
+            if (client) {
+              openClientModal(client);
+            }
+          });
+        });
+      }
+      
+      // Atualizar informações de paginação
+      paginationInfo.textContent = `Mostrando ${paginatedData.length} de ${filteredTableData.length} clientes`;
+      
+      // Renderizar controles de paginação
+      renderPagination();
+    }
+    
+    // Renderizar controles de paginação
+    function renderPagination() {
+      paginationControls.innerHTML = '';
+      
+      const totalPages = Math.ceil(filteredTableData.length / rowsPerPage);
+      
+      // Botão Anterior
+      const prevBtn = document.createElement('button');
+      prevBtn.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+      prevBtn.innerHTML = '<span>&laquo;</span>';
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          renderClientTable(prepareData());
+        }
+      });
+      paginationControls.appendChild(prevBtn);
+      
+      // Páginas
+      const maxButtons = 5; // Número máximo de botões a mostrar
+      let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      
+      // Ajustar startPage se endPage atingir o máximo
+      startPage = Math.max(1, endPage - maxButtons + 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageBtn.textContent = i;
+        pageBtn.addEventListener('click', () => {
+          currentPage = i;
+          renderClientTable(prepareData());
+        });
+        paginationControls.appendChild(pageBtn);
+      }
+      
+      // Botão Próximo
+      const nextBtn = document.createElement('button');
+      nextBtn.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextBtn.innerHTML = '<span>&raquo;</span>';
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.addEventListener('click', () => {
+        if (currentPage < totalPages) {
+          currentPage++;
+          renderClientTable(prepareData());
+        }
+      });
+      paginationControls.appendChild(nextBtn);
+    }
+    
+    // Filtrar tabela de clientes por status
+    function filterClientTable(status) {
+      // Resetar página
+      currentPage = 1;
+      
+      // Atualizar filtro ativo
+      activeKpiFilter = status;
+      
+      // Atualizar select de status da tabela
+      filterTableStatus.value = status;
+      
+      // Renderizar tabela
+      renderClientTable(prepareData());
+      
+      // Mostrar toast com informação
+      showToast('Filtro aplicado', `Exibindo apenas clientes com status: ${status}`);
+    }
+    
+    // Filtrar tabela por motivo
+    function filterTableByMotivo(motivo) {
+      // Resetar página
+      currentPage = 1;
+      
+      // Resetar filtro ativo
+      activeKpiFilter = 'all';
+      
+      // Limpar pesquisa
+      clientSearch.value = motivo;
+      
+      // Renderizar tabela
+      renderClientTable(prepareData());
+      
+      // Mostrar toast com informação
+      showToast('Filtro aplicado', `Exibindo clientes com motivo: ${motivo}`);
+    }
+    
+    // Filtrar tabela por UF e status
+    function filterTableByUfAndStatus(uf, status) {
+      // Resetar página
+      currentPage = 1;
+      
+      // Resetar filtro ativo
+      activeKpiFilter = 'all';
+      
+      // Atualizar select de UF
+      document.getElementById('filter-uf').value = uf;
+      
+      // Atualizar select de status da tabela
+      filterTableStatus.value = status;
+      
+      // Renderizar tabela
+      updateAll();
+      
+      // Mostrar toast com informação
+      showToast('Filtro aplicado', `Exibindo clientes de ${uf} com status: ${status}`);
+    }
+    
+    // Filtrar tabela por mês de previsão
+    function filterTableByPrevisaoMes(mesAno) {
+      // Resetar página
+      currentPage = 1;
+      
+      // Resetar filtro ativo
+      activeKpiFilter = 'all';
+      
+      // Filtrar dados
+      const [mes, ano] = mesAno.split('/');
+      const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
+                       'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
+      
+      const mesNum = mesesNomes[mes];
+      const anoNum = parseInt(ano);
+      
+      // Implementar lógica para filtrar clientes por mês/ano de previsão
+      const filteredClients = prepareData().filter(client => {
+        if (!client.previsaoRecompra) return false;
+        return client.previsaoRecompra.getMonth() === mesNum && 
+               client.previsaoRecompra.getFullYear() === anoNum;
+      });
+      
+      // Resetar os filtros de UF e categoria
+      document.getElementById('filter-uf').value = 'Todos';
+      document.getElementById('filter-categoria').value = 'Todas';
+      
+      // Renderizar apenas estes clientes na tabela
+      filteredTableData = filteredClients;
+      renderClientTable(prepareData());
+      
+      // Mostrar toast com informação
+      showToast('Filtro aplicado', `Exibindo clientes com previsão de recompra em ${mesAno}`);
+    }
+    
+    // ===== Configurar Eventos =====
+    
+    // Configurar eventos para a tabela
+    function setupTableEvents() {
+      // Pesquisa
+      clientSearch.addEventListener('input', () => {
+        currentPage = 1;
+        renderClientTable(prepareData());
+      });
+      
+      // Filtro de status
+      filterTableStatus.addEventListener('change', () => {
+        currentPage = 1;
+        // Se o usuário selecionar um status via select, resetar o filtro KPI ativo
+        if (filterTableStatus.value !== activeKpiFilter) {
+          activeKpiFilter = 'all';
+        }
+        renderClientTable(prepareData());
+      });
+      
+      // Botão de exportar lista completa
+      document.getElementById('btn-export-all').addEventListener('click', () => {
+        exportToCSV(filteredTableData, 'clientes_reativacao');
+      });
+    }
+    
+    // Configurar eventos para os KPIs
+    function setupKpiEvents() {
+      // KPI Total
+      document.getElementById('kpi-card-total').addEventListener('click', () => {
+        activeKpiFilter = 'all';
+        filterTableStatus.value = 'Todos';
+        renderClientTable(prepareData());
+        showToast('Filtro resetado', 'Exibindo todos os clientes');
+      });
+      
+      // KPI Reativados
+      document.getElementById('kpi-card-reativados').addEventListener('click', () => {
+        filterClientTable('Reativados');
+      });
+      
+      // KPI Inativos
+      document.getElementById('kpi-card-inativos').addEventListener('click', () => {
+        filterClientTable('Inativos');
+      });
+      
+      // KPI Ex-clientes
+      document.getElementById('kpi-card-ex').addEventListener('click', () => {
+        filterClientTable('Ex‑clientes');
+      });
+      
+      // KPI Contatos Semana
+      document.getElementById('kpi-card-semana').addEventListener('click', () => {
+        activeKpiFilter = 'semana';
+        filterTableStatus.value = 'Todos';
+        renderClientTable(prepareData());
+        showToast('Filtro aplicado', 'Exibindo contatos agendados para esta semana');
+      });
+      
+      // KPI Contatos Mês
+      document.getElementById('kpi-card-mes').addEventListener('click', () => {
+        activeKpiFilter = 'mes';
+        filterTableStatus.value = 'Todos';
+        renderClientTable(prepareData());
+        showToast('Filtro aplicado', 'Exibindo contatos agendados para este mês');
+      });
+      
+      // KPI Contatos Atrasados
+      document.getElementById('kpi-card-atrasados').addEventListener('click', () => {
+        activeKpiFilter = 'atrasados';
+        filterTableStatus.value = 'Todos';
+        renderClientTable(prepareData());
+        showToast('Filtro aplicado', 'Exibindo contatos atrasados');
+      });
+    }
+    
+    // Configurar eventos para exportação de gráficos
+    function setupExportEvents() {
+      // Exportar Status
+      document.getElementById('btn-export-status').addEventListener('click', () => {
+        const data = prepareData();
+        const exportData = ['Reativados', 'Inativos', 'Ex‑clientes'].map(status => ({
+          Status: status,
+          Quantidade: data.filter(item => item.status === status).length
+        }));
+        
+        exportToCSV(exportData, 'status_clientes');
+      });
+      
+      // Exportar Evolução
+      document.getElementById('btn-export-evolucao').addEventListener('click', () => {
+        const data = prepareData();
+        const evolucaoMensal = {};
+        
+        // Ordenar todos os meses de referência
+        const todosOsMeses = [...new Set(data.map(item => item.mesReferencia))]
+          .filter(mes => mes && mes.trim() !== '')
+          .sort((a, b) => {
+            const [mesA, anoA] = a.split('/').map(Number);
+            const [mesB, anoB] = b.split('/').map(Number);
+            return anoA !== anoB ? anoA - anoB : mesA - mesB;
+          });
+        
+        // Inicializar dados para todos os meses
+        todosOsMeses.forEach(mes => {
+          evolucaoMensal[mes] = { 'Inativos': 0, 'Ex‑clientes': 0 };
+        });
+        
+        // Contar inativos e ex-clientes por mês
+        data.forEach(item => {
+          if (item.mesReferencia && (item.status === 'Inativos' || item.status === 'Ex‑clientes')) {
+            evolucaoMensal[item.mesReferencia][item.status]++;
+          }
+        });
+        
+        // Preparar dados para exportação
+        const exportData = todosOsMeses.map(mes => ({
+          Mês: mes,
+          Inativos: evolucaoMensal[mes]['Inativos'],
+          'Ex-clientes': evolucaoMensal[mes]['Ex‑clientes']
+        }));
+        
+        exportToCSV(exportData, 'evolucao_clientes');
+      });
+      
+      // Exportar Motivos
+      document.getElementById('btn-export-motivos').addEventListener('click', () => {
+        const data = prepareData();
+        const motivosInatividade = {};
+        
+        // Filtrar apenas clientes inativos e ex-clientes
+        data.filter(item => item.ultPedDias > 120)
+          .forEach(item => {
+            const motivo = item.motivoStatus && item.motivoStatus.trim() !== '' ? item.motivoStatus : 'Não Informado';
+            motivosInatividade[motivo] = (motivosInatividade[motivo] || 0) + 1;
+          });
+        
+        // Preparar dados para exportação
+        const exportData = Object.keys(motivosInatividade).map(motivo => ({
+          Motivo: motivo,
+          Quantidade: motivosInatividade[motivo]
+        }));
+        
+        exportToCSV(exportData, 'motivos_inatividade');
+      });
+      
+      // Exportar UF
+      document.getElementById('btn-export-uf').addEventListener('click', () => {
+        const data = prepareData();
+        const statusPorUF = {};
+        
+        // Coletar todos os UFs únicos
+        const ufList = [...new Set(data.map(item => item.uf))]
+          .filter(uf => uf && uf.trim() !== '')
+          .sort();
+        
+        // Inicializar dados para todos os UFs
+        ufList.forEach(uf => {
+          statusPorUF[uf] = {
+            'Reativados': 0,
+            'Inativos': 0,
+            'Ex‑clientes': 0
+          };
+        });
+        
+        // Contar status por UF
+        data.forEach(item => {
+          if (item.uf && item.uf.trim() !== '') {
+            statusPorUF[item.uf][item.status]++;
+          }
+        });
+        
+        // Preparar dados para exportação
+        const exportData = [];
+        
+        ufList.forEach(uf => {
+          exportData.push({
+            UF: uf,
+            Reativados: statusPorUF[uf]['Reativados'],
+            Inativos: statusPorUF[uf]['Inativos'],
+            'Ex-clientes': statusPorUF[uf]['Ex‑clientes'],
+            Total: statusPorUF[uf]['Reativados'] + statusPorUF[uf]['Inativos'] + statusPorUF[uf]['Ex‑clientes']
+          });
+        });
+        
+        exportToCSV(exportData, 'status_por_uf');
+      });
+      
+      // Exportar Previsão
+      document.getElementById('btn-export-previsao').addEventListener('click', () => {
+        const data = prepareData();
+        const previsaoRecompra = {};
+        
+        // Filtrar apenas clientes inativos e ex-clientes com previsão de recompra
+        data.filter(item => 
+          item.ultPedDias > 120 && 
+          item.previsaoRecompra && 
+          item.previsaoRecompra > new Date()
+        ).forEach(item => {
+          const mesAno = formatMonthYear(item.previsaoRecompra);
+          previsaoRecompra[mesAno] = (previsaoRecompra[mesAno] || 0) + 1;
+        });
+        
+        // Ordenar meses cronologicamente
+        const mesesPrevisao = Object.keys(previsaoRecompra).sort((a, b) => {
+          const [mesA, anoA] = a.split('/');
+          const [mesB, anoB] = b.split('/');
+          
+          const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
+                           'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
+          
+          const anoNumA = parseInt(anoA);
+          const anoNumB = parseInt(anoB);
+          
+          if (anoNumA !== anoNumB) return anoNumA - anoNumB;
+          return mesesNomes[mesA] - mesesNomes[mesB];
+        });
+        
+        // Preparar dados para exportação
+        const exportData = mesesPrevisao.map(mes => ({
+          'Mês': mes,
+          'Quantidade': previsaoRecompra[mes]
+        }));
+        
+        exportToCSV(exportData, 'previsao_recompra');
       });
     }
     
@@ -1021,9 +822,10 @@
           const filteredData = prepareData();
           updateKPIs(filteredData);
           updateCharts(filteredData);
+          renderClientTable(filteredData);
         } catch (error) {
           console.error('Erro ao atualizar dashboard:', error);
-          alert('Erro ao atualizar dashboard. Verifique o console para mais detalhes.');
+          showToast('Erro', 'Ocorreu um erro ao atualizar o dashboard.');
         } finally {
           hideLoading();
         }
@@ -1039,4 +841,1477 @@
     fetchData();
   </script>
 </body>
-</html>
+</html>          <canvas id="chart-evolucao"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">
+          <span>Motivos de Inatividade</span>
+          <div class="chart-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-export-motivos">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-motivos"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">
+          <span>Status por UF</span>
+          <div class="chart-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-export-uf">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-uf"></canvas>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="chart-title">
+          <span>Previsão de Recompra por Mês</span>
+          <div class="chart-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-export-previsao">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-previsao"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Seção da Tabela de Clientes -->
+    <div class="clients-section">
+      <div class="table-header">
+        <h2>Lista de Clientes</h2>
+        <div class="table-filters">
+          <input type="text" class="search-input" id="client-search" placeholder="Buscar cliente...">
+          <select id="filter-table-status">
+            <option value="Todos">Todos Status</option>
+            <option value="Reativados">Reativados</option>
+            <option value="Inativos">Inativos</option>
+            <option value="Ex‑clientes">Ex-clientes</option>
+          </select>
+          <button class="btn" id="btn-export-all">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Exportar Lista
+          </button>
+        </div>
+      </div>
+      <div class="card table-container">
+        <table class="clients-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>UF</th>
+              <th>Categoria</th>
+              <th>Status</th>
+              <th>Último Pedido</th>
+              <th>Dias s/ Pedido</th>
+              <th>Motivo</th>
+              <th>Próx. Contato</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="clients-table-body">
+            <!-- Os dados da tabela serão inseridos aqui via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination">
+        <div class="pagination-info" id="pagination-info">Mostrando 0 de 0 clientes</div>
+        <div class="pagination-controls" id="pagination-controls">
+          <!-- Os controles de paginação serão inseridos aqui via JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de detalhes do cliente -->
+  <div class="modal-overlay" id="client-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Detalhes do Cliente</h3>
+        <button class="modal-close" id="modal-close">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="client-details" id="client-details">
+          <!-- Os detalhes do cliente serão inseridos aqui via JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="modal-close-btn">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de notificação -->
+  <div class="toast-container" id="toast-container">
+    <!-- As notificações toast serão inseridas aqui via JavaScript -->
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" id="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    // ===== Configurações e Variáveis Globais =====
+    const API_URL = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
+    const root = document.documentElement;
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const loading = document.getElementById('loading');
+    const clientModal = document.getElementById('client-modal');
+    const modalClose = document.getElementById('modal-close');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const clientsTableBody = document.getElementById('clients-table-body');
+    const paginationInfo = document.getElementById('pagination-info');
+    const paginationControls = document.getElementById('pagination-controls');
+    const clientSearch = document.getElementById('client-search');
+    const filterTableStatus = document.getElementById('filter-table-status');
+    const toastContainer = document.getElementById('toast-container');
+    
+    let rawData = [];
+    let filteredTableData = [];
+    let charts = {};
+    let currentPage = 1;
+    let rowsPerPage = 10;
+    let activeKpiFilter = 'all';
+    
+    // ===== Utilitários e Helpers =====
+    
+    // Função para formatar números decimais com casas específicas
+    function formatNumber(num, digits = 1) {
+      return Number(num).toFixed(digits);
+    }
+    
+    // Parsing de datas no formato brasileiro (DD/MM/YYYY)
+    function parseBRDate(str) {
+      if (!str || typeof str !== 'string') return null;
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // JS meses são 0-11
+      const year = parseInt(parts[2], 10);
+      
+      if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+      
+      const date = new Date(year, month, day);
+      // Validação de data válida
+      if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+        return null;
+      }
+      
+      return date;
+    }
+    
+    // Formatar data para exibição no formato BR
+    function formatDateBR(date) {
+      if (!date) return '-';
+      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    }
+    
+    // Formatar mês/ano
+    function formatMonthYear(date) {
+      if (!date) return '';
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return `${months[date.getMonth()]}/${date.getFullYear()}`;
+    }
+    
+    // Classificar cliente por dias sem pedido
+    function classifyClient(dias) {
+      if (dias <= 120) return 'Reativados';
+      if (dias <= 180) return 'Inativos';
+      return 'Ex‑clientes';
+    }
+    
+    // Exportar dados para CSV
+    function exportToCSV(data, filename) {
+      // Converter objeto para CSV
+      const headers = Object.keys(data[0]);
+      const csvRows = [];
+      
+      // Adicionar cabeçalhos
+      csvRows.push(headers.join(','));
+      
+      // Adicionar linhas
+      for (const row of data) {
+        const values = headers.map(header => {
+          const value = row[header];
+          // Formatar valores especiais
+          if (value instanceof Date) {
+            return formatDateBR(value);
+          } else if (typeof value === 'string') {
+            // Escapar aspas e adicionar aspas se tiver vírgula
+            const escaped = value.replace(/"/g, '""');
+            return escaped.includes(',') ? `"${escaped}"` : escaped;
+          } else {
+            return value;
+          }
+        });
+        csvRows.push(values.join(','));
+      }
+      
+      // Criar arquivo e baixar
+      const csvContent = csvRows.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${filename}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Mostrar toast de sucesso
+      showToast('Sucesso', 'Arquivo exportado com sucesso');
+    }
+    
+    // Mostrar indicador de carregamento
+    function showLoading() {
+      loading.classList.add('active');
+    }
+    
+    // Esconder indicador de carregamento
+    function hideLoading() {
+      loading.classList.remove('active');
+    }
+    
+    // Mostrar toast de notificação
+    function showToast(title, message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <div class="toast-icon">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      `;
+      
+      toastContainer.appendChild(toast);
+      
+      // Adicionar event listener para fechar
+      const closeBtn = toast.querySelector('.toast-close');
+      closeBtn.addEventListener('click', () => {
+        toast.remove();
+      });
+      
+      // Mostrar toast com animação
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      
+      // Remover toast após 5 segundos
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 5000);
+    }
+    
+    // Atualizar ícone do toggle de tema
+    function updateThemeIcon(theme) {
+      if (theme === 'dark') {
+        themeIcon.innerHTML = '<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M16.95 7.05a6 6 0 1 1-8.49 8.49 6 6 0 0 1 8.49-8.49z" />';
+      } else {
+        themeIcon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />';
+      }
+    }
+    
+    // Setup do tema baseado em preferências do sistema
+    function setupTheme() {
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+      const currentTheme = localStorage.getItem('theme');
+      
+      if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
+        root.setAttribute('data-theme', 'dark');
+        updateThemeIcon('dark');
+      } else {
+        root.setAttribute('data-theme', 'light');
+        updateThemeIcon('light');
+      }
+    }
+    
+    // Toggle de tema claro/escuro
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      root.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      
+      // Atualizar gráficos para o novo tema
+      updateCharts(prepareData());
+    });
+    
+    // ===== Interações do Modal =====
+    
+    // Abrir modal com detalhes do cliente
+    function openClientModal(client) {
+      // Preencher os detalhes do cliente
+      document.getElementById('modal-title').textContent = client.cliente;
+      
+      const clientDetails = document.getElementById('client-details');
+      clientDetails.innerHTML = `
+        <div class="client-detail-group">
+          <div class="client-detail-label">UF</div>
+          <div class="client-detail-value">${client.uf || '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Categoria</div>
+          <div class="client-detail-value">${client.categoria || '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Status</div>
+          <div class="client-detail-value ${client.status === 'Reativados' ? 'status-reativados' : client.status === 'Inativos' ? 'status-inativos' : 'status-ex'}">${client.status}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Status Principal</div>
+          <div class="client-detail-value">${client.statusPrincipal || '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Status Atual</div>
+          <div class="client-detail-value">${client.statusAtual || '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Motivo</div>
+          <div class="client-detail-value">${client.motivoStatus || '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Último Pedido</div>
+          <div class="client-detail-value">${client.ultimoPedido ? formatDateBR(client.ultimoPedido) : '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Dias sem Pedido</div>
+          <div class="client-detail-value">${client.ultPedDias}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Último Contato</div>
+          <div class="client-detail-value">${client.ultimoContato ? formatDateBR(client.ultimoContato) : '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Próximo Contato</div>
+          <div class="client-detail-value">${client.proximoContato ? formatDateBR(client.proximoContato) : '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Previsão de Recompra</div>
+          <div class="client-detail-value">${client.previsaoRecompra ? formatDateBR(client.previsaoRecompra) : '-'}</div>
+        </div>
+        <div class="client-detail-group">
+          <div class="client-detail-label">Mês Referência</div>
+          <div class="client-detail-value">${client.mesReferencia || '-'}</div>
+        </div>
+      `;
+      
+      // Mostrar o modal
+      clientModal.classList.add('active');
+    }
+    
+    // Fechar modal
+    function closeClientModal() {
+      clientModal.classList.remove('active');
+    }
+    
+    // Event listeners para o modal
+    modalClose.addEventListener('click', closeClientModal);
+    modalCloseBtn.addEventListener('click', closeClientModal);
+    clientModal.addEventListener('click', (e) => {
+      if (e.target === clientModal) {
+        closeClientModal();
+      }
+    });
+    
+    // ===== Carregamento e Processamento de Dados =====
+    
+    async function fetchData() {
+      try {
+        showLoading();
+        const res = await fetch(API_URL);
+        
+        if (!res.ok) {
+          throw new Error(`Erro na API: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        rawData = data.filter(item => item.cliente && item.cliente.trim() !== '').map(item => ({
+          cliente: item.cliente,
+          uf: item.uf || '',
+          categoria: item.categoria || '',
+          statusPrincipal: item.statusPrincipal || '',
+          motivoStatus: item.motivoStatus || '',
+          ultimoPedido: parseBRDate(item.ultimoPedido),
+          ultimoContato: parseBRDate(item.ultimoContato),
+          statusAtual: item.statusAtual || '',
+          proximoContato: parseBRDate(item.proximoContato),
+          previsaoRecompra: parseBRDate(item.previsaoRecompra),
+          mesReferencia: item.mesReferencia || '',
+          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias)
+        }));
+        
+        console.log(`Dados carregados: ${rawData.length} registros`);
+        
+        initFilters();
+        setupTableEvents();
+        setupKpiEvents();
+        setupExportEvents();
+        updateAll();
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        showToast('Erro', 'Não foi possível carregar os dados. Tente novamente mais tarde.');
+      } finally {
+        hideLoading();
+      }
+    }
+    
+    // ===== Inicialização de Filtros =====
+    
+    function initFilters() {
+      const filterFields = ['uf', 'categoria', 'statusPrincipal', 'statusAtual'];
+      
+      filterFields.forEach(field => {
+        const selectElement = document.getElementById(`filter-${field}`);
+        
+        // Limpar opções existentes (exceto a primeira)
+        while (selectElement.options.length > 1) {
+          selectElement.remove(1);
+        }
+        
+        const uniqueValues = [...new Set(rawData.map(item => item[field]).filter(val => val && val.trim() !== ''))];
+        
+        uniqueValues.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(value => {
+          const option = new Option(value, value);
+          selectElement.appendChild(option);
+        });
+        
+        // Adicionar event listener apenas se ainda não existir
+        const hasListener = selectElement.getAttribute('data-has-listener') === 'true';
+        if (!hasListener) {
+          selectElement.addEventListener('change', updateAll);
+          selectElement.setAttribute('data-has-listener', 'true');
+        }
+      });
+    }
+    
+    // ===== Preparação de Dados Filtrados =====
+    
+    function prepareData() {
+      const uf = document.getElementById('filter-uf').value;
+      const categoria = document.getElementById('filter-categoria').value;
+      const statusPrincipal = document.getElementById('filter-statusPrincipal').value;
+      const statusAtual = document.getElementById('filter-statusAtual').value;
+      
+      return rawData
+        .filter(item => {
+          return (uf === 'Todos' || item.uf === uf) &&
+                 (categoria === 'Todas' || item.categoria === categoria) &&
+                 (statusPrincipal === 'Todos' || item.statusPrincipal === statusPrincipal) &&
+                 (statusAtual === 'Todos' || item.statusAtual === statusAtual);
+        })
+        .map(item => ({
+          ...item,
+          status: classifyClient(item.ultPedDias)
+        }));
+    }
+    
+    // ===== Atualização de KPIs =====
+    
+    function updateKPIs(data) {
+      const total = data.length;
+      document.getElementById('kpi-total').textContent = total;
+      
+      // Contagens por status
+      const statusCounts = {
+        'Reativados': 0,
+        'Inativos': 0,
+        'Ex‑clientes': 0
+      };
+      
+      data.forEach(item => {
+        statusCounts[item.status]++;
+      });
+      
+      // Percentuais por status
+      document.getElementById('kpi-reativados').textContent = `${formatNumber((statusCounts['Reativados'] / total) * 100)}%`;
+      document.getElementById('kpi-inativos').textContent = `${formatNumber((statusCounts['Inativos'] / total) * 100)}%`;
+      document.getElementById('kpi-ex').textContent = `${formatNumber((statusCounts['Ex‑clientes'] / total) * 100)}%`;
+      
+      // Contatos Agendados
+      const hoje = new Date();
+      
+      // Definir início da semana (segunda-feira)
+      const diaDaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
+      const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1; // Ajuste para segunda-feira
+      
+      const inicioSemana = new Date(hoje);
+      inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
+      inicioSemana.setHours(0, 0, 0, 0);
+      
+      // Definir fim da semana (sexta-feira)
+      const fimSemana = new Date(inicioSemana);
+      fimSemana.setDate(inicioSemana.getDate() + 4);
+      fimSemana.setHours(23, 59, 59, 999);
+      
+      // Início e fim do mês atual
+      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Contadores de contatos
+      const contatosSemana = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
+      });
+      
+      const contatosMes = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && 
+               proximoContato >= hoje && 
+               proximoContato <= fimMes && 
+               !(proximoContato >= inicioSemana && proximoContato <= fimSemana); // Excluir já contados na semana
+      });
+      
+      const contatosAtrasados = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato < hoje;
+      });
+      
+      document.getElementById('kpi-contatosSemana').textContent = contatosSemana.length;
+      document.getElementById('kpi-contatosMes').textContent = contatosMes.length;
+      document.getElementById('kpi-contatosAtrasados').textContent = contatosAtrasados.length;
+      
+      // Média de dias sem pedido
+      const mediaDias = data.reduce((sum, item) => sum + item.ultPedDias, 0) / (total || 1);
+      document.getElementById('kpi-mediaDias').textContent = formatNumber(mediaDias, 0);
+      
+      // Taxa de Reativação (Reativados / (Inativos + Ex-clientes))
+      const baseInativaTotal = statusCounts['Inativos'] + statusCounts['Ex‑clientes'];
+      const taxaReativacao = baseInativaTotal === 0 ? 0 : (statusCounts['Reativados'] / baseInativaTotal) * 100;
+      document.getElementById('kpi-taxaReativacao').textContent = `${formatNumber(taxaReativacao)}%`;
+      
+      // Guardar referências para uso nos filtros de KPI
+      window.kpiData = {
+        semana: contatosSemana,
+        mes: contatosMes,
+        atrasados: contatosAtrasados
+      };
+    }
+    
+    // ===== Atualização de Gráficos =====
+    
+    function updateCharts(data) {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#F5F5F7' : '#1D1D1F';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+      
+      // Configurações comuns para todos os gráficos
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              boxWidth: 12,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: {
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+              size: 13,
+              weight: 'bold'
+            },<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Reativação de Clientes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    /* ===== Variáveis e Temas Apple ===== */
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+      --radius-sm: 0.75rem;
+      --radius: 1.125rem;
+      --radius-lg: 1.5rem;
+      --shadow: 0 2px 14px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+      --shadow-hover: 0 4px 18px rgba(0,0,0,0.08), 0 10px 28px rgba(0,0,0,0.06);
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      
+      /* Cores iOS/macOS Light */
+      --bg: #F5F5F7;
+      --card-bg: #FFFFFF;
+      --input-bg: rgba(142, 142, 147, 0.12);
+      --text: #1D1D1F;
+      --text-secondary: #86868B;
+      --primary: #0066CC;
+      --primary-light: #147CE5;
+      --success: #34C759;
+      --warning: #FF9F0A;
+      --danger: #FF3B30;
+      --border: rgba(0,0,0,0.08);
+      --chart-grid: rgba(0,0,0,0.04);
+      --menu-bg: #FFFFFF;
+      --hover-bg: rgba(0,0,0,0.04);
+      --scroll-thumb: rgba(0,0,0,0.2);
+      --scroll-track: rgba(0,0,0,0.05);
+    }
+    
+    [data-theme="dark"] {
+      /* Cores iOS/macOS Dark */
+      --bg: #1D1D1F;
+      --card-bg: #2C2C2E;
+      --input-bg: rgba(142, 142, 147, 0.18);
+      --text: #F5F5F7;
+      --text-secondary: #98989D;
+      --primary: #0A84FF;
+      --primary-light: #5AC8FA;
+      --success: #30D158;
+      --warning: #FF9F0A;
+      --danger: #FF453A;
+      --border: rgba(255,255,255,0.12);
+      --chart-grid: rgba(255,255,255,0.06);
+      --menu-bg: #3A3A3C;
+      --hover-bg: rgba(255,255,255,0.1);
+      --scroll-thumb: rgba(255,255,255,0.3);
+      --scroll-track: rgba(255,255,255,0.1);
+    }
+    
+    /* ===== Reset e Configurações Base ===== */
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    html, body { 
+      font-family: var(--font-sans); 
+      background: var(--bg); 
+      color: var(--text); 
+      transition: var(--transition);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 16px;
+      line-height: 1.5;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    
+    /* ===== Scrollbar Personalizada ===== */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--scroll-track);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--scroll-thumb);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+    
+    /* ===== Layout e Componentes ===== */
+    .container { 
+      max-width: 1280px; 
+      margin: 0 auto; 
+      padding: 2rem; 
+    }
+    
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 2rem; 
+    }
+    
+    h1 { 
+      font-size: 2rem; 
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.025em;
+    }
+    
+    .filters { 
+      display: flex; 
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    
+    /* Select estilo Apple */
+    select { 
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 0.625rem 2rem 0.625rem 1rem;
+      border-radius: var(--radius-sm); 
+      border: none;
+      background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none'%3E%3Cpath fill='%2386868b' d='M6 6 0 0h12L6 6Z'/%3E%3C/svg%3E") no-repeat;
+      background-position: right 0.75rem center;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      z-index: 10;
+    }
+    
+    select:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    /* Correção para options no select */
+    select option {
+      background-color: var(--menu-bg);
+      color: var(--text);
+      padding: 10px;
+    }
+    
+    /* Botão toggle theme */
+    .theme-toggle {
+      background: var(--input-bg);
+      border: none;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .theme-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    
+    /* Botão geral */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      background-color: var(--primary);
+      color: white;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    
+    .btn:hover {
+      background-color: var(--primary-light);
+      transform: translateY(-1px);
+    }
+    
+    .btn-sm {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.875rem;
+    }
+    
+    .btn-ghost {
+      background-color: transparent;
+      color: var(--primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-ghost:hover {
+      background-color: var(--hover-bg);
+      color: var(--primary-light);
+    }
+    
+    .btn svg {
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.5rem;
+    }
+    
+    /* Espaçamento entre botões */
+    .btn + .btn {
+      margin-left: 0.5rem;
+    }
+    
+    /* Cards de KPIs */
+    .kpis { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+      gap: 1rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      transition: var(--transition);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .kpi-title {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    
+    /* Gráficos */
+    .charts { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 1.5rem; 
+      margin-bottom: 2rem;
+    }
+    
+    .chart-container {
+      position: relative;
+      margin-top: 0.5rem;
+      height: 260px;
+    }
+    
+    .chart-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .chart-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .full { 
+      grid-column: 1 / -1; 
+    }
+    
+    .full .chart-container {
+      height: 300px;
+    }
+    
+    /* Tabela de clientes */
+    .clients-section {
+      margin-top: 2rem;
+    }
+    
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .table-filters {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .search-input {
+      padding: 0.625rem 1rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      background-color: var(--input-bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      transition: var(--transition);
+      width: 240px;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      background-color: var(--hover-bg);
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      background-color: var(--card-bg);
+      box-shadow: var(--shadow);
+    }
+    
+    .clients-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9375rem;
+    }
+    
+    .clients-table th,
+    .clients-table td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .clients-table th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      background-color: var(--card-bg);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    
+    .clients-table tbody tr {
+      transition: var(--transition);
+    }
+    
+    .clients-table tbody tr:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .clients-table td.status-reativados {
+      font-weight: 600;
+    }
+    
+    .clients-table td.status-inativos {
+      font-weight: 600;
+    }
+    
+    .clients-table td.status-ex {
+      font-weight: 600;
+    }
+    
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+      font-size: 0.875rem;
+    }
+    
+    .pagination-info {
+      color: var(--text-secondary);
+    }
+    
+    .pagination-controls {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .page-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background-color: var(--card-bg);
+      color: var(--text);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .page-btn:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .page-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    .page-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Badge para status */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    
+    .badge-reativados {
+      background-color: rgba(52, 199, 89, 0.15);
+      color: var(--success);
+    }
+    
+    .badge-inativos {
+      background-color: rgba(255, 159, 10, 0.15);
+      color: var(--warning);
+    }
+    
+    .badge-ex {
+      background-color: rgba(255, 59, 48, 0.15);
+      color: var(--danger);
+    }
+    
+    /* Modal de detalhes do cliente */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal {
+      background-color: var(--card-bg);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: translateY(20px);
+      transition: transform 0.3s;
+    }
+    
+    .modal-overlay.active .modal {
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+      background-color: var(--hover-bg);
+      color: var(--text);
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .client-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    
+    .client-detail-group {
+      margin-bottom: 1.25rem;
+    }
+    
+    .client-detail-label {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+    }
+    
+    .client-detail-value {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    
+    /* Toast de notificação */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 1000;
+    }
+    
+    .toast {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      background-color: var(--card-bg);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      margin-top: 0.75rem;
+      transform: translateX(150%);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      color: var(--text);
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast-icon {
+      margin-right: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+    
+    .toast-content {
+      flex: 1;
+    }
+    
+    .toast-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      margin-left: 1rem;
+    }
+    
+    /* Loading Estado */
+    .loading-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-indicator.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .spinner {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Status Cores */
+    .status-reativados {
+      color: var(--success);
+    }
+    
+    .status-inativos {
+      color: var(--warning);
+    }
+    
+    .status-ex {
+      color: var(--danger);
+    }
+    
+    /* Responsividade */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .filters {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      
+      select {
+        font-size: 0.875rem;
+        padding: 0.5rem 1.75rem 0.5rem 0.75rem;
+      }
+      
+      .search-input {
+        width: 100%;
+      }
+      
+      .client-details {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .charts {
+        grid-template-columns: 1fr;
+      }
+      
+      .kpis {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+      
+      .kpi-value {
+        font-size: 1.25rem;
+      }
+      
+      .table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .table-filters {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header e Filtros -->
+    <div class="header">
+      <h1>Dashboard de Reativação de Clientes</h1>
+      <div class="header-right" style="display:flex;align-items:center;gap:1rem;">
+        <div class="filters">
+          <select id="filter-uf"><option value="Todos">Todas UFs</option></select>
+          <select id="filter-categoria"><option value="Todas">Todas Categorias</option></select>
+          <select id="filter-statusPrincipal"><option value="Todos">Status Principal</option></select>
+          <select id="filter-statusAtual"><option value="Todos">Status Atual</option></select>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema">
+          <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="card kpi-card" id="kpi-card-total" data-filter="all">
+        <div class="kpi-title">Total de Clientes</div>
+        <div class="kpi-value" id="kpi-total">0</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-reativados" data-filter="Reativados">
+        <div class="kpi-title">Reativados</div>
+        <div class="kpi-value status-reativados" id="kpi-reativados">0%</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-inativos" data-filter="Inativos">
+        <div class="kpi-title">Inativos</div>
+        <div class="kpi-value status-inativos" id="kpi-inativos">0%</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-ex" data-filter="Ex‑clientes">
+        <div class="kpi-title">Ex‑clientes</div>
+        <div class="kpi-value status-ex" id="kpi-ex">0%</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-semana" data-filter="semana">
+        <div class="kpi-title">Contatos Semana</div>
+        <div class="kpi-value" id="kpi-contatosSemana">0</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-mes" data-filter="mes">
+        <div class="kpi-title">Contatos Mês</div>
+        <div class="kpi-value" id="kpi-contatosMes">0</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-atrasados" data-filter="atrasados">
+        <div class="kpi-title">Contatos Atrasados</div>
+        <div class="kpi-value" id="kpi-contatosAtrasados">0</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-media">
+        <div class="kpi-title">Média Dias</div>
+        <div class="kpi-value" id="kpi-mediaDias">0</div>
+      </div>
+      <div class="card kpi-card" id="kpi-card-taxa">
+        <div class="kpi-title">Taxa Reativação</div>
+        <div class="kpi-value" id="kpi-taxaReativacao">0%</div>
+      </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="charts">
+      <div class="card">
+        <div class="chart-title">
+          <span>Quantidade por Status</span>
+          <div class="chart-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-export-status">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-status"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">
+          <span>Evolução Mensal - Inativos vs Ex-clientes</span>
+          <div class="chart-actions">
+            <button class="btn btn-sm btn-ghost" id="btn-export-evolucao">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Exportar
+            </button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas i
