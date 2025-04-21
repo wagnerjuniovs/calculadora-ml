@@ -4,277 +4,1031 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard de Reativação de Clientes</title>
-  <!-- ===== INÍCIO: BLOCO 06 - Estilos Gerais & Apple Palette ===== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
   <style>
+    /* ===== Variáveis e Temas Apple ===== */
     :root {
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      --radius: 1rem;
-      --shadow: 0 8px 24px rgba(0,0,0,0.1);
-      --transition: background-color 0.3s ease, color 0.3s ease;
-      --bg: #F2F2F7;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+      --radius-sm: 0.75rem;
+      --radius: 1.125rem;
+      --radius-lg: 1.5rem;
+      --shadow: 0 2px 14px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+      --shadow-hover: 0 4px 18px rgba(0,0,0,0.08), 0 10px 28px rgba(0,0,0,0.06);
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      
+      /* Cores iOS/macOS Light */
+      --bg: #F5F5F7;
       --card-bg: #FFFFFF;
-      --text: #1C1C1E;
-      --primary: #0A84FF;
-      --success: #30D158;
+      --input-bg: rgba(142, 142, 147, 0.12);
+      --text: #1D1D1F;
+      --text-secondary: #86868B;
+      --primary: #0066CC;
+      --primary-light: #147CE5;
+      --success: #34C759;
       --warning: #FF9F0A;
-      --danger: #FF375F;
-      --border: rgba(0,0,0,0.1);
+      --danger: #FF3B30;
+      --border: rgba(0,0,0,0.08);
+      --chart-grid: rgba(0,0,0,0.04);
     }
+    
     [data-theme="dark"] {
-      --bg: #1C1C1E;
+      /* Cores iOS/macOS Dark */
+      --bg: #1D1D1F;
       --card-bg: #2C2C2E;
-      --text: #F2F2F7;
+      --input-bg: rgba(142, 142, 147, 0.18);
+      --text: #F5F5F7;
+      --text-secondary: #98989D;
       --primary: #0A84FF;
+      --primary-light: #5AC8FA;
       --success: #30D158;
       --warning: #FF9F0A;
-      --danger: #FF375F;
-      --border: rgba(255,255,255,0.2);
+      --danger: #FF453A;
+      --border: rgba(255,255,255,0.12);
+      --chart-grid: rgba(255,255,255,0.06);
     }
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { margin:0; padding:0; font-family: var(--font-sans); background: var(--bg); color: var(--text); transition: var(--transition); }
-    .container { max-width: 1200px; margin: auto; padding: 2rem; }
-    .header { display:flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    h1 { font-size: 2rem; margin:0; }
-    .filters { display:flex; gap:1rem; }
-    select { padding:0.5rem 1rem; border-radius: var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--text); }
-    .theme-toggle { background:none; border:none; cursor:pointer; }
-    .kpis { display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:2rem; }
-    .card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding:1.5rem; transition: var(--transition); }
-    .charts { display:grid; grid-template-columns: 1fr 1fr; gap:2rem; }
-    .full { grid-column: 1 / -1; }
-    @media(max-width:768px){ .charts{grid-template-columns:1fr;} }
+    
+    /* ===== Reset e Configurações Base ===== */
+    *, *::before, *::after { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    html, body { 
+      font-family: var(--font-sans); 
+      background: var(--bg); 
+      color: var(--text); 
+      transition: var(--transition);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 16px;
+      line-height: 1.5;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    
+    /* ===== Layout e Componentes ===== */
+    .container { 
+      max-width: 1280px; 
+      margin: 0 auto; 
+      padding: 2rem; 
+    }
+    
+    .header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 2rem; 
+    }
+    
+    h1 { 
+      font-size: 2rem; 
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.025em;
+    }
+    
+    .filters { 
+      display: flex; 
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    
+    /* Select estilo Apple */
+    select { 
+      appearance: none;
+      -webkit-appearance: none;
+      padding: 0.625rem 2rem 0.625rem 1rem;
+      border-radius: var(--radius-sm); 
+      border: none;
+      background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none'%3E%3Cpath fill='%2386868b' d='M6 6 0 0h12L6 6Z'/%3E%3C/svg%3E") no-repeat;
+      background-position: right 0.75rem center;
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    select:hover {
+      background-color: rgba(142, 142, 147, 0.18);
+    }
+    
+    /* Botão toggle theme */
+    .theme-toggle {
+      background: var(--input-bg);
+      border: none;
+      border-radius: 50%;
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover {
+      background-color: rgba(142, 142, 147, 0.2);
+    }
+    
+    .theme-toggle svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    
+    /* Cards de KPIs */
+    .kpis { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+      gap: 1rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      transition: var(--transition);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .kpi-title {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    
+    .kpi-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    
+    /* Gráficos */
+    .charts { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 1.5rem; 
+    }
+    
+    .chart-container {
+      position: relative;
+      margin-top: 0.5rem;
+      height: 260px;
+    }
+    
+    .chart-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+    
+    .full { 
+      grid-column: 1 / -1; 
+    }
+    
+    .full .chart-container {
+      height: 300px;
+    }
+    
+    /* Loading Estado */
+    .loading-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(var(--bg-rgb), 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-indicator.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    
+    .spinner {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 3px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Status Cores */
+    .status-reativados {
+      color: var(--success);
+    }
+    
+    .status-inativos {
+      color: var(--warning);
+    }
+    
+    .status-ex {
+      color: var(--danger);
+    }
+    
+    /* Responsividade */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .filters {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      
+      select {
+        font-size: 0.875rem;
+        padding: 0.5rem 1.75rem 0.5rem 0.75rem;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .charts {
+        grid-template-columns: 1fr;
+      }
+      
+      .kpis {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+      
+      .kpi-value {
+        font-size: 1.25rem;
+      }
+    }
   </style>
-  <!-- ===== FIM: BLOCO 06 - Estilos Gerais & Apple Palette ===== -->
 </head>
 <body>
   <div class="container">
-    <!-- ===== INÍCIO: BLOCO 01 - Header & Filtros ===== -->
+    <!-- Header e Filtros -->
     <div class="header">
       <h1>Dashboard de Reativação de Clientes</h1>
-      <div style="display:flex;align-items:center;gap:1rem;">
+      <div class="header-right" style="display:flex;align-items:center;gap:1rem;">
         <div class="filters">
           <select id="filter-uf"><option value="Todos">Todas UFs</option></select>
           <select id="filter-categoria"><option value="Todas">Todas Categorias</option></select>
           <select id="filter-statusPrincipal"><option value="Todos">Status Principal</option></select>
           <select id="filter-statusAtual"><option value="Todos">Status Atual</option></select>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema"></button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema">
+          <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+          </svg>
+        </button>
       </div>
     </div>
-    <!-- ===== FIM: BLOCO 01 - Header & Filtros ===== -->
 
-    <!-- ===== INÍCIO: BLOCO 02 - KPIs ===== -->
+    <!-- KPIs -->
     <div class="kpis">
-      <div class="card" id="kpi-total">Total de Clientes: 0</div>
-      <div class="card" id="kpi-reativados">Reativados: 0%</div>
-      <div class="card" id="kpi-inativos">Inativos: 0%</div>
-      <div class="card" id="kpi-ex">Ex‑clientes: 0%</div>
-      <div class="card" id="kpi-contatosSemana">Contatos Semana: 0</div>
-      <div class="card" id="kpi-contatosMes">Contatos Mês: 0</div>
-      <div class="card" id="kpi-contatosAtrasados">Contatos Atrasados: 0</div>
-      <div class="card" id="kpi-mediaDias">Média Dias: 0</div>
-      <div class="card" id="kpi-taxaReativacao">Taxa Reativação: 0%</div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Total de Clientes</div>
+        <div class="kpi-value" id="kpi-total">0</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Reativados</div>
+        <div class="kpi-value status-reativados" id="kpi-reativados">0%</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Inativos</div>
+        <div class="kpi-value status-inativos" id="kpi-inativos">0%</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Ex‑clientes</div>
+        <div class="kpi-value status-ex" id="kpi-ex">0%</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Contatos Semana</div>
+        <div class="kpi-value" id="kpi-contatosSemana">0</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Contatos Mês</div>
+        <div class="kpi-value" id="kpi-contatosMes">0</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Contatos Atrasados</div>
+        <div class="kpi-value" id="kpi-contatosAtrasados">0</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Média Dias</div>
+        <div class="kpi-value" id="kpi-mediaDias">0</div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-title">Taxa Reativação</div>
+        <div class="kpi-value" id="kpi-taxaReativacao">0%</div>
+      </div>
     </div>
-    <!-- ===== FIM: BLOCO 02 - KPIs ===== -->
 
-    <!-- ===== INÍCIO: BLOCO 03 - Gráficos ===== -->
+    <!-- Gráficos -->
     <div class="charts">
-      <div class="card"><canvas id="chart-status"></canvas></div>
-      <div class="card"><canvas id="chart-evolucao"></canvas></div>
-      <div class="card"><canvas id="chart-motivos"></canvas></div>
-      <div class="card"><canvas id="chart-uf"></canvas></div>
-      <div class="card full"><canvas id="chart-previsao"></canvas></div>
+      <div class="card">
+        <div class="chart-title">Quantidade por Status</div>
+        <div class="chart-container">
+          <canvas id="chart-status"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Evolução Mensal - Inativos vs Ex-clientes</div>
+        <div class="chart-container">
+          <canvas id="chart-evolucao"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Motivos de Inatividade</div>
+        <div class="chart-container">
+          <canvas id="chart-motivos"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Status por UF</div>
+        <div class="chart-container">
+          <canvas id="chart-uf"></canvas>
+        </div>
+      </div>
+      <div class="card full">
+        <div class="chart-title">Previsão de Recompra por Mês</div>
+        <div class="chart-container">
+          <canvas id="chart-previsao"></canvas>
+        </div>
+      </div>
     </div>
-    <!-- ===== FIM: BLOCO 03 - Gráficos ===== -->
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" id="loading">
+    <div class="spinner"></div>
   </div>
 
   <script>
-    // ===== INÍCIO: BLOCO 04 - Configuração =====
-    console.log('INÍCIO: BLOCO 04 - Configuração');
+    // ===== Configurações e Variáveis Globais =====
     const API_URL = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
     const root = document.documentElement;
-    console.log('FIM: BLOCO 04 - Configuração');
-    // ===== FIM: BLOCO 04 - Configuração =====
-
-    // ===== INÍCIO: BLOCO 05 - Parsing de Datas =====
-    console.log('INÍCIO: BLOCO 05 - Parsing de Datas');
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const loading = document.getElementById('loading');
+    let rawData = [];
+    let charts = {};
+    
+    // Setup do tema baseado em preferências do sistema
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    const currentTheme = localStorage.getItem('theme');
+    
+    if (currentTheme === 'dark' || (!currentTheme && prefersDarkScheme.matches)) {
+      root.setAttribute('data-theme', 'dark');
+      updateThemeIcon('dark');
+    } else {
+      root.setAttribute('data-theme', 'light');
+      updateThemeIcon('light');
+    }
+    
+    // ===== Utilitários e Helpers =====
+    
+    // Função para formatar números decimais com casas específicas
+    function formatNumber(num, digits = 1) {
+      return Number(num).toFixed(digits);
+    }
+    
+    // Parsing de datas no formato brasileiro (DD/MM/YYYY)
     function parseBRDate(str) {
       if (!str) return null;
-      const [d, m, y] = str.split('/').map(Number);
-      const date = new Date(y, m-1, d);
-      return isNaN(date) ? null : date;
+      const parts = str.split('/');
+      if (parts.length !== 3) return null;
+      
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // JS meses são 0-11
+      const year = parseInt(parts[2], 10);
+      
+      if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+      
+      const date = new Date(year, month, day);
+      // Validação de data válida
+      if (date.getDate() !== day || date.getMonth() !== month || date.getFullYear() !== year) {
+        return null;
+      }
+      
+      return date;
     }
-    console.log('FIM: BLOCO 05 - Parsing de Datas');
-    // ===== FIM: BLOCO 05 - Parsing de Datas =====
-
-    // ===== INÍCIO: BLOCO 06 - Fetch & Processamento =====
-    console.log('INÍCIO: BLOCO 06 - Fetch & Processamento');
-    let rawData = [];
-    async function fetchData() {
-      try {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        rawData = data.map(item => ({
-          cliente: item.cliente,
-          uf: item.uf,
-          categoria: item.categoria,
-          statusPrincipal: item.statusPrincipal,
-          motivoStatus: item.motivoStatus,
-          ultimoPedido: parseBRDate(item.ultimoPedido),
-          ultimoContato: parseBRDate(item.ultimoContato),
-          statusAtual: item.statusAtual,
-          proximoContato: parseBRDate(item.proximoContato),
-          previsaoRecompra: parseBRDate(item.previsaoRecompra),
-          mesReferencia: item.mesReferencia,
-          ultPedDias: Number(item.ultimoPedidoEmDias)
-        }));
-        initFilters();
-        updateAll();
-      } catch (e) { console.error('Erro:', e); }
+    
+    // Formatar data para exibição no formato BR
+    function formatDateBR(date) {
+      if (!date) return '';
+      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     }
-    fetchData();
-    console.log('FIM: BLOCO 06 - Fetch & Processamento');
-    // ===== FIM: BLOCO 06 - Fetch & Processamento =====
-
-    // ===== INÍCIO: BLOCO 07 - Classificação =====
-    console.log('INÍCIO: BLOCO 07 - Classificação');
-    function classify(dias) {
+    
+    // Formatar mês/ano
+    function formatMonthYear(date) {
+      if (!date) return '';
+      const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      return `${months[date.getMonth()]}/${date.getFullYear()}`;
+    }
+    
+    // Classificar cliente por dias sem pedido
+    function classifyClient(dias) {
       if (dias <= 120) return 'Reativados';
       if (dias <= 180) return 'Inativos';
       return 'Ex‑clientes';
     }
-    console.log('FIM: BLOCO 07 - Classificação');
-    // ===== FIM: BLOCO 07 - Classificação =====
-
-    // ===== INÍCIO: BLOCO 08 - Filtros =====
-    console.log('INÍCIO: BLOCO 08 - Filtros');
+    
+    // Mostrar indicador de carregamento
+    function showLoading() {
+      loading.classList.add('active');
+    }
+    
+    // Esconder indicador de carregamento
+    function hideLoading() {
+      loading.classList.remove('active');
+    }
+    
+    // Atualizar ícone do toggle de tema
+    function updateThemeIcon(theme) {
+      if (theme === 'dark') {
+        themeIcon.innerHTML = '<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M16.95 7.05a6 6 0 1 1-8.49 8.49 6 6 0 0 1 8.49-8.49z" />';
+      } else {
+        themeIcon.innerHTML = '<path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />';
+      }
+    }
+    
+    // Toggle de tema claro/escuro
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      root.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+      
+      // Atualizar gráficos para o novo tema
+      updateCharts(prepareData());
+    });
+    
+    // ===== Carregamento e Processamento de Dados =====
+    
+    async function fetchData() {
+      try {
+        showLoading();
+        const res = await fetch(API_URL);
+        
+        if (!res.ok) {
+          throw new Error(`Erro na API: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        rawData = data.filter(item => item.cliente && item.cliente.trim() !== '').map(item => ({
+          cliente: item.cliente,
+          uf: item.uf || '',
+          categoria: item.categoria || '',
+          statusPrincipal: item.statusPrincipal || '',
+          motivoStatus: item.motivoStatus || '',
+          ultimoPedido: parseBRDate(item.ultimoPedido),
+          ultimoContato: parseBRDate(item.ultimoContato),
+          statusAtual: item.statusAtual || '',
+          proximoContato: parseBRDate(item.proximoContato),
+          previsaoRecompra: parseBRDate(item.previsaoRecompra),
+          mesReferencia: item.mesReferencia || '',
+          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias)
+        }));
+        
+        console.log(`Dados carregados: ${rawData.length} registros`);
+        
+        initFilters();
+        updateAll();
+        hideLoading();
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        alert('Erro ao carregar dados. Verifique o console para mais detalhes.');
+        hideLoading();
+      }
+    }
+    
+    // ===== Inicialização de Filtros =====
+    
     function initFilters() {
-      const fns = ['uf','categoria','statusPrincipal','statusAtual'];
-      fns.forEach(fn => {
-        const sel = document.getElementById(`filter-${fn}`);
-        [...new Set(rawData.map(d=>d[fn]))].sort().forEach(v => sel.add(new Option(v,v)));
-        sel.addEventListener('change', updateAll);
+      const filterFields = ['uf', 'categoria', 'statusPrincipal', 'statusAtual'];
+      
+      filterFields.forEach(field => {
+        const selectElement = document.getElementById(`filter-${field}`);
+        const uniqueValues = [...new Set(rawData.map(item => item[field]).filter(val => val && val.trim() !== ''))];
+        
+        uniqueValues.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(value => {
+          const option = new Option(value, value);
+          selectElement.appendChild(option);
+        });
+        
+        selectElement.addEventListener('change', updateAll);
       });
     }
-    console.log('FIM: BLOCO 08 - Filtros');
-    // ===== FIM: BLOCO 08 - Filtros =====
-
-    // ===== INÍCIO: BLOCO 09 - Preparar Dados =====
-    console.log('INÍCIO: BLOCO 09 - Preparar Dados');
+    
+    // ===== Preparação de Dados Filtrados =====
+    
     function prepareData() {
       const uf = document.getElementById('filter-uf').value;
-      const cat = document.getElementById('filter-categoria').value;
-      const sp = document.getElementById('filter-statusPrincipal').value;
-      const sa = document.getElementById('filter-statusAtual').value;
+      const categoria = document.getElementById('filter-categoria').value;
+      const statusPrincipal = document.getElementById('filter-statusPrincipal').value;
+      const statusAtual = document.getElementById('filter-statusAtual').value;
+      
       return rawData
-        .filter(d => (uf==='Todos'||d.uf===uf) && (cat==='Todas'||d.categoria===cat)
-                 && (sp==='Todos'||d.statusPrincipal===sp) && (sa==='Todos'||d.statusAtual===sa))
-        .map(d => ({ ...d, group: classify(d.ultPedDias) }));
+        .filter(item => {
+          return (uf === 'Todos' || item.uf === uf) &&
+                 (categoria === 'Todas' || item.categoria === categoria) &&
+                 (statusPrincipal === 'Todos' || item.statusPrincipal === statusPrincipal) &&
+                 (statusAtual === 'Todos' || item.statusAtual === statusAtual);
+        })
+        .map(item => ({
+          ...item,
+          status: classifyClient(item.ultPedDias)
+        }));
     }
-    console.log('FIM: BLOCO 09 - Preparar Dados');
-    // ===== FIM: BLOCO 09 - Preparar Dados =====
-
-    // ===== INÍCIO: BLOCO 10 - KPIs =====
-    console.log('INÍCIO: BLOCO 10 - KPIs');
+    
+    // ===== Atualização de KPIs =====
+    
     function updateKPIs(data) {
       const total = data.length;
-      const counts = {Reativados:0,Inativos:0,'Ex‑clientes':0};
-      data.forEach(d=>counts[d.group]++);
-      const semana = [], mes=[], atrasado=[];
+      document.getElementById('kpi-total').textContent = total;
+      
+      // Contagens por status
+      const statusCounts = {
+        'Reativados': 0,
+        'Inativos': 0,
+        'Ex‑clientes': 0
+      };
+      
+      data.forEach(item => {
+        statusCounts[item.status]++;
+      });
+      
+      // Percentuais por status
+      document.getElementById('kpi-reativados').textContent = `${formatNumber((statusCounts['Reativados'] / total) * 100)}%`;
+      document.getElementById('kpi-inativos').textContent = `${formatNumber((statusCounts['Inativos'] / total) * 100)}%`;
+      document.getElementById('kpi-ex').textContent = `${formatNumber((statusCounts['Ex‑clientes'] / total) * 100)}%`;
+      
+      // Contatos Agendados
       const hoje = new Date();
-      const day = hoje.getDay();
-      const diff = (day+6)%7; // seg=1->diff=0
-      const startWeek = new Date(hoje); startWeek.setDate(hoje.getDate()-diff);
-      const endWeek = new Date(startWeek); endWeek.setDate(startWeek.getDate()+4);
-      data.forEach(d=>{
-        const pc = d.proximoContato;
-        if(pc){
-          if(pc>=startWeek && pc<=endWeek) semana.push(d);
-          else if(pc.getMonth()===hoje.getMonth() && pc>hoje) mes.push(d);
-          else if(pc<hoje) atrasado.push(d);
+      
+      // Definir início da semana (segunda-feira)
+      const diaDaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
+      const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1; // Ajuste para segunda-feira
+      
+      const inicioSemana = new Date(hoje);
+      inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
+      inicioSemana.setHours(0, 0, 0, 0);
+      
+      // Definir fim da semana (sexta-feira)
+      const fimSemana = new Date(inicioSemana);
+      fimSemana.setDate(inicioSemana.getDate() + 4);
+      fimSemana.setHours(23, 59, 59, 999);
+      
+      // Início e fim do mês atual
+      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Contadores de contatos
+      const contatosSemana = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
+      }).length;
+      
+      const contatosMes = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && 
+               proximoContato >= hoje && 
+               proximoContato <= fimMes && 
+               !(proximoContato >= inicioSemana && proximoContato <= fimSemana); // Excluir já contados na semana
+      }).length;
+      
+      const contatosAtrasados = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato < hoje;
+      }).length;
+      
+      document.getElementById('kpi-contatosSemana').textContent = contatosSemana;
+      document.getElementById('kpi-contatosMes').textContent = contatosMes;
+      document.getElementById('kpi-contatosAtrasados').textContent = contatosAtrasados;
+      
+      // Média de dias sem pedido
+      const mediaDias = data.reduce((sum, item) => sum + item.ultPedDias, 0) / (total || 1);
+      document.getElementById('kpi-mediaDias').textContent = formatNumber(mediaDias, 0);
+      
+      // Taxa de Reativação (Reativados / (Inativos + Ex-clientes))
+      const baseInativaTotal = statusCounts['Inativos'] + statusCounts['Ex‑clientes'];
+      const taxaReativacao = baseInativaTotal === 0 ? 0 : (statusCounts['Reativados'] / baseInativaTotal) * 100;
+      document.getElementById('kpi-taxaReativacao').textContent = `${formatNumber(taxaReativacao)}%`;
+    }
+    
+    // ===== Atualização de Gráficos =====
+    
+    function updateCharts(data) {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#F5F5F7' : '#1D1D1F';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+      
+      // Configurações comuns para todos os gráficos
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              boxWidth: 12,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: {
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+              size: 13,
+              weight: 'bold'
+            },
+            bodyFont: {
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+              size: 12
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 11
+              }
+            }
+          },
+          y: {
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 11
+              }
+            }
+          }
+        }
+      };
+      
+      // 1. Gráfico de Barras - Quantidade por Status
+      const statusLabels = ['Reativados', 'Inativos', 'Ex‑clientes'];
+      const statusCounts = statusLabels.map(status => data.filter(item => item.status === status).length);
+      
+      const statusColors = [
+        getComputedStyle(root).getPropertyValue('--success').trim(),
+        getComputedStyle(root).getPropertyValue('--warning').trim(),
+        getComputedStyle(root).getPropertyValue('--danger').trim()
+      ];
+      
+      if (charts.status) {
+        charts.status.destroy();
+      }
+      
+      charts.status = new Chart(document.getElementById('chart-status'), {
+        type: 'bar',
+        data: {
+          labels: statusLabels,
+          datasets: [{
+            label: 'Quantidade',
+            data: statusCounts,
+            backgroundColor: statusColors,
+            borderColor: statusColors,
+            borderWidth: 1,
+            borderRadius: 6,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            legend: {
+              display: false
+            }
+          }
         }
       });
-      const avg = arr=> arr.reduce((s,d)=>s+d.ultPedDias,0)/arr.length||0;
-      document.getElementById('kpi-total').innerText=`Total: ${total}`;
-      ['Reativados','Inativos','Ex‑clientes'].forEach(g=>{
-        document.getElementById(`kpi-${g.toLowerCase().replace(' ','')}`)
-          .innerText=`${g}: ${((counts[g]/total)*100).toFixed(1)}%`;
+      
+      // 2. Gráfico de Linhas - Evolução Mensal Inativos vs Ex-clientes
+      const evolucaoMensal = {};
+      
+      // Ordenar todos os meses de referência
+      const todosOsMeses = [...new Set(data.map(item => item.mesReferencia))]
+        .filter(mes => mes && mes.trim() !== '')
+        .sort((a, b) => {
+          const [mesA, anoA] = a.split('/').map(Number);
+          const [mesB, anoB] = b.split('/').map(Number);
+          return anoA !== anoB ? anoA - anoB : mesA - mesB;
+        });
+      
+      // Inicializar dados para todos os meses
+      todosOsMeses.forEach(mes => {
+        evolucaoMensal[mes] = { 'Inativos': 0, 'Ex‑clientes': 0 };
       });
-      document.getElementById('kpi-contatosSemana').innerText=`Semana: ${semana.length}`;
-      document.getElementById('kpi-contatosMes').innerText=`Mês: ${mes.length}`;
-      document.getElementById('kpi-contatosAtrasados').innerText=`Atrasados: ${atrasado.length}`;
-      document.getElementById('kpi-mediaDias').innerText=`Média Dias: ${avg(data).toFixed(0)}`;
-      document.getElementById('kpi-taxaReativacao').innerText=
-        `Taxa Reativação: ${(counts.Reativados/(counts.Inativos+counts['Ex‑clientes'])*100||0).toFixed(1)}%`;
+      
+      // Contar inativos e ex-clientes por mês
+      data.forEach(item => {
+        if (item.mesReferencia && (item.status === 'Inativos' || item.status === 'Ex‑clientes')) {
+          evolucaoMensal[item.mesReferencia][item.status]++;
+        }
+      });
+      
+      // Preparar datasets para o gráfico
+      const evolucaoDatasets = [
+        {
+          label: 'Inativos',
+          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Inativos']),
+          borderColor: getComputedStyle(root).getPropertyValue('--warning').trim(),
+          backgroundColor: isDark ? 'rgba(255, 159, 10, 0.1)' : 'rgba(255, 159, 10, 0.05)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Ex‑clientes',
+          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Ex‑clientes']),
+          borderColor: getComputedStyle(root).getPropertyValue('--danger').trim(),
+          backgroundColor: isDark ? 'rgba(255, 55, 95, 0.1)' : 'rgba(255, 55, 95, 0.05)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        }
+      ];
+      
+      if (charts.evolucao) {
+        charts.evolucao.destroy();
+      }
+      
+      charts.evolucao = new Chart(document.getElementById('chart-evolucao'), {
+        type: 'line',
+        data: {
+          labels: todosOsMeses,
+          datasets: evolucaoDatasets
+        },
+        options: commonOptions
+      });
+      
+      // 3. Gráfico de Pizza - Motivos de Inatividade
+      const motivosInatividade = {};
+      
+      // Filtrar apenas clientes inativos e ex-clientes
+      data.filter(item => item.ultPedDias > 120)
+        .forEach(item => {
+          const motivo = item.motivoStatus && item.motivoStatus.trim() !== '' ? item.motivoStatus : 'Não Informado';
+          motivosInatividade[motivo] = (motivosInatividade[motivo] || 0) + 1;
+        });
+      
+      const motivosLabels = Object.keys(motivosInatividade);
+      const motivosData = motivosLabels.map(motivo => motivosInatividade[motivo]);
+      
+      // Gerar cores dinâmicas para motivos
+      const motivosColors = [];
+      const baseColors = [
+        isDark ? '#FF9F0A' : '#FF9F0A', // warning
+        isDark ? '#FF453A' : '#FF3B30', // danger
+        isDark ? '#0A84FF' : '#0066CC', // primary
+        isDark ? '#30D158' : '#34C759', // success
+        isDark ? '#64D2FF' : '#5AC8FA', // info
+        isDark ? '#BF5AF2' : '#AF52DE', // purple
+        isDark ? '#FF375F' : '#FF2D55'  // pink
+      ];
+      
+      // Gerar cores suficientes para todos os motivos
+      for (let i = 0; i < motivosLabels.length; i++) {
+        motivosColors.push(baseColors[i % baseColors.length]);
+      }
+      
+      if (charts.motivos) {
+        charts.motivos.destroy();
+      }
+      
+      charts.motivos = new Chart(document.getElementById('chart-motivos'), {
+        type: 'doughnut',
+        data: {
+          labels: motivosLabels,
+          datasets: [{
+            data: motivosData,
+            backgroundColor: motivosColors,
+            borderColor: isDark ? 'rgba(44, 44, 46, 1)' : 'rgba(255, 255, 255, 1)',
+            borderWidth: 2,
+            borderRadius: 4,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          ...commonOptions,
+          cutout: '65%',
+        }
+      });
+      
+      // 4. Gráfico de Barras Empilhadas - Status por UF
+      const statusPorUF = {};
+      
+      // Coletar todos os UFs únicos
+      const ufList = [...new Set(data.map(item => item.uf))]
+        .filter(uf => uf && uf.trim() !== '')
+        .sort();
+      
+      // Inicializar dados para todos os UFs
+      ufList.forEach(uf => {
+        statusPorUF[uf] = {
+          'Reativados': 0,
+          'Inativos': 0,
+          'Ex‑clientes': 0
+        };
+      });
+      
+      // Contar status por UF
+      data.forEach(item => {
+        if (item.uf && item.uf.trim() !== '') {
+          statusPorUF[item.uf][item.status]++;
+        }
+      });
+      
+      // Preparar datasets para o gráfico
+      const ufDatasets = statusLabels.map((status, index) => ({
+        label: status,
+        data: ufList.map(uf => statusPorUF[uf][status]),
+        backgroundColor: statusColors[index],
+        borderColor: statusColors[index],
+        borderWidth: 1,
+        borderRadius: 4,
+        stack: 'Stack 0',
+        maxBarThickness: 30
+      }));
+      
+      if (charts.uf) {
+        charts.uf.destroy();
+      }
+      
+      charts.uf = new Chart(document.getElementById('chart-uf'), {
+        type: 'bar',
+        data: {
+          labels: ufList,
+          datasets: ufDatasets
+        },
+        options: {
+          ...commonOptions,
+          scales: {
+            ...commonOptions.scales,
+            x: {
+              ...commonOptions.scales.x,
+              stacked: true
+            },
+            y: {
+              ...commonOptions.scales.y,
+              stacked: true
+            }
+          }
+        }
+      });
+      
+      // 5. Gráfico de Barras - Previsão de Recompra por Mês
+      const previsaoRecompra = {};
+      
+      // Filtrar apenas clientes inativos e ex-clientes com previsão de recompra
+      data.filter(item => 
+        item.ultPedDias > 120 && 
+        item.previsaoRecompra && 
+        item.previsaoRecompra > new Date()
+      ).forEach(item => {
+        const mesAno = formatMonthYear(item.previsaoRecompra);
+        previsaoRecompra[mesAno] = (previsaoRecompra[mesAno] || 0) + 1;
+      });
+      
+      // Ordenar meses cronologicamente
+      const mesesPrevisao = Object.keys(previsaoRecompra).sort((a, b) => {
+        const [mesA, anoA] = a.split('/');
+        const [mesB, anoB] = b.split('/');
+        
+        const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
+                          'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
+        
+        const anoNumA = parseInt(anoA);
+        const anoNumB = parseInt(anoB);
+        
+        if (anoNumA !== anoNumB) return anoNumA - anoNumB;
+        return mesesNomes[mesA] - mesesNomes[mesB];
+      });
+      
+      const dataPrevisao = mesesPrevisao.map(mes => previsaoRecompra[mes]);
+      
+      if (charts.previsao) {
+        charts.previsao.destroy();
+      }
+      
+      charts.previsao = new Chart(document.getElementById('chart-previsao'), {
+        type: 'bar',
+        data: {
+          labels: mesesPrevisao,
+          datasets: [{
+            label: 'Clientes',
+            data: dataPrevisao,
+            backgroundColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
+            borderColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
+            borderWidth: 1,
+            borderRadius: 6,
+            maxBarThickness: 40
+          }]
+        },
+        options: commonOptions
+      });
     }
-    console.log('FIM: BLOCO 10 - KPIs');
-    // ===== FIM: BLOCO 10 - KPIs =====
-
-    // ===== INÍCIO: BLOCO 11 - Gráficos =====
-    console.log('INÍCIO: BLOCO 11 - Gráficos');
-    let charts = {};
-    function updateCharts(data) {
-      // 1: Barra por Status
-      const counts = {Reativados:0,Inativos:0,'Ex‑clientes':0}; data.forEach(d=>counts[d.group]++);
-      const labels = Object.keys(counts), vals = labels.map(l=>counts[l]);
-      const colors = [getComputedStyle(root).getPropertyValue('--success'),
-                      getComputedStyle(root).getPropertyValue('--warning'),
-                      getComputedStyle(root).getPropertyValue('--danger')];
-      if(charts.status) charts.status.destroy();
-      charts.status = new Chart(document.getElementById('chart-status'),{ type:'bar', data:{labels, datasets:[{data:vals, backgroundColor:colors}]} });
-
-      // 2: Evolução Inativos vs Ex
-      const evoMap={}; data.forEach(d=>{
-        evoMap[d.mesReferencia]??={Inativos:0,'Ex‑clientes':0};
-        if(d.group==='Inativos') evoMap[d.mesReferencia].Inativos++;
-        if(d.group==='Ex‑clientes') evoMap[d.mesReferencia]['Ex‑clientes']++;
-      });
-      const months=Object.keys(evoMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
-      const ds1={label:'Inativos',data:months.map(m=>evoMap[m].Inativos), borderColor:getComputedStyle(root).getPropertyValue('--warning'), fill:false};
-      const ds2={label:'Ex‑clientes',data:months.map(m=>evoMap[m]['Ex‑clientes']), borderColor:getComputedStyle(root).getPropertyValue('--danger'), fill:false};
-      if(charts.evolucao) charts.evolucao.destroy();
-      charts.evolucao=new Chart(document.getElementById('chart-evolucao'),{type:'line',data:{labels:months,datasets:[ds1,ds2]}});
-
-      // 3: Pizza Motivos
-      const motMap={}; data.filter(d=>d.ultPedDias>120).forEach(d=>motMap[d.motivoStatus]=(motMap[d.motivoStatus]||0)+1);
-      const mLabels=Object.keys(motMap), mVals=mLabels.map(l=>motMap[l]);
-      if(charts.motivos) charts.motivos.destroy();
-      charts.motivos=new Chart(document.getElementById('chart-motivos'),{type:'pie',data:{labels:mLabels,datasets:[{data:mVals}]}});
-
-      // 4: Barras Empilhadas UF
-      const ufMap={}; data.forEach(d=>{
-        ufMap[d.uf]??={Reativados:0,Inativos:0,'Ex‑clientes':0}; ufMap[d.uf][d.group]++;
-      });
-      const ufs=Object.keys(ufMap), dsUF=['Reativados','Inativos','Ex‑clientes'].map((g,i)=>({label:g,data:ufs.map(u=>ufMap[u][g]), backgroundColor:colors[i]}));
-      if(charts.uf) charts.uf.destroy();
-      charts.uf=new Chart(document.getElementById('chart-uf'),{type:'bar',data:{labels:ufs,datasets:dsUF},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
-
-      // 5: Previsão Recompra
-      const preMap={}; data.filter(d=>d.ultPedDias>120 && d.previsaoRecompra>new Date()).forEach(d=>{
-        const key=`${d.previsaoRecompra.getMonth()+1}/${d.previsaoRecompra.getFullYear()}`;
-        preMap[key]=(preMap[key]||0)+1;
-      });
-      const pMonths=Object.keys(preMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
-      const pVals=pMonths.map(m=>preMap[m]);
-      if(charts.previsao) charts.previsao.destroy();
-      charts.previsao=new Chart(document.getElementById('chart-previsao'),{type:'bar',data:{labels:pMonths,datasets:[{label:'Previsão',data:pVals,backgroundColor:getComputedStyle(root).getPropertyValue('--primary')}]} });
-    }
-    console.log('FIM: BLOCO 11 - Gráficos');
-    // ===== FIM: BLOCO 11 - Gráficos =====
-
-    // ===== INÍCIO: BLOCO 12 - Update All =====
-    console.log('INÍCIO: BLOCO 12 - Update All');
+    
+    // ===== Função Principal de Atualização =====
+    
     function updateAll() {
-      const data = prepareData();
-      updateKPIs(data);
-      updateCharts(data);
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const filteredData = prepareData();
+          updateKPIs(filteredData);
+          updateCharts(filteredData);
+          hideLoading();
+          
+          console.log('Dashboard atualizado com sucesso!');
+        } catch (error) {
+          console.error('Erro ao atualizar dashboard:', error);
+          hideLoading();
+          alert('Erro ao atualizar dashboard. Verifique o console para mais detalhes.');
+        }
+      }, 100); // Pequeno delay para garantir que o loading seja mostrado
     }
-    console.log('FIM: BLOCO 12 - Update All');
-    // ===== FIM: BLOCO 12 - Update All =====
+    
+    // ===== Inicializar Dashboard =====
+    
+    // Carregar dados quando a página for carregada
+    document.addEventListener('DOMContentLoaded', fetchData);
   </script>
 </body>
 </html>
