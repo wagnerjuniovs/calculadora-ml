@@ -265,269 +265,6 @@
       color: var(--danger);
     }
     
-    /* NOVO: Estilos para botões de cliente */
-    .client-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-    
-    .client-button {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1rem;
-      text-align: left;
-      cursor: pointer;
-      transition: var(--transition);
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    
-    .client-button:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-hover);
-    }
-    
-    .client-button h3 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-    
-    .client-button .client-status {
-      display: inline-block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 0.25rem 0.5rem;
-      border-radius: 3rem;
-      color: white;
-    }
-    
-    .client-button .client-details {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
-    
-    .client-status.Reativados {
-      background-color: var(--success);
-    }
-    
-    .client-status.Inativos {
-      background-color: var(--warning);
-    }
-    
-    .client-status.Ex‑clientes {
-      background-color: var(--danger);
-    }
-    
-    /* NOVO: Modal de detalhes do cliente */
-    .client-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    
-    .client-modal.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    
-    .modal-content {
-      width: 90%;
-      max-width: 600px;
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-hover);
-      padding: 2rem;
-      position: relative;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-    
-    .modal-close {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      background: var(--input-bg);
-      border: none;
-      border-radius: 50%;
-      width: 2rem;
-      height: 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      color: var(--text);
-      transition: var(--transition);
-    }
-    
-    .modal-close:hover {
-      background-color: rgba(142, 142, 147, 0.2);
-    }
-    
-    .modal-header {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .modal-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin: 0;
-      margin-bottom: 0.5rem;
-    }
-    
-    .client-info {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-    
-    .info-row {
-      margin-bottom: 1rem;
-    }
-    
-    .info-label {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.25rem;
-    }
-    
-    .info-value {
-      font-size: 1rem;
-      font-weight: 500;
-    }
-    
-    .action-buttons {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border);
-    }
-    
-    .btn {
-      padding: 0.75rem 1.25rem;
-      border-radius: var(--radius-sm);
-      border: none;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-      flex: 1;
-      font-family: var(--font-sans);
-      font-size: 0.9375rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: var(--primary-light);
-    }
-    
-    .btn-secondary {
-      background: var(--input-bg);
-      color: var(--text);
-    }
-    
-    .btn-secondary:hover {
-      background: rgba(142, 142, 147, 0.2);
-    }
-    
-    /* Paginação para botões de cliente */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 1.5rem;
-      gap: 0.5rem;
-    }
-    
-    .pagination-button {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--radius-sm);
-      background: var(--input-bg);
-      border: none;
-      cursor: pointer;
-      transition: var(--transition);
-      color: var(--text);
-      font-weight: 500;
-    }
-    
-    .pagination-button:hover {
-      background: rgba(142, 142, 147, 0.2);
-    }
-    
-    .pagination-button.active {
-      background: var(--primary);
-      color: white;
-    }
-    
-    .pagination-button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    /* Componente de busca */
-    .search-container {
-      margin-top: 2rem;
-      position: relative;
-    }
-    
-    .search-input {
-      width: 100%;
-      padding: 0.75rem 1rem 0.75rem 2.5rem;
-      border-radius: var(--radius-sm);
-      border: none;
-      background: var(--input-bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.9375rem;
-      transition: var(--transition);
-    }
-    
-    .search-input:focus {
-      outline: none;
-      background: rgba(142, 142, 147, 0.2);
-    }
-    
-    .search-icon {
-      position: absolute;
-      left: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1rem;
-      height: 1rem;
-      color: var(--text-secondary);
-    }
-    
     /* Responsividade */
     @media (max-width: 1024px) {
       .container {
@@ -554,10 +291,6 @@
         font-size: 0.875rem;
         padding: 0.5rem 1.75rem 0.5rem 0.75rem;
       }
-      
-      .client-info {
-        grid-template-columns: 1fr;
-      }
     }
     
     @media (max-width: 768px) {
@@ -571,14 +304,6 @@
       
       .kpi-value {
         font-size: 1.25rem;
-      }
-      
-      .client-buttons {
-        grid-template-columns: 1fr;
-      }
-      
-      .action-buttons {
-        flex-direction: column;
       }
     }
   </style>
@@ -676,63 +401,11 @@
         </div>
       </div>
     </div>
-    
-    <!-- NOVO: Seção de pesquisa de clientes -->
-    <div class="search-container">
-      <input type="text" id="client-search" class="search-input" placeholder="Buscar cliente...">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-      </svg>
-    </div>
-    
-    <!-- NOVO: Lista de botões de cliente -->
-    <div class="client-buttons" id="client-buttons">
-      <!-- Botões serão inseridos dinamicamente aqui -->
-    </div>
-    
-    <!-- NOVO: Paginação -->
-    <div class="pagination" id="pagination">
-      <!-- Botões de paginação serão inseridos dinamicamente aqui -->
-    </div>
   </div>
 
   <!-- Loading Indicator -->
   <div class="loading-indicator" id="loading">
     <div class="spinner"></div>
-  </div>
-  
-  <!-- NOVO: Modal de detalhes do cliente -->
-  <div class="client-modal" id="client-modal">
-    <div class="modal-content">
-      <button class="modal-close" id="modal-close">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-      <div class="modal-header">
-        <h2 class="modal-title" id="client-name">Nome do Cliente</h2>
-        <span class="client-status" id="client-status-badge">Status</span>
-      </div>
-      <div class="client-info" id="client-info">
-        <!-- Informações do cliente serão inseridas dinamicamente aqui -->
-      </div>
-      <div class="action-buttons">
-        <button class="btn btn-primary" id="btn-contact">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-          </svg>
-          Contatar Cliente
-        </button>
-        <button class="btn btn-secondary" id="btn-history">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-          </svg>
-          Histórico de Pedidos
-        </button>
-      </div>
-    </div>
   </div>
 
   <script>
@@ -742,14 +415,8 @@
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const loading = document.getElementById('loading');
-    const clientModal = document.getElementById('client-modal');
-    const modalClose = document.getElementById('modal-close');
-    const clientSearch = document.getElementById('client-search');
     let rawData = [];
-    let filteredData = [];
     let charts = {};
-    let currentPage = 1;
-    const clientsPerPage = 12;
     
     // ===== Utilitários e Helpers =====
     
@@ -777,12 +444,6 @@
       }
       
       return date;
-    }
-    
-    // Formatar data brasileira
-    function formatBRDate(date) {
-      if (!date) return '-';
-      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     }
     
     // Formatar mês/ano
@@ -832,186 +493,550 @@
       }
     }
     
-    // NOVO: Abrir modal do cliente
-    function openClientModal(clientData) {
-      const clientNameEl = document.getElementById('client-name');
-      const clientStatusBadge = document.getElementById('client-status-badge');
-      const clientInfoEl = document.getElementById('client-info');
+    // Toggle de tema claro/escuro
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = root.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
       
-      // Definir nome e status do cliente
-      clientNameEl.textContent = clientData.cliente;
-      clientStatusBadge.textContent = clientData.status;
-      clientStatusBadge.className = `client-status ${clientData.status}`;
+      root.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
       
-      // Limpar informações anteriores
-      clientInfoEl.innerHTML = '';
+      // Atualizar gráficos para o novo tema
+      updateCharts(prepareData());
+    });
+    
+    // ===== Carregamento e Processamento de Dados =====
+    
+    async function fetchData() {
+      try {
+        showLoading();
+        const res = await fetch(API_URL);
+        
+        if (!res.ok) {
+          throw new Error(`Erro na API: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        rawData = data.filter(item => item.cliente && item.cliente.trim() !== '').map(item => ({
+          cliente: item.cliente,
+          uf: item.uf || '',
+          categoria: item.categoria || '',
+          statusPrincipal: item.statusPrincipal || '',
+          motivoStatus: item.motivoStatus || '',
+          ultimoPedido: parseBRDate(item.ultimoPedido),
+          ultimoContato: parseBRDate(item.ultimoContato),
+          statusAtual: item.statusAtual || '',
+          proximoContato: parseBRDate(item.proximoContato),
+          previsaoRecompra: parseBRDate(item.previsaoRecompra),
+          mesReferencia: item.mesReferencia || '',
+          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias)
+        }));
+        
+        console.log(`Dados carregados: ${rawData.length} registros`);
+        
+        initFilters();
+        updateAll();
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        alert('Erro ao carregar dados da API. Verifique o console para mais detalhes.');
+      } finally {
+        hideLoading();
+      }
+    }
+    
+    // ===== Inicialização de Filtros =====
+    
+    function initFilters() {
+      const filterFields = ['uf', 'categoria', 'statusPrincipal', 'statusAtual'];
       
-      // Adicionar informações do cliente
-      const infoFields = [
-        { label: 'UF', value: clientData.uf || '-' },
-        { label: 'Categoria', value: clientData.categoria || '-' },
-        { label: 'Status Principal', value: clientData.statusPrincipal || '-' },
-        { label: 'Status Atual', value: clientData.statusAtual || '-' },
-        { label: 'Motivo de Status', value: clientData.motivoStatus || '-' },
-        { label: 'Último Pedido', value: formatBRDate(clientData.ultimoPedido) },
-        { label: 'Dias Sem Pedido', value: clientData.ultPedDias },
-        { label: 'Último Contato', value: formatBRDate(clientData.ultimoContato) },
-        { label: 'Próximo Contato', value: formatBRDate(clientData.proximoContato) },
-        { label: 'Previsão de Recompra', value: formatBRDate(clientData.previsaoRecompra) },
-        { label: 'Mês Referência', value: clientData.mesReferencia || '-' }
+      filterFields.forEach(field => {
+        const selectElement = document.getElementById(`filter-${field}`);
+        
+        // Limpar opções existentes (exceto a primeira)
+        while (selectElement.options.length > 1) {
+          selectElement.remove(1);
+        }
+        
+        const uniqueValues = [...new Set(rawData.map(item => item[field]).filter(val => val && val.trim() !== ''))];
+        
+        uniqueValues.sort((a, b) => a.localeCompare(b, 'pt-BR')).forEach(value => {
+          const option = new Option(value, value);
+          selectElement.appendChild(option);
+        });
+        
+        // Adicionar event listener apenas se ainda não existir
+        const hasListener = selectElement.getAttribute('data-has-listener') === 'true';
+        if (!hasListener) {
+          selectElement.addEventListener('change', updateAll);
+          selectElement.setAttribute('data-has-listener', 'true');
+        }
+      });
+    }
+    
+    // ===== Preparação de Dados Filtrados =====
+    
+    function prepareData() {
+      const uf = document.getElementById('filter-uf').value;
+      const categoria = document.getElementById('filter-categoria').value;
+      const statusPrincipal = document.getElementById('filter-statusPrincipal').value;
+      const statusAtual = document.getElementById('filter-statusAtual').value;
+      
+      return rawData
+        .filter(item => {
+          return (uf === 'Todos' || item.uf === uf) &&
+                 (categoria === 'Todas' || item.categoria === categoria) &&
+                 (statusPrincipal === 'Todos' || item.statusPrincipal === statusPrincipal) &&
+                 (statusAtual === 'Todos' || item.statusAtual === statusAtual);
+        })
+        .map(item => ({
+          ...item,
+          status: classifyClient(item.ultPedDias)
+        }));
+    }
+    
+    // ===== Atualização de KPIs =====
+    
+    function updateKPIs(data) {
+      const total = data.length;
+      document.getElementById('kpi-total').textContent = total;
+      
+      // Contagens por status
+      const statusCounts = {
+        'Reativados': 0,
+        'Inativos': 0,
+        'Ex‑clientes': 0
+      };
+      
+      data.forEach(item => {
+        statusCounts[item.status]++;
+      });
+      
+      // Percentuais por status
+      document.getElementById('kpi-reativados').textContent = `${formatNumber((statusCounts['Reativados'] / total) * 100)}%`;
+      document.getElementById('kpi-inativos').textContent = `${formatNumber((statusCounts['Inativos'] / total) * 100)}%`;
+      document.getElementById('kpi-ex').textContent = `${formatNumber((statusCounts['Ex‑clientes'] / total) * 100)}%`;
+      
+      // Contatos Agendados
+      const hoje = new Date();
+      
+      // Definir início da semana (segunda-feira)
+      const diaDaSemana = hoje.getDay(); // 0 = domingo, 1 = segunda, etc.
+      const diffParaSegunda = diaDaSemana === 0 ? 6 : diaDaSemana - 1; // Ajuste para segunda-feira
+      
+      const inicioSemana = new Date(hoje);
+      inicioSemana.setDate(hoje.getDate() - diffParaSegunda);
+      inicioSemana.setHours(0, 0, 0, 0);
+      
+      // Definir fim da semana (sexta-feira)
+      const fimSemana = new Date(inicioSemana);
+      fimSemana.setDate(inicioSemana.getDate() + 4);
+      fimSemana.setHours(23, 59, 59, 999);
+      
+      // Início e fim do mês atual
+      const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0, 23, 59, 59, 999);
+      
+      // Contadores de contatos
+      const contatosSemana = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato >= inicioSemana && proximoContato <= fimSemana;
+      }).length;
+      
+      const contatosMes = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && 
+               proximoContato >= hoje && 
+               proximoContato <= fimMes && 
+               !(proximoContato >= inicioSemana && proximoContato <= fimSemana); // Excluir já contados na semana
+      }).length;
+      
+      const contatosAtrasados = data.filter(item => {
+        const proximoContato = item.proximoContato;
+        return proximoContato && proximoContato < hoje;
+      }).length;
+      
+      document.getElementById('kpi-contatosSemana').textContent = contatosSemana;
+      document.getElementById('kpi-contatosMes').textContent = contatosMes;
+      document.getElementById('kpi-contatosAtrasados').textContent = contatosAtrasados;
+      
+      // Média de dias sem pedido
+      const mediaDias = data.reduce((sum, item) => sum + item.ultPedDias, 0) / (total || 1);
+      document.getElementById('kpi-mediaDias').textContent = formatNumber(mediaDias, 0);
+      
+      // Taxa de Reativação (Reativados / (Inativos + Ex-clientes))
+      const baseInativaTotal = statusCounts['Inativos'] + statusCounts['Ex‑clientes'];
+      const taxaReativacao = baseInativaTotal === 0 ? 0 : (statusCounts['Reativados'] / baseInativaTotal) * 100;
+      document.getElementById('kpi-taxaReativacao').textContent = `${formatNumber(taxaReativacao)}%`;
+    }
+    
+    // ===== Atualização de Gráficos =====
+    
+    function updateCharts(data) {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#F5F5F7' : '#1D1D1F';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+      
+      // Configurações comuns para todos os gráficos
+      const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            align: 'end',
+            labels: {
+              boxWidth: 12,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 12
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: isDark ? 'rgba(44, 44, 46, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+            titleColor: textColor,
+            bodyColor: textColor,
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            titleFont: {
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+              size: 13,
+              weight: 'bold'
+            },
+            bodyFont: {
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+              size: 12
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 11
+              }
+            }
+          },
+          y: {
+            grid: {
+              color: gridColor
+            },
+            ticks: {
+              color: textColor,
+              font: {
+                family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                size: 11
+              }
+            }
+          }
+        }
+      };
+      
+      // 1. Gráfico de Barras - Quantidade por Status
+      const statusLabels = ['Reativados', 'Inativos', 'Ex‑clientes'];
+      const statusCounts = statusLabels.map(status => data.filter(item => item.status === status).length);
+      
+      const statusColors = [
+        getComputedStyle(root).getPropertyValue('--success').trim(),
+        getComputedStyle(root).getPropertyValue('--warning').trim(),
+        getComputedStyle(root).getPropertyValue('--danger').trim()
       ];
       
-      infoFields.forEach(field => {
-        const infoRow = document.createElement('div');
-        infoRow.className = 'info-row';
-        
-        const infoLabel = document.createElement('div');
-        infoLabel.className = 'info-label';
-        infoLabel.textContent = field.label;
-        
-        const infoValue = document.createElement('div');
-        infoValue.className = 'info-value';
-        infoValue.textContent = field.value;
-        
-        infoRow.appendChild(infoLabel);
-        infoRow.appendChild(infoValue);
-        clientInfoEl.appendChild(infoRow);
-      });
-      
-      // Exibir modal
-      clientModal.classList.add('active');
-    }
-    
-    // NOVO: Fechar modal do cliente
-    function closeClientModal() {
-      clientModal.classList.remove('active');
-    }
-    
-    // NOVO: Renderizar botões de cliente
-    function renderClientButtons(page = 1) {
-      const clientButtonsContainer = document.getElementById('client-buttons');
-      clientButtonsContainer.innerHTML = '';
-      
-      const start = (page - 1) * clientsPerPage;
-      const end = start + clientsPerPage;
-      const clientsToShow = filteredData.slice(start, end);
-      
-      if (clientsToShow.length === 0) {
-        const noResults = document.createElement('div');
-        noResults.style.gridColumn = '1 / -1';
-        noResults.style.textAlign = 'center';
-        noResults.style.padding = '2rem';
-        noResults.style.color = 'var(--text-secondary)';
-        noResults.textContent = 'Nenhum cliente encontrado com os filtros atuais.';
-        clientButtonsContainer.appendChild(noResults);
-        return;
+      if (charts.status) {
+        charts.status.destroy();
       }
       
-      clientsToShow.forEach(client => {
-        const button = document.createElement('button');
-        button.className = 'client-button';
-        button.onclick = () => openClientModal(client);
-        
-        const clientName = document.createElement('h3');
-        clientName.textContent = client.cliente;
-        
-        const clientStatus = document.createElement('span');
-        clientStatus.className = `client-status ${client.status}`;
-        clientStatus.textContent = client.status;
-        
-        const clientDetails = document.createElement('div');
-        clientDetails.className = 'client-details';
-        clientDetails.textContent = `${client.uf || '-'} • ${client.categoria || '-'}`;
-        
-        const clientDays = document.createElement('div');
-        clientDays.className = 'client-details';
-        clientDays.textContent = `${client.ultPedDias} dias sem pedido`;
-        
-        button.appendChild(clientName);
-        button.appendChild(clientStatus);
-        button.appendChild(clientDetails);
-        button.appendChild(clientDays);
-        
-        clientButtonsContainer.appendChild(button);
-      });
-      
-      renderPagination(page);
-    }
-    
-    // NOVO: Renderizar paginação
-    function renderPagination(currentPage) {
-      const paginationContainer = document.getElementById('pagination');
-      paginationContainer.innerHTML = '';
-      
-      const totalPages = Math.ceil(filteredData.length / clientsPerPage);
-      
-      if (totalPages <= 1) {
-        paginationContainer.style.display = 'none';
-        return;
-      }
-      
-      paginationContainer.style.display = 'flex';
-      
-      // Botão anterior
-      const prevButton = document.createElement('button');
-      prevButton.className = 'pagination-button';
-      prevButton.innerHTML = '&larr;';
-      prevButton.disabled = currentPage === 1;
-      prevButton.onclick = () => {
-        if (currentPage > 1) {
-          renderClientButtons(currentPage - 1);
+      charts.status = new Chart(document.getElementById('chart-status'), {
+        type: 'bar',
+        data: {
+          labels: statusLabels,
+          datasets: [{
+            label: 'Quantidade',
+            data: statusCounts,
+            backgroundColor: statusColors,
+            borderColor: statusColors,
+            borderWidth: 1,
+            borderRadius: 6,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          ...commonOptions,
+          plugins: {
+            ...commonOptions.plugins,
+            legend: {
+              display: false
+            }
+          }
         }
-      };
-      paginationContainer.appendChild(prevButton);
+      });
       
-      // Determinar quais páginas mostrar
-      let startPage = Math.max(1, currentPage - 2);
-      let endPage = Math.min(totalPages, startPage + 4);
+      // 2. Gráfico de Linhas - Evolução Mensal Inativos vs Ex-clientes
+      const evolucaoMensal = {};
       
-      if (endPage - startPage < 4) {
-        startPage = Math.max(1, endPage - 4);
+      // Ordenar todos os meses de referência
+      const todosOsMeses = [...new Set(data.map(item => item.mesReferencia))]
+        .filter(mes => mes && mes.trim() !== '')
+        .sort((a, b) => {
+          const [mesA, anoA] = a.split('/').map(Number);
+          const [mesB, anoB] = b.split('/').map(Number);
+          return anoA !== anoB ? anoA - anoB : mesA - mesB;
+        });
+      
+      // Inicializar dados para todos os meses
+      todosOsMeses.forEach(mes => {
+        evolucaoMensal[mes] = { 'Inativos': 0, 'Ex‑clientes': 0 };
+      });
+      
+      // Contar inativos e ex-clientes por mês
+      data.forEach(item => {
+        if (item.mesReferencia && (item.status === 'Inativos' || item.status === 'Ex‑clientes')) {
+          evolucaoMensal[item.mesReferencia][item.status]++;
+        }
+      });
+      
+      // Preparar datasets para o gráfico
+      const evolucaoDatasets = [
+        {
+          label: 'Inativos',
+          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Inativos']),
+          borderColor: getComputedStyle(root).getPropertyValue('--warning').trim(),
+          backgroundColor: isDark ? 'rgba(255, 159, 10, 0.1)' : 'rgba(255, 159, 10, 0.05)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        },
+        {
+          label: 'Ex‑clientes',
+          data: todosOsMeses.map(mes => evolucaoMensal[mes]['Ex‑clientes']),
+          borderColor: getComputedStyle(root).getPropertyValue('--danger').trim(),
+          backgroundColor: isDark ? 'rgba(255, 55, 95, 0.1)' : 'rgba(255, 55, 95, 0.05)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true
+        }
+      ];
+      
+      if (charts.evolucao) {
+        charts.evolucao.destroy();
       }
       
-      // Adicionar botões de página
-      for (let i = startPage; i <= endPage; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.className = `pagination-button ${i === currentPage ? 'active' : ''}`;
-        pageButton.textContent = i;
-        pageButton.onclick = () => {
-          renderClientButtons(i);
+      charts.evolucao = new Chart(document.getElementById('chart-evolucao'), {
+        type: 'line',
+        data: {
+          labels: todosOsMeses,
+          datasets: evolucaoDatasets
+        },
+        options: commonOptions
+      });
+      
+      // 3. Gráfico de Pizza - Motivos de Inatividade
+      const motivosInatividade = {};
+      
+      // Filtrar apenas clientes inativos e ex-clientes
+      data.filter(item => item.ultPedDias > 120)
+        .forEach(item => {
+          const motivo = item.motivoStatus && item.motivoStatus.trim() !== '' ? item.motivoStatus : 'Não Informado';
+          motivosInatividade[motivo] = (motivosInatividade[motivo] || 0) + 1;
+        });
+      
+      const motivosLabels = Object.keys(motivosInatividade);
+      const motivosData = motivosLabels.map(motivo => motivosInatividade[motivo]);
+      
+      // Gerar cores dinâmicas para motivos
+      const motivosColors = [];
+      const baseColors = [
+        isDark ? '#FF9F0A' : '#FF9F0A', // warning
+        isDark ? '#FF453A' : '#FF3B30', // danger
+        isDark ? '#0A84FF' : '#0066CC', // primary
+        isDark ? '#30D158' : '#34C759', // success
+        isDark ? '#64D2FF' : '#5AC8FA', // info
+        isDark ? '#BF5AF2' : '#AF52DE', // purple
+        isDark ? '#FF375F' : '#FF2D55'  // pink
+      ];
+      
+      // Gerar cores suficientes para todos os motivos
+      for (let i = 0; i < motivosLabels.length; i++) {
+        motivosColors.push(baseColors[i % baseColors.length]);
+      }
+      
+      if (charts.motivos) {
+        charts.motivos.destroy();
+      }
+      
+      charts.motivos = new Chart(document.getElementById('chart-motivos'), {
+        type: 'doughnut',
+        data: {
+          labels: motivosLabels,
+          datasets: [{
+            data: motivosData,
+            backgroundColor: motivosColors,
+            borderColor: isDark ? 'rgba(44, 44, 46, 1)' : 'rgba(255, 255, 255, 1)',
+            borderWidth: 2,
+            borderRadius: 4,
+            hoverOffset: 6
+          }]
+        },
+        options: {
+          ...commonOptions,
+          cutout: '65%',
+        }
+      });
+      
+      // 4. Gráfico de Barras Empilhadas - Status por UF
+      const statusPorUF = {};
+      
+      // Coletar todos os UFs únicos
+      const ufList = [...new Set(data.map(item => item.uf))]
+        .filter(uf => uf && uf.trim() !== '')
+        .sort();
+      
+      // Inicializar dados para todos os UFs
+      ufList.forEach(uf => {
+        statusPorUF[uf] = {
+          'Reativados': 0,
+          'Inativos': 0,
+          'Ex‑clientes': 0
         };
-        paginationContainer.appendChild(pageButton);
-      }
+      });
       
-      // Botão próximo
-      const nextButton = document.createElement('button');
-      nextButton.className = 'pagination-button';
-      nextButton.innerHTML = '&rarr;';
-      nextButton.disabled = currentPage === totalPages;
-      nextButton.onclick = () => {
-        if (currentPage < totalPages) {
-          renderClientButtons(currentPage + 1);
+      // Contar status por UF
+      data.forEach(item => {
+        if (item.uf && item.uf.trim() !== '') {
+          statusPorUF[item.uf][item.status]++;
         }
-      };
-      paginationContainer.appendChild(nextButton);
-    }
-    
-    // NOVO: Filtrar cliente por pesquisa
-    function filterClientsBySearch(searchTerm) {
-      if (!searchTerm || searchTerm.trim() === '') {
-        return prepareData();
+      });
+      
+      // Preparar datasets para o gráfico
+      const ufDatasets = statusLabels.map((status, index) => ({
+        label: status,
+        data: ufList.map(uf => statusPorUF[uf][status]),
+        backgroundColor: statusColors[index],
+        borderColor: statusColors[index],
+        borderWidth: 1,
+        borderRadius: 4,
+        stack: 'Stack 0',
+        maxBarThickness: 30
+      }));
+      
+      if (charts.uf) {
+        charts.uf.destroy();
       }
       
-      searchTerm = searchTerm.toLowerCase().trim();
+      charts.uf = new Chart(document.getElementById('chart-uf'), {
+        type: 'bar',
+        data: {
+          labels: ufList,
+          datasets: ufDatasets
+        },
+        options: {
+          ...commonOptions,
+          scales: {
+            ...commonOptions.scales,
+            x: {
+              ...commonOptions.scales.x,
+              stacked: true
+            },
+            y: {
+              ...commonOptions.scales.y,
+              stacked: true
+            }
+          }
+        }
+      });
       
-      return prepareData().filter(client => {
-        return (
-          client.cliente.toLowerCase().includes(searchTerm) ||
-          (client.uf && client.uf.toLowerCase().includes(searchTerm)) ||
-          (client.categoria && client.categoria.toLowerCase().includes(searchTerm)) ||
-          (client.statusPrincipal && client.statusPrincipal.toLowerCase().includes(searchTerm)) ||
-          (client.statusAtual && client.statusAtual.toLowerCase().includes(searchTerm)) ||
-          (client.motivoStatus && client.motivoStatus.toLowerCase().includes(searchTerm))
-        );
+      // 5. Gráfico de Barras - Previsão de Recompra por Mês
+      const previsaoRecompra = {};
+      
+      // Filtrar apenas clientes inativos e ex-clientes com previsão de recompra
+      data.filter(item => 
+        item.ultPedDias > 120 && 
+        item.previsaoRecompra && 
+        item.previsaoRecompra > new Date()
+      ).forEach(item => {
+        const mesAno = formatMonthYear(item.previsaoRecompra);
+        previsaoRecompra[mesAno] = (previsaoRecompra[mesAno] || 0) + 1;
+      });
+      
+      // Ordenar meses cronologicamente
+      const mesesPrevisao = Object.keys(previsaoRecompra).sort((a, b) => {
+        const [mesA, anoA] = a.split('/');
+        const [mesB, anoB] = b.split('/');
+        
+        const mesesNomes = {'Jan': 0, 'Fev': 1, 'Mar': 2, 'Abr': 3, 'Mai': 4, 'Jun': 5, 
+                          'Jul': 6, 'Ago': 7, 'Set': 8, 'Out': 9, 'Nov': 10, 'Dez': 11};
+        
+        const anoNumA = parseInt(anoA);
+        const anoNumB = parseInt(anoB);
+        
+        if (anoNumA !== anoNumB) return anoNumA - anoNumB;
+        return mesesNomes[mesA] - mesesNomes[mesB];
+      });
+      
+      const dataPrevisao = mesesPrevisao.map(mes => previsaoRecompra[mes]);
+      
+      if (charts.previsao) {
+        charts.previsao.destroy();
+      }
+      
+      charts.previsao = new Chart(document.getElementById('chart-previsao'), {
+        type: 'bar',
+        data: {
+          labels: mesesPrevisao,
+          datasets: [{
+            label: 'Clientes',
+            data: dataPrevisao,
+            backgroundColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
+            borderColor: getComputedStyle(root).getPropertyValue('--primary').trim(),
+            borderWidth: 1,
+            borderRadius: 6,
+            maxBarThickness: 40
+          }]
+        },
+        options: commonOptions
       });
     }
+    
+    // ===== Função Principal de Atualização =====
+    
+    function updateAll() {
+      showLoading();
+      
+      setTimeout(() => {
+        try {
+          const filteredData = prepareData();
+          updateKPIs(filteredData);
+          updateCharts(filteredData);
+        } catch (error) {
+          console.error('Erro ao atualizar dashboard:', error);
+          alert('Erro ao atualizar dashboard. Verifique o console para mais detalhes.');
+        } finally {
+          hideLoading();
+        }
+      }, 50); // Pequeno delay para garantir que o loading seja mostrado
+    }
+    
+    // ===== Inicializar Dashboard =====
+    
+    // Configurar o tema antes de carregar os dados
+    setupTheme();
+    
+    // Carregar dados e inicializar dashboard
+    fetchData();
+  </script>
+</body>
+</html>
