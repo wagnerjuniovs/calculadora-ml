@@ -1450,30 +1450,28 @@ function setupDrillDown() {
   };
   
 // Adicionar interatividade ao gráfico de Previsão de Recompra por Mês
-  charts.previsao.options.onClick = (event, elements) => {
+  charts.previsao.options.onClick = function(event, elements) {
     if (elements.length > 0) {
       const index = elements[0].index;
-      const mesAno = mesesPrevisao[index]; // Obtém o mês/ano clicado
       
-      // Filtrar apenas clientes com previsão no mês selecionado
-      const clientesMes = prepareData().filter(item => {
-        // Verifica se tem previsão de recompra
-        if (!item.previsaoRecompra) return false;
+      // Obter o mês/ano correspondente à barra clicada
+      const mesAnoClicado = this.data.labels[index];
+      
+      // Filtrar apenas clientes com previsão no mês/ano selecionado
+      const clientesFiltrados = prepareData().filter(cliente => {
+        if (!cliente.previsaoRecompra) return false;
         
-        // Formata a data de previsão no formato Mês/Ano para comparação
-        const mesAnoPrevisao = formatMonthYear(item.previsaoRecompra);
-        
-        // Compara se o mês/ano da previsão é igual ao mês/ano clicado
-        return mesAnoPrevisao === mesAno;
+        const mesAnoCliente = formatMonthYear(cliente.previsaoRecompra);
+        return mesAnoCliente === mesAnoClicado;
       });
       
-      // Mostra o modal com os clientes filtrados
-      const title = `Clientes com Previsão de Recompra em ${mesAno}`;
-      showClientModal(title, clientesMes);
+      // Mostrar modal com os clientes daquele mês específico
+      const titulo = `Clientes com Previsão de Recompra em ${mesAnoClicado}`;
+      showClientModal(titulo, clientesFiltrados);
     }
   };
 
-  // Adicionar cursor pointer ao container do gráfico para indicar que é clicável
+  // Adicionar cursor pointer ao gráfico para indicar que é clicável
   document.getElementById('chart-previsao').parentElement.style.cursor = 'pointer';
 
   // Atualize cada gráfico para aplicar as novas opções
