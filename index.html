@@ -22,7 +22,6 @@
       /* Cores iOS/macOS Light */
       --bg: #F5F5F7;
       --card-bg: #FFFFFF;
-      --modal-bg: #FFFFFF;
       --input-bg: rgba(142, 142, 147, 0.12);
       --text: #1D1D1F;
       --text-secondary: #86868B;
@@ -39,7 +38,6 @@
       /* Cores iOS/macOS Dark */
       --bg: #1D1D1F;
       --card-bg: #2C2C2E;
-      --modal-bg: #2C2C2E;
       --input-bg: rgba(142, 142, 147, 0.18);
       --text: #F5F5F7;
       --text-secondary: #98989D;
@@ -90,13 +88,6 @@
       font-size: 2rem; 
       font-weight: 700;
       margin: 0;
-      letter-spacing: -0.025em;
-    }
-    
-    h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      margin: 1.5rem 0 1rem;
       letter-spacing: -0.025em;
     }
     
@@ -183,26 +174,6 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      cursor: pointer;
-    }
-    
-    .kpi-card:after {
-      content: "";
-      position: absolute;
-      bottom: 0.75rem;
-      right: 0.75rem;
-      width: 0.75rem;
-      height: 0.75rem;
-      border-top: 2px solid var(--text-secondary);
-      border-right: 2px solid var(--text-secondary);
-      transform: rotate(45deg);
-      opacity: 0.5;
-      transition: var(--transition);
-    }
-    
-    .kpi-card:hover:after {
-      opacity: 1;
-      transform: rotate(45deg) translate(2px, -2px);
     }
     
     .kpi-title {
@@ -252,7 +223,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(29, 29, 31, 0.6);
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
@@ -294,294 +265,147 @@
       color: var(--danger);
     }
     
-    /* Lista de Clientes */
-    .clientes-lista {
+    /* NOVO: Estilos para botões de cliente */
+    .client-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
       margin-top: 2rem;
     }
     
-    .list-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-    
-    .table-container {
-      overflow-x: auto;
+    .client-button {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      background-color: var(--card-bg);
-    }
-    
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9375rem;
-    }
-    
-    th {
-      text-align: left;
       padding: 1rem;
-      background-color: rgba(142, 142, 147, 0.08);
-      color: var(--text);
-      font-weight: 600;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      text-align: left;
       cursor: pointer;
-    }
-    
-    th:hover {
-      background-color: rgba(142, 142, 147, 0.12);
-    }
-    
-    th.sorted:after {
-      content: "↑";
-      margin-left: 0.25rem;
-      font-size: 0.75rem;
-    }
-    
-    th.sorted.desc:after {
-      content: "↓";
-    }
-    
-    tr {
-      border-bottom: 1px solid var(--border);
       transition: var(--transition);
-    }
-    
-    tr:hover {
-      background-color: rgba(142, 142, 147, 0.06);
-    }
-    
-    td {
-      padding: 0.875rem 1rem;
-      color: var(--text);
-    }
-    
-    /* Paginação */
-    .pagination {
+      box-shadow: var(--shadow);
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 1rem;
-      font-size: 0.875rem;
-    }
-    
-    .pagination-info {
-      color: var(--text-secondary);
-    }
-    
-    .pagination-controls {
-      display: flex;
+      flex-direction: column;
       gap: 0.5rem;
     }
     
-    .pagination-btn {
-      background: var(--input-bg);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 0.5rem 0.75rem;
+    .client-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .client-button h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
       color: var(--text);
-      cursor: pointer;
-      transition: var(--transition);
-      font-weight: 500;
     }
     
-    .pagination-btn:hover {
-      background: rgba(142, 142, 147, 0.25);
+    .client-button .client-status {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3rem;
+      color: white;
     }
     
-    .pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .client-button .client-details {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
     }
     
-    /* Estilos de Modal */
-    .modal-overlay {
+    .client-status.Reativados {
+      background-color: var(--success);
+    }
+    
+    .client-status.Inativos {
+      background-color: var(--warning);
+    }
+    
+    .client-status.Ex‑clientes {
+      background-color: var(--danger);
+    }
+    
+    /* NOVO: Modal de detalhes do cliente */
+    .client-modal {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
       background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1001;
+      z-index: 2000;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.3s ease;
     }
     
-    .modal-overlay.active {
+    .client-modal.active {
       opacity: 1;
       pointer-events: all;
     }
     
-    .modal {
+    .modal-content {
       width: 90%;
-      max-width: 800px;
+      max-width: 600px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-hover);
+      padding: 2rem;
+      position: relative;
       max-height: 90vh;
-      background: var(--modal-bg);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      transform: translateY(20px);
-      transition: transform 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .modal-overlay.active .modal {
-      transform: translateY(0);
-    }
-    
-    .modal-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .modal-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin: 0;
+      overflow-y: auto;
     }
     
     .modal-close {
-      background: transparent;
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: var(--input-bg);
       border: none;
-      color: var(--text-secondary);
-      font-size: 1.5rem;
-      cursor: pointer;
-      width: 32px;
-      height: 32px;
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text);
       transition: var(--transition);
     }
     
     .modal-close:hover {
-      background: rgba(142, 142, 147, 0.12);
-      color: var(--text);
+      background-color: rgba(142, 142, 147, 0.2);
     }
     
-    .modal-body {
-      padding: 1.5rem;
-      overflow-y: auto;
+    .modal-header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
     }
     
-    .modal-footer {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin: 0;
+      margin-bottom: 0.5rem;
     }
     
-    /* Badge para status */
-    .badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 1rem;
-      font-size: 0.75rem;
-      font-weight: 500;
+    .client-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
     }
     
-    .badge-reativados {
-      background-color: rgba(52, 199, 89, 0.15);
-      color: var(--success);
-    }
-    
-    .badge-inativos {
-      background-color: rgba(255, 159, 10, 0.15);
-      color: var(--warning);
-    }
-    
-    .badge-ex {
-      background-color: rgba(255, 59, 48, 0.15);
-      color: var(--danger);
-    }
-    
-    /* Botão padrão do sistema */
-    .btn {
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius-sm);
-      border: none;
-      font-family: var(--font-sans);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--primary-light);
-    }
-    
-    .btn-outline {
-      background-color: transparent;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    
-    .btn-outline:hover {
-      background-color: var(--input-bg);
-    }
-    
-    /* Form fields */
-    .form-group {
+    .info-row {
       margin-bottom: 1rem;
     }
     
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-    
-    .form-control {
-      width: 100%;
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background-color: var(--input-bg);
-      color: var(--text);
-      font-family: var(--font-sans);
-      font-size: 0.9375rem;
-      transition: var(--transition);
-    }
-    
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.3);
-    }
-    
-    /* Cliente info grid */
-    .cliente-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
-    }
-    
-    .info-group {
-      margin-bottom: 1.25rem;
-    }
-    
     .info-label {
-      font-size: 0.8125rem;
+      font-size: 0.875rem;
       color: var(--text-secondary);
       margin-bottom: 0.25rem;
     }
@@ -591,31 +415,117 @@
       font-weight: 500;
     }
     
-    /* Histórico de contatos */
-    .historico-item {
-      padding-bottom: 1rem;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    
-    .historico-header {
+    .action-buttons {
       display: flex;
-      justify-content: space-between;
-      margin-bottom: 0.5rem;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
     }
     
-    .historico-data {
-      font-size: 0.875rem;
-      color: var(--text-secondary);
+    .btn {
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      flex: 1;
+      font-family: var(--font-sans);
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
     
-    .historico-tipo {
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-light);
+    }
+    
+    .btn-secondary {
+      background: var(--input-bg);
+      color: var(--text);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(142, 142, 147, 0.2);
+    }
+    
+    /* Paginação para botões de cliente */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 1.5rem;
+      gap: 0.5rem;
+    }
+    
+    .pagination-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text);
       font-weight: 500;
     }
     
-    .historico-content {
+    .pagination-button:hover {
+      background: rgba(142, 142, 147, 0.2);
+    }
+    
+    .pagination-button.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .pagination-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Componente de busca */
+    .search-container {
+      margin-top: 2rem;
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--input-bg);
+      color: var(--text);
+      font-family: var(--font-sans);
       font-size: 0.9375rem;
-      line-height: 1.6;
+      transition: var(--transition);
+    }
+    
+    .search-input:focus {
+      outline: none;
+      background: rgba(142, 142, 147, 0.2);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1rem;
+      height: 1rem;
+      color: var(--text-secondary);
     }
     
     /* Responsividade */
@@ -644,6 +554,10 @@
         font-size: 0.875rem;
         padding: 0.5rem 1.75rem 0.5rem 0.75rem;
       }
+      
+      .client-info {
+        grid-template-columns: 1fr;
+      }
     }
     
     @media (max-width: 768px) {
@@ -659,12 +573,12 @@
         font-size: 1.25rem;
       }
       
-      .modal {
-        width: 95%;
+      .client-buttons {
+        grid-template-columns: 1fr;
       }
       
-      .cliente-info {
-        grid-template-columns: 1fr;
+      .action-buttons {
+        flex-direction: column;
       }
     }
   </style>
@@ -691,39 +605,39 @@
 
     <!-- KPIs -->
     <div class="kpis">
-      <div class="card kpi-card" data-kpi="total">
+      <div class="card kpi-card">
         <div class="kpi-title">Total de Clientes</div>
         <div class="kpi-value" id="kpi-total">0</div>
       </div>
-      <div class="card kpi-card" data-kpi="reativados">
+      <div class="card kpi-card">
         <div class="kpi-title">Reativados</div>
         <div class="kpi-value status-reativados" id="kpi-reativados">0%</div>
       </div>
-      <div class="card kpi-card" data-kpi="inativos">
+      <div class="card kpi-card">
         <div class="kpi-title">Inativos</div>
         <div class="kpi-value status-inativos" id="kpi-inativos">0%</div>
       </div>
-      <div class="card kpi-card" data-kpi="ex">
+      <div class="card kpi-card">
         <div class="kpi-title">Ex‑clientes</div>
         <div class="kpi-value status-ex" id="kpi-ex">0%</div>
       </div>
-      <div class="card kpi-card" data-kpi="contatosSemana">
+      <div class="card kpi-card">
         <div class="kpi-title">Contatos Semana</div>
         <div class="kpi-value" id="kpi-contatosSemana">0</div>
       </div>
-      <div class="card kpi-card" data-kpi="contatosMes">
+      <div class="card kpi-card">
         <div class="kpi-title">Contatos Mês</div>
         <div class="kpi-value" id="kpi-contatosMes">0</div>
       </div>
-      <div class="card kpi-card" data-kpi="contatosAtrasados">
+      <div class="card kpi-card">
         <div class="kpi-title">Contatos Atrasados</div>
         <div class="kpi-value" id="kpi-contatosAtrasados">0</div>
       </div>
-      <div class="card kpi-card" data-kpi="mediaDias">
+      <div class="card kpi-card">
         <div class="kpi-title">Média Dias</div>
         <div class="kpi-value" id="kpi-mediaDias">0</div>
       </div>
-      <div class="card kpi-card" data-kpi="taxaReativacao">
+      <div class="card kpi-card">
         <div class="kpi-title">Taxa Reativação</div>
         <div class="kpi-value" id="kpi-taxaReativacao">0%</div>
       </div>
@@ -763,121 +677,62 @@
       </div>
     </div>
     
-    <!-- Lista de Clientes -->
-    <div class="clientes-lista">
-      <h2>Lista de Clientes</h2>
-      
-      <!-- Filtros para lista -->
-      <div class="list-filters">
-        <select id="filter-lista-status">
-          <option value="Todos">Todos os Status</option>
-          <option value="Reativados">Reativados</option>
-          <option value="Inativos">Inativos</option>
-          <option value="Ex‑clientes">Ex-clientes</option>
-        </select>
-        <select id="filter-lista-periodo">
-          <option value="Todos">Todos os Períodos</option>
-          <!-- Períodos serão preenchidos dinamicamente -->
-        </select>
-        <select id="filter-lista-motivoStatus">
-          <option value="Todos">Todos os Motivos</option>
-          <!-- Motivos serão preenchidos dinamicamente -->
-        </select>
-        <input type="text" id="filter-lista-busca" class="form-control" placeholder="Buscar cliente..." style="max-width: 250px;">
-      </div>
-      
-      <!-- Tabela de clientes -->
-      <div class="table-container">
-        <table id="clientes-tabela">
-          <thead>
-            <tr>
-              <th data-sort="cliente">Cliente</th>
-              <th data-sort="uf">UF</th>
-              <th data-sort="categoria">Categoria</th>
-              <th data-sort="status">Status</th>
-              <th data-sort="ultimoPedido">Último Pedido</th>
-              <th data-sort="ultimoContato">Último Contato</th>
-              <th data-sort="proximoContato">Próx. Contato</th>
-              <th data-sort="motivoStatus">Motivo</th>
-            </tr>
-          </thead>
-          <tbody id="clientes-tbody">
-            <!-- Linhas serão preenchidas dinamicamente -->
-          </tbody>
-        </table>
-      </div>
-      
-      <!-- Paginação -->
-      <div class="pagination">
-        <div class="pagination-info" id="pagination-info">Mostrando 0 de 0 resultados</div>
-        <div class="pagination-controls">
-          <button class="pagination-btn" id="prev-page" disabled>&laquo; Anterior</button>
-          <button class="pagination-btn" id="next-page" disabled>Próxima &raquo;</button>
-        </div>
-      </div>
+    <!-- NOVO: Seção de pesquisa de clientes -->
+    <div class="search-container">
+      <input type="text" id="client-search" class="search-input" placeholder="Buscar cliente...">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
     </div>
-  </div>
-
-  <!-- Modal de Detalhes do Cliente -->
-  <div class="modal-overlay" id="modal-cliente">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modal-cliente-nome">Detalhes do Cliente</h3>
-        <button class="modal-close" id="modal-cliente-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="cliente-info" id="modal-cliente-info">
-          <!-- Informações do cliente serão inseridas dinamicamente -->
-        </div>
-        
-        <div class="cliente-historico">
-          <h4 style="margin: 1.5rem 0 1rem;">Histórico de Interações</h4>
-          <div id="modal-cliente-historico">
-            <!-- Histórico será inserido dinamicamente -->
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="modal-cliente-fechar">Fechar</button>
-        <button class="btn btn-primary" id="modal-cliente-agendar">Agendar Contato</button>
-      </div>
+    
+    <!-- NOVO: Lista de botões de cliente -->
+    <div class="client-buttons" id="client-buttons">
+      <!-- Botões serão inseridos dinamicamente aqui -->
     </div>
-  </div>
-  
-  <!-- Modal de Clientes por KPI -->
-  <div class="modal-overlay" id="modal-kpi">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title" id="modal-kpi-titulo">Lista de Clientes</h3>
-        <button class="modal-close" id="modal-kpi-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente</th>
-                <th>UF</th>
-                <th>Categoria</th>
-                <th>Último Pedido</th>
-                <th>Dias</th>
-              </tr>
-            </thead>
-            <tbody id="modal-kpi-tbody">
-              <!-- Linhas serão preenchidas dinamicamente -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-outline" id="modal-kpi-fechar">Fechar</button>
-      </div>
+    
+    <!-- NOVO: Paginação -->
+    <div class="pagination" id="pagination">
+      <!-- Botões de paginação serão inseridos dinamicamente aqui -->
     </div>
   </div>
 
   <!-- Loading Indicator -->
   <div class="loading-indicator" id="loading">
     <div class="spinner"></div>
+  </div>
+  
+  <!-- NOVO: Modal de detalhes do cliente -->
+  <div class="client-modal" id="client-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="modal-header">
+        <h2 class="modal-title" id="client-name">Nome do Cliente</h2>
+        <span class="client-status" id="client-status-badge">Status</span>
+      </div>
+      <div class="client-info" id="client-info">
+        <!-- Informações do cliente serão inseridas dinamicamente aqui -->
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="btn-contact">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          Contatar Cliente
+        </button>
+        <button class="btn btn-secondary" id="btn-history">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+          </svg>
+          Histórico de Pedidos
+        </button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -887,15 +742,14 @@
     const themeToggle = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
     const loading = document.getElementById('loading');
+    const clientModal = document.getElementById('client-modal');
+    const modalClose = document.getElementById('modal-close');
+    const clientSearch = document.getElementById('client-search');
     let rawData = [];
     let filteredData = [];
     let charts = {};
-    
-    // Variáveis de paginação
     let currentPage = 1;
-    const rowsPerPage = 20;
-    let sortField = 'cliente';
-    let sortDirection = 'asc';
+    const clientsPerPage = 12;
     
     // ===== Utilitários e Helpers =====
     
@@ -925,15 +779,10 @@
       return date;
     }
     
-    // Formatar data para exibição no formato BR
-    function formatDate(date) {
+    // Formatar data brasileira
+    function formatBRDate(date) {
       if (!date) return '-';
-      return `${padZero(date.getDate())}/${padZero(date.getMonth() + 1)}/${date.getFullYear()}`;
-    }
-    
-    // Adicionar zero à esquerda para números < 10
-    function padZero(num) {
-      return num < 10 ? `0${num}` : num;
+      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     }
     
     // Formatar mês/ano
