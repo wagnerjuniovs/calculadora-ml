@@ -399,12 +399,18 @@ select option {
           <canvas id="chart-uf"></canvas>
         </div>
       </div>
-      <div class="card full">
-        <div class="chart-title">Previsão de Recompra por Mês</div>
-        <div class="chart-container">
-          <canvas id="chart-previsao"></canvas>
-        </div>
-      </div>
+      <div class="card">
+  <div class="chart-title">Previsão de Recompra por Mês</div>
+  <div class="chart-container">
+    <canvas id="chart-previsao"></canvas>
+  </div>
+</div>
+<div class="card">
+  <div class="chart-title">Distribuição por Recorrência</div>
+  <div class="chart-container">
+    <canvas id="chart-recorrencia"></canvas>
+         </div>
+       </div>
     </div>
   </div>
 
@@ -536,7 +542,8 @@ select option {
           proximoContato: parseBRDate(item.proximoContato),
           previsaoRecompra: parseBRDate(item.previsaoRecompra),
           mesReferencia: item.mesReferencia || '',
-          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias)
+          ultPedDias: isNaN(Number(item.ultimoPedidoEmDias)) ? 0 : Number(item.ultimoPedidoEmDias),
+          recorrencia: item.recorrencia || ''
         }));
         
         console.log(`Dados carregados: ${rawData.length} registros`);
@@ -1014,6 +1021,50 @@ select option {
         },
         options: commonOptions
       });
+// 6. Gráfico de Barras - Recorrência de Compras
+const recorrenciaData = {};
+
+// Coletar e contar recorrências diretamente do texto da coluna
+data.forEach(item => {
+  const recorrencia = item.recorrencia || 'Não informado';
+  recorrenciaData[recorrencia] = (recorrenciaData[recorrencia] || 0) + 1;
+});
+
+// Obter os rótulos (categorias de recorrência)
+const recorrenciaLabels = Object.keys(recorrenciaData).filter(rec => rec !== '');
+
+// Ordenar rótulos para exibição mais lógica
+recorrenciaLabels.sort((a, b) => {
+  // Tentar extrair valores numéricos para ordenação
+  const numA = parseInt(a.match(/\d+/)?.[0] || '999');
+  const numB = parseInt(b.match(/\d+/)?.[0] || '999');
+  
+  return numA - numB;
+});
+
+// Valores correspondentes a cada rótulo
+const recorrenciaValues = recorrenciaLabels.map(rec => recorrenciaData[rec]);
+
+if (charts.recorrencia) {
+  charts.recorrencia.destroy();
+}
+
+charts.recorrencia = new Chart(document.getElementById('chart-recorrencia'), {
+  type: 'bar',
+  data: {
+    labels: recorrenciaLabels,
+    datasets: [{
+      label: 'Quantidade de Clientes',
+      data: recorrenciaValues,
+      backgroundColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
+      borderColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
+      borderWidth: 1,
+      borderRadius: 6,
+      maxBarThickness: 40
+    }]
+  },
+  options: commonOptions
+});
     }
     
     // ===== Função Principal de Atualização =====
@@ -1473,6 +1524,28 @@ function setupDrillDown() {
 
   // Adicionar cursor pointer ao gráfico para indicar que é clicável
   document.getElementById('chart-previsao').parentElement.style.cursor = 'pointer';
+
+// Adicionar interatividade ao gráfico de Recorrência
+charts.recorrencia.options.onClick = function(event, elements) {
+  if (elements.length > 0) {
+    const index = elements[0].index;
+    
+    // Obter a recorrência correspondente à barra clicada
+    const recorrenciaClicada = this.data.labels[index];
+    
+    // Filtrar clientes com a recorrência selecionada
+    const clientesFiltrados = prepareData().filter(cliente => {
+      return cliente.recorrencia === recorrenciaClicada;
+    });
+    
+    // Mostrar modal com os clientes daquela recorrência específica
+    const titulo = `Clientes com Recorrência: ${recorrenciaClicada}`;
+    showClientModal(titulo, clientesFiltrados);
+  }
+};
+
+// Adicionar cursor pointer ao gráfico para indicar que é clicável
+document.getElementById('chart-recorrencia').parentElement.style.cursor = 'pointer';
 
   // Atualize cada gráfico para aplicar as novas opções
   Object.values(charts).forEach(chart => chart.update());
