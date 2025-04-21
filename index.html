@@ -1,1577 +1,1450 @@
-<!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Radar de Retenção</title>
+import React, { useState, useEffect, useMemo } from 'react';
+import { createTheme, ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
+import { 
+  AppBar, Toolbar, Typography, Box, Container, Card, CardContent, 
+  Button, IconButton, Grid, TextField, Select, MenuItem, FormControl,
+  InputLabel, Checkbox, FormControlLabel, Drawer, Divider, List, ListItem,
+  ListItemText, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogActions,
+  Snackbar, Alert, Paper, Tabs, Tab, TableContainer, Table, TableHead, TableBody,
+  TableRow, TableCell, Chip, Menu, InputAdornment
+} from '@mui/material';
+import { 
+  Add as AddIcon, 
+  DarkMode as DarkModeIcon, 
+  LightMode as LightModeIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  FilterList as FilterListIcon,
+  Download as DownloadIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Person as PersonIcon,
+  Category as CategoryIcon,
+  Payment as PaymentIcon,
+  DateRange as DateRangeIcon,
+  Dashboard as DashboardIcon,
+  AttachMoney as AttachMoneyIcon,
+  MenuOpen as MenuOpenIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon
+} from '@mui/icons-material';
+import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { ptBR } from 'date-fns/locale';
+import Chart from 'chart.js/auto';
+import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, addMonths, subMonths } from 'date-fns';
 
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+// Função para gerar ID único
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Tailwind CSS (via CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#007aff',
-            bgLight: '#f9f9f9',
-            bgDark: '#1c1c1e',
-            cardLight: '#ffffff',
-            cardDark: '#2c2c2e',
-            textLight: '#1c1c1e',
-            textDark: '#f9f9f9',
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          },
-          boxShadow: {
-            soft: '0 10px 30px rgba(0,0,0,0.1)'
-          },
-          borderRadius: {
-            xl: '1.5rem',
-            full: '9999px'
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    /* Tema escuro/claro - Variáveis de cores */
-    :root {
-      --bg-main: #f9fafb;
-      --text-main: #111827;
-      --card-bg: #ffffff;
-      --card-shadow: rgba(0, 0, 0, 0.1);
-      --primary: #007aff;
-      --primary-hover: #0056b3;
-      --danger: #dc2626;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --info: #3b82f6;
-      --border: #e5e7eb;
-    }
-
-    [data-theme="dark"] {
-      --bg-main: #1f1f1f;
-      --text-main: #f1f1f1;
-      --card-bg: #2a2a2a;
-      --card-shadow: rgba(0, 0, 0, 0.4);
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --info: #60a5fa;
-      --border: #374151;
-    }
-
-    /* Estilos globais */
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      transition: background-color 0.3s, color 0.3s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      box-shadow: 0 4px 6px var(--card-shadow);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      transition: background-color 0.3s, box-shadow 0.3s;
-    }
-
-    .text-primary {
-      color: var(--primary);
-    }
-
-    /* Controles e inputs */
-    select, input, button {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
-      transition: all 0.2s;
-    }
-
-    select:focus, input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-
-    button {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 500;
-    }
-
-    button:hover {
-      background-color: var(--primary-hover);
-    }
-
-    /* Tabelas */
-    table {
-      width: 100%;
-      border-spacing: 0;
-    }
-
-    th {
-      text-align: left;
-      font-weight: 600;
-      padding: 0.75rem 1rem;
-      color: var(--text-main);
-      opacity: 0.7;
-    }
-
-    td {
-      padding: 0.75rem 1rem;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Animação de loading */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin {
-      animation: spin 1s linear infinite;
-    }
-    
-    /* Classe para erros */
-    .border-error {
-      border-color: var(--danger) !important;
-    }
-
-    /* Tooltip personalizado */
-    .tooltip {
-      position: relative;
-      display: inline-block;
-    }
-
-    .tooltip .tooltip-text {
-      visibility: hidden;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 10px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 0.75rem;
-    }
-
-    .tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
-  </style>
-</head>
-<body class="font-sans min-h-screen">
-  <header class="flex justify-between items-center px-6 py-4 bg-opacity-90 backdrop-blur-sm sticky top-0 z-10" style="background-color: var(--card-bg);">
-    <h1 class="text-2xl font-bold" style="color: var(--primary);">Radar de Retenção</h1>
-    <div class="flex items-center gap-4">
-      <span id="data-update" class="text-sm opacity-70"></span>
-      <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm transition-colors">
-        Alternar Tema
-      </button>
-    </div>
-  </header>
-
-  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
-    <div class="flex flex-col items-center space-y-4">
-      <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
-      <p class="font-medium" style="color: var(--primary);">Carregando dados...</p>
-    </div>
-  </div>
-
-  <main class="container mx-auto px-4 py-6">
-    <!-- Filtros -->
-    <section class="card mb-6">
-      <div class="mb-4">
-        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
-            <select id="filter-status" class="w-full">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
-            <select id="filter-uf" class="w-full">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
-            <input type="date" id="filter-from" class="w-full">
-          </div>
-          <div>
-            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
-            <input type="date" id="filter-to" class="w-full">
-          </div>
-        </div>
-      </div>
-      <div class="flex justify-end">
-        <button id="btn-limpar-filtros" class="px-4 py-2 rounded text-sm mr-2" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
-          Limpar Filtros
-        </button>
-        <button id="btn-aplicar-filtros" class="px-4 py-2 rounded text-sm" style="background-color: var(--primary);">
-          Aplicar Filtros
-        </button>
-      </div>
-    </section>
-
-    <!-- KPIs -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
-        <p id="count-inativos" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
-        <p id="count-exclientes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
-        <p id="count-reativacoes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
-        <p id="count-retencao" class="text-2xl font-bold" style="color: var(--primary);">0%</p>
-      </div>
-    </section>
-
-    <!-- Gráficos principais -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <!-- Gráfico Inativos vs Reativados -->
-  <section class="card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
-      <div id="inativos-reativados-info" class="text-xs opacity-70">
-        <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #ff9800;"></span> Ex‑clientes
-        <span class="inline-block w-3 h-3 rounded-full mx-3" style="background-color: #4caf50;"></span> Inativos
-        <span class="inline-block w-3 h-3 rounded-full ml-3" style="background-color: var(--primary);"></span> Reativados
-      </div>
-    </div>
-    <div class="h-72 relative">
-      <canvas id="chart-inativos-reativados"></canvas>
-    </div>
-  </section>
-
-  <!-- Gráfico Status Atual -->
-  <section class="card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Status Atual</h2>
-    </div>
-    <div class="h-72 relative">
-      <canvas id="chart-status"></canvas>
-    </div>
-  </section>
-</div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Gráfico Motivos de Evasão -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Motivos de Evasão</h2>
-        </div>
-        <div class="h-72 relative">
-          <canvas id="chart-motivos"></canvas>
-        </div>
-      </section>
-
-      <!-- Taxa de Reativação por Mês -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Taxa de Reativação por Mês</h2>
-        </div>
-        <div class="h-72 relative">
-          <canvas id="chart-taxa-reativacao"></canvas>
-        </div>
-      </section>
-    </div>
-
-    <!-- Alertas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Clientes sem contato há mais de 30 dias -->
-      <section class="card border-l-4" style="border-left-color: var(--danger);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
-        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-
-      <!-- Previsões de recompra vencidas -->
-      <section class="card border-l-4" style="border-left-color: var(--warning);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
-        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Tabela de clientes -->
-    <section class="card">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
-        <div class="flex items-center">
-          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." class="text-sm px-3 py-1 mr-2">
-          <select id="filtro-tabela-status" class="text-sm px-3 py-1">
-            <option value="">Todos os status</option>
-          </select>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table id="tabela-clientes" class="min-w-full">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>UF</th>
-              <th>Status Principal</th>
-              <th>Status Atual</th>
-              <th>Motivo</th>
-              <th>Último Contato</th>
-              <th>Previsão de Recompra</th>
-            </tr>
-          </thead>
-          <tbody id="corpo-tabela-clientes">
-            <tr>
-              <td colspan="7" class="text-center py-4">Carregando dados...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="flex justify-between items-center mt-4">
-        <div class="text-sm">
-          <span id="total-registros">0</span> registros encontrados
-        </div>
-        <div class="flex items-center">
-          <button id="btn-anterior" class="px-3 py-1 rounded mr-2" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
-          <span id="paginacao" class="text-sm mx-2">Página 1 de 1</span>
-          <button id="btn-proximo" class="px-3 py-1 rounded" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Modal para detalhes do cliente -->
-  <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="max-w-md w-full mx-4 rounded-xl overflow-hidden" style="background-color: var(--card-bg);">
-      <div class="flex justify-between items-center p-4 border-b" style="border-color: var(--border);">
-        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
-        <button id="btn-fechar-modal" class="text-2xl font-bold hover:opacity-70">&times;</button>
-      </div>
-      <div class="p-4" id="modal-conteudo">
-        <p class="text-sm opacity-70">Carregando...</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // ==========================================
-    // CONFIGURAÇÕES INICIAIS
-    // ==========================================
-    
-    // API e configurações
-    const API_BASE = 'https://api.sheetbest.com/sheets/3df5ae52-82a9-4306-aa8b-a9169a254cb2';
-    
-    // Armazenamento global de dados
-    window.dadosClientes = [];
-    window.dadosFiltrados = [];
-    window.abas = [];
-    window.filtros = {
-      status: '',
-      uf: '',
-      dataInicio: null,
-      dataFim: null
-    };
-    
-    // Configuração de paginação da tabela
-    window.paginacao = {
-      paginaAtual: 1,
-      itensPorPagina: 10,
-      totalPaginas: 1
-    };
-    
-    // Mapas para armazenar dados dos gráficos
-    window.mapasGraficos = {
-      inativosVsReativados: {},
-      status: {},
-      motivos: {}
-    };
-    
-    // Tema atual
-    window.temaAtual = localStorage.getItem('tema') || 'dark';
-    document.documentElement.dataset.theme = window.temaAtual;
-    
-    // ==========================================
-    // FUNÇÕES DE UTILIDADE
-    // ==========================================
-    
-    // Converter string de data DD/MM/AAAA para objeto Date
-    function converterStringParaData(dataString) {
-      if (!dataString) return null;
-      
-      // Verifica se já é um objeto Date
-      if (dataString instanceof Date) return dataString;
-      
-      // Tenta converter de DD/MM/AAAA
-      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        const [dia, mes, ano] = dataString.split('/').map(Number);
-        return new Date(ano, mes - 1, dia);
-      }
-      
-      // Tenta converter de YYYY-MM-DD (formato do input date)
-      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return new Date(dataString + 'T00:00:00');
-      }
-      
-      // Para outros formatos, tenta conversão direta
-      const data = new Date(dataString);
-      return isNaN(data) ? null : data;
-    }
-    
-    // Formatar data para exibição (DD/MM/AAAA)
-    function formatarData(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
-      
-      const dia = data.getDate().toString().padStart(2, '0');
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const ano = data.getFullYear();
-      return `${dia}/${mes}/${ano}`;
-    }
-    
-    // Formatar data para o formato ISO (YYYY-MM-DD)
-    function formatarDataISO(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '';
-      
-      const ano = data.getFullYear();
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const dia = data.getDate().toString().padStart(2, '0');
-      return `${ano}-${mes}-${dia}`;
-    }
-    
-    // Calcular dias desde uma data até hoje
-    function diasDesde(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return null;
-      
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const diff = hoje - data;
-      return Math.floor(diff / (1000 * 60 * 60 * 24));
-    }
-    
-    // Extrair mês/ano de uma data para agrupamento
-    function extrairMesAno(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return null;
-      
-      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      return `${meses[data.getMonth()]}/${data.getFullYear()}`;
-    }
-    
-    // Mostrar mensagem de erro
-    function mostrarErro(mensagem, duracao = 5000) {
-      const alerta = document.createElement('div');
-      alerta.className = 'fixed bottom-4 right-4 p-4 rounded-lg z-50 text-white text-sm';
-      alerta.style.backgroundColor = 'var(--danger)';
-      alerta.textContent = mensagem;
-      
-      document.body.appendChild(alerta);
-      
-      setTimeout(() => {
-        alerta.style.opacity = '0';
-        alerta.style.transition = 'opacity 0.5s';
-        
-        setTimeout(() => {
-          document.body.removeChild(alerta);
-        }, 500);
-      }, duracao);
-    }
-    
-    // Alternar visibilidade do loader
-    function toggleLoader(mostrar = true) {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        loader.style.display = mostrar ? 'flex' : 'none';
-      }
-    }
-    
-    // ==========================================
-    // FUNÇÕES DE CARREGAMENTO DE DADOS
-    // ==========================================
-    
-// Obter a lista de abas da planilha (Opção B)
-async function obterListaAbas() {
-  try {
-    const response = await fetch(`${API_BASE}?info=true`);
-    const info = await response.json();
-
-    // Se a API retornar direto um array de registros, força uma "aba vazia"
-    if (Array.isArray(info)) {
-      return [''];
-    }
-    // Caso padrão, quando existe info.sheets
-    if (info && info.sheets) {
-      return info.sheets;
-    }
-    return [];
-  } catch (erro) {
-    console.error('Erro ao obter lista de abas:', erro);
-    mostrarErro('Não foi possível obter a lista de abas da planilha');
-    return [];
-  }
-}
-
-// Carregar dados de uma aba específica (Opção B)
-async function carregarDadosAba(nomeAba) {
-  try {
-    // Se nomeAba for vazio, busca pelo endpoint principal; caso contrário, filtra pela aba
-    const url = nomeAba
-      ? `${API_BASE}?sheet=${nomeAba}`
-      : API_BASE;
-
-    const response = await fetch(url);
-    const dados = await response.json();
-
-    if (Array.isArray(dados) && dados.length > 0) {
-      console.log(`✅ Carregados ${dados.length} registros da aba "${nomeAba || 'principal'}"`);
-      return dados.map(registro => ({
-        Cliente: (registro.Cliente || '').trim(),
-        UF: (registro.UF || '').trim(),
-        Status: (registro['Status Principal'] || '').trim(),
-        Ativo: (registro['Status Atual'] || '').trim(),
-        Motivo: (registro['Motivo do Status'] || '').trim(),
-        Data: converterStringParaData(registro['Último Contato']),
-        ProxContato: converterStringParaData(registro['Próximo Contato']),
-        Recompra: converterStringParaData(registro['Previsão de Recompra']),
-        Aba: nomeAba || registro['Mês de Referência']
-      }));
-    }
-    return [];
-  } catch (erro) {
-    console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
-    mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
-    return [];
-  }
-}
-
-// Carregar todos os dados de todas as abas com conteúdo
-async function carregarTodosDados() {
-  toggleLoader(true);
-  try {
-    const listaAbas = await obterListaAbas();
-    window.abas = listaAbas;
-
-    let dadosCombinados = [];
-    for (const aba of listaAbas) {
-      const dadosAba = await carregarDadosAba(aba);
-      if (dadosAba.length > 0) {
-        dadosCombinados = [...dadosCombinados, ...dadosAba];
-      }
-    }
-
-    // Atualiza data de última atualização
-    const dataAtualizacao = document.getElementById('data-update');
-    if (dataAtualizacao) {
-      const agora = new Date();
-      dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
-    }
-
-    return dadosCombinados;
-  } catch (erro) {
-    console.error('Erro ao carregar todos os dados:', erro);
-    mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
-    return [];
-  } finally {
-    toggleLoader(false);
-  }
-}
-    
-    // ==========================================
-    // FUNÇÕES DE FILTRO E PROCESSAMENTO
-    // ==========================================
-    
-    // Aplicar filtros aos dados
-    function aplicarFiltros(dados, filtros) {
-      return dados.filter(item => {
-        // Filtro de Status
-        if (filtros.status && item.Status !== filtros.status) {
-          return false;
-        }
-        
-        // Filtro de UF
-        if (filtros.uf && item.UF !== filtros.uf) {
-          return false;
-        }
-        
-        // Filtro de Data Início
-        if (filtros.dataInicio && item.Data && item.Data < filtros.dataInicio) {
-          return false;
-        }
-        
-        // Filtro de Data Fim
-        if (filtros.dataFim && item.Data && item.Data > filtros.dataFim) {
-          return false;
-        }
-        
-        return true;
-      });
-    }
-    
-    // Calcular KPIs
-    function calcularKPIs(dados) {
-      const totalInativos = dados.filter(item => item.Status === 'Inativo').length;
-      const totalExClientes = dados.filter(item => item.Status === 'Ex-cliente').length;
-      const totalReativados = dados.filter(item => item.Ativo === 'Reativado').length;
-      
-      // Base para cálculo da taxa de retenção (inativos + ex-clientes)
-      const baseChurn = totalInativos + totalExClientes;
-      
-      // Taxa de retenção (reativados / base de churn)
-      const taxaRetencao = baseChurn > 0 ? Math.round((totalReativados / baseChurn) * 100) : 0;
-      
-      return {
-        totalInativos,
-        totalExClientes,
-        totalReativados,
-        taxaRetencao
-      };
-    }
-    
-    // ==========================================================
-// ===== INÍCIO: BLOCO 08 - agruparPorMes ===================
-// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
-// ==========================================================
-window.__MAP_COLUNAS__ = {
-  mes:  'mesReferencia',        // coluna "Mês de Referência" renomeada
-  dias: 'ultimoPedidoEmDias'    // coluna N renomeada
+// Valores iniciais
+const initialExpenseState = {
+  id: '',
+  date: format(new Date(), 'yyyy-MM-dd'),
+  description: '',
+  category: '',
+  amount: '',
+  type: '',
+  paymentMethod: '',
+  isInstallment: false,
+  installmentCount: 1,
+  person: '',
+  status: 'pendente'
 };
 
-function normalizeDias(raw) {
-  if (raw == null) return null;
-  if (typeof raw === 'number') return raw;
-  if (typeof raw === 'string') {
-    const cleaned = raw.trim().replace(/[^\d.-]/g, '');
-    const n = parseFloat(cleaned);
-    return isNaN(n) ? null : Math.round(n);
-  }
-  return null;
-}
+// Categorias e tipos
+const categories = ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Serviços', 'Vestuário', 'Outros'];
+const types = ['Essencial', 'Variável', 'Supérfluo', 'Dívida', 'Educação', 'Lazer'];
+const paymentMethods = ['Pix', 'Crédito', 'Débito', 'Dinheiro', 'Carnê', 'Boleto', 'Transferência'];
+const people = ['Wagner', 'Bárbara', 'Joaquim', 'Família'];
 
-function diagnosticarDados(dados) {
-  console.groupCollapsed('🩺 DIAGNÓSTICO COMPLETO DOS DADOS');
-  if (!dados.length) { console.error('dados[] vazio'); console.groupEnd(); return; }
-  console.table(Object.keys(dados[0]).map(k => ({
-    coluna: k,
-    tipo:   Object.prototype.toString.call(dados[0][k]).slice(8,-1),
-    exemplo: String(dados[0][k]).slice(0,40)
-  })));
-  console.groupEnd();
-}
+// Funções auxiliares
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(Number(value) || 0);
+};
 
-function agruparPorMes(dados) {
-  console.time('⏱️ agruparPorMes');
-  const { mes, dias } = window.__MAP_COLUNAS__;
-  const cont = {};
+const downloadCSV = (data, filename) => {
+  // Cria cabeçalhos CSV
+  const headers = Object.keys(data[0]).join(',');
+  // Converte cada objeto em uma linha CSV
+  const csvRows = data.map(row => 
+    Object.values(row).map(value => 
+      typeof value === 'string' ? `"${value}"` : value
+    ).join(',')
+  );
+  
+  // Combina cabeçalhos e linhas
+  const csvContent = [headers, ...csvRows].join('\n');
+  
+  // Cria um blob e link para download
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
-  console.log(`🛠️ Agrupando por '${mes}', usando '${dias}'`);
-
-  dados.forEach((row, idx) => {
-    const m = row[mes];
-    if (!m) { console.warn(`#${idx} sem mês`); return; }
-    cont[m] ??= { ex:0, ina:0, rea:0 };
-
-    const raw = row[dias];
-    if (idx < 5) console.log(`Registro #${idx}: rawDias="${raw}"`);
-
-    const v = normalizeDias(raw);
-    if (v == null) { console.warn(`#${idx} dias inválido: "${raw}"`); return; }
-
-    if (v <= 120)      cont[m].rea++;
-    else if (v <= 180) cont[m].ina++;
-    else               cont[m].ex++;
+function App() {
+  // Estado para tema claro/escuro
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode !== null ? JSON.parse(savedMode) : prefersDarkMode;
   });
 
-  const mesesOrdenados = Object.keys(cont).sort((a,b) => {
-    const [mA,yA] = a.split('/'), [mB,yB] = b.split('/');
-    return new Date(`${mA} 1, ${yA}`) - new Date(`${mB} 1, ${yB}`);
+  // Estados para armazenar as despesas e filtros
+  const [expenses, setExpenses] = useState(() => {
+    const savedExpenses = localStorage.getItem('expenses');
+    return savedExpenses ? JSON.parse(savedExpenses) : [];
   });
-
-  console.timeEnd('⏱️ agruparPorMes');
-  return {
-    meses:       mesesOrdenados,
-    exClientes:  mesesOrdenados.map(m => cont[m].ex),
-    inativos:    mesesOrdenados.map(m => cont[m].ina),
-    reativados:  mesesOrdenados.map(m => cont[m].rea)
-  };
-}
-// ==========================================================
-// ===== FIM: BLOCO 08 - agruparPorMes ======================
-// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
-// ==========================================================
- 
-    // Agrupar por status atual para gráfico de pizza
-    function agruparPorStatus(dados) {
-      const statusCount = {};
-      
-      dados.forEach(item => {
-        if (item.Ativo) {
-          statusCount[item.Ativo] = (statusCount[item.Ativo] || 0) + 1;
-        }
-      });
-      
-      return statusCount;
-    }
-    
-    // Agrupar por motivo para gráfico de pizza
-    function agruparPorMotivo(dados) {
-      const motivoCount = {};
-      
-      dados.forEach(item => {
-        if (item.Motivo) {
-          motivoCount[item.Motivo] = (motivoCount[item.Motivo] || 0) + 1;
-        }
-      });
-      
-      return motivoCount;
-    }
-    
-    // Calcular taxa de reativação por mês
-    function calcularTaxaReativacaoPorMes(dados) {
-      const meses = {};
-      
-      dados.forEach(item => {
-        if (!item.Data) return;
-        
-        const mesAno = extrairMesAno(item.Data);
-        if (!mesAno) return;
-        
-        if (!meses[mesAno]) {
-          meses[mesAno] = { inativos: 0, reativados: 0 };
-        }
-        
-        // Contagem de inativos e ex-clientes
-        if (item.Status === 'Inativo' || item.Status === 'Ex-cliente') {
-          meses[mesAno].inativos++;
-        }
-        
-        // Contagem de reativados
-        if (item.Ativo === 'Reativado') {
-          meses[mesAno].reativados++;
-        }
-      });
-      
-      // Calcula as taxas para cada mês
-      const mesesOrdenados = Object.keys(meses).sort();
-      const taxas = mesesOrdenados.map(mes => {
-        const { inativos, reativados } = meses[mes];
-        return inativos > 0 ? (reativados / inativos) * 100 : 0;
-      });
-      
-      return {
-        meses: mesesOrdenados,
-        taxas
-      };
-    }
-    
-    // Identificar clientes sem contato há mais de 30 dias
-    function identificarClientesSemContato(dados) {
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      
-      return dados.filter(item => {
-        if (!item.Data) return false;
-        
-        const dias = diasDesde(item.Data);
-        return dias > 30;
-      }).sort((a, b) => {
-        if (!a.Data) return 1;
-        if (!b.Data) return -1;
-        return a.Data - b.Data; // Mais antigos primeiro
-      });
-    }
-    
-    // Identificar previsões de recompra vencidas
-    function identificarPrevisoesVencidas(dados) {
-      const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      
-      return dados.filter(item => {
-        if (!item.Recompra) return false;
-        
-        // Verifica se a data de recompra já passou e o cliente não foi reativado
-        return item.Recompra < hoje && item.Ativo !== 'Reativado';
-      }).sort((a, b) => {
-        if (!a.Recompra) return 1;
-        if (!b.Recompra) return -1;
-        return a.Recompra - b.Recompra; // Mais antigos primeiro
-      });
-    }
-    
-    // ==========================================
-    // FUNÇÕES DE VISUALIZAÇÃO
-    // ==========================================
-    
-    // Atualizar os KPIs
-    function atualizarKPIs(kpis) {
-      document.getElementById('count-inativos').textContent = kpis.totalInativos;
-      document.getElementById('count-exclientes').textContent = kpis.totalExClientes;
-      document.getElementById('count-reativacoes').textContent = kpis.totalReativados;
-      document.getElementById('count-retencao').textContent = `${kpis.taxaRetencao}%`;
-    }
-    
-    // === Função ajustada para deixar os campos vazios ===
-function inicializarFiltros() {
-  // Limpa os campos de data
-  document.getElementById('filter-from').value = '';
-  document.getElementById('filter-to').value   = '';
-
-  // Zera as datas nos filtros
-  window.filtros.dataInicio = null;
-  window.filtros.dataFim    = null;
-}
-    
-    // Popular os dropdowns de filtro
-    function popularFiltros(dados) {
-      const selectStatus = document.getElementById('filter-status');
-      const selectUF = document.getElementById('filter-uf');
-      const selectStatusTabela = document.getElementById('filtro-tabela-status');
-      
-      // Limpar opções existentes
-      selectStatus.innerHTML = '<option value="">Todos</option>';
-      selectUF.innerHTML = '<option value="">Todas</option>';
-      selectStatusTabela.innerHTML = '<option value="">Todos os status</option>';
-      
-      // Extrair valores únicos
-      const status = [...new Set(dados.map(item => item.Status).filter(Boolean))].sort();
-      const ufs = [...new Set(dados.map(item => item.UF).filter(Boolean))].sort();
-      const statusAtuais = [...new Set(dados.map(item => item.Ativo).filter(Boolean))].sort();
-      
-      // Adicionar opções
-      status.forEach(s => {
-        const option = document.createElement('option');
-        option.value = s;
-        option.textContent = s;
-        selectStatus.appendChild(option);
-      });
-      
-      ufs.forEach(uf => {
-        const option = document.createElement('option');
-        option.value = uf;
-        option.textContent = uf;
-        selectUF.appendChild(option);
-      });
-      
-      statusAtuais.forEach(s => {
-        const option = document.createElement('option');
-        option.value = s;
-        option.textContent = s;
-        selectStatusTabela.appendChild(option);
-      });
-    }
-
-    // ==========================================================
-// ===== INÍCIO: BLOCO 07 - desenharGraficoInativosReativados =
-// ===== EXCLUA A PARTIR DAQUI SE PRECISAR TROCAR ESSE BLOCO
-// ==========================================================
-function desenharGraficoInativosReativados(dados) {
-  /* ---------- DIAGNÓSTICO INICIAL ---------- */
-  diagnosticarDados(dados);
-
-  console.groupCollapsed('🏁 Iniciando desenho do gráfico');
-
-  if (!Array.isArray(dados) || dados.length === 0) {
-    console.error('🛑 dados[] vazio – nada a processar');
-    console.groupEnd();
-    return;
-  }
-
-  const MAP = window.__MAP_COLUNAS__;
-  const faltaColuna = [MAP.mes, MAP.dias].some(c => !Object.keys(dados[0]).includes(c));
-  if (faltaColuna) {
-    console.error('🛑 Cabeçalhos mapeados não batem com o objeto recebido', MAP);
-    console.table(Object.keys(dados[0]));
-    console.groupEnd();
-    return;
-  }
-
-  /* ---------- agrupamento ---------- */
-  const dadosAgrupados = agruparPorMes(dados);
-
-  const temDados =
-       dadosAgrupados.exClientes.some(v => v > 0) ||
-       dadosAgrupados.inativos.some(v => v > 0) ||
-       dadosAgrupados.reativados.some(v => v > 0);
-
-  if (!temDados) {
-    console.warn('⚠️  Não há valores > 0 para plotar');
-    console.groupEnd();
-    return;
-  }
-
-  /* ---------- plot ---------- */
-  const ctx = document
-    .getElementById('chart-inativos-reativados')
-    .getContext('2d');
-
-  if (window.graficoInativosReativados) {
-    window.graficoInativosReativados.destroy();
-  }
-
-  window.graficoInativosReativados = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: dadosAgrupados.meses,
-      datasets: [
-        { label: 'Ex‑clientes', data: dadosAgrupados.exClientes, backgroundColor: '#ff9800' },
-        { label: 'Inativos',     data: dadosAgrupados.inativos,   backgroundColor: '#4caf50' },
-        { label: 'Reativados',   data: dadosAgrupados.reativados, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() }
-      ]
+  
+  const [newExpense, setNewExpense] = useState(initialExpenseState);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  
+  // Estados para navegação de data
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // Estado para filtros
+  const [filters, setFilters] = useState({
+    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
+    endDate: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
+    category: '',
+    type: '',
+    paymentMethod: '',
+    person: '',
+    minAmount: '',
+    maxAmount: '',
+  });
+  
+  // Estado para abas
+  const [tabValue, setTabValue] = useState(0);
+  
+  // Menu de exportação
+  const [exportAnchorEl, setExportAnchorEl] = useState(null);
+  
+  // Tema baseado no modo claro/escuro
+  const theme = useMemo(() => createTheme({
+    palette: {
+      mode: darkMode ? 'dark' : 'light',
+      primary: {
+        main: '#4285F4', // Google Blue
+        dark: '#3367d6',
+        light: '#5e97f6'
+      },
+      secondary: {
+        main: '#0F9D58', // Google Green
+      },
+      error: {
+        main: '#DB4437', // Google Red
+      },
+      warning: {
+        main: '#F4B400', // Google Yellow
+      },
+      background: {
+        default: darkMode ? '#121212' : '#F5F5F5',
+        paper: darkMode ? '#1e1e1e' : '#FFFFFF',
+      },
     },
-    options: {
+    typography: {
+      fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif'
+    },
+    components: {
+      MuiCard: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
+            boxShadow: darkMode 
+              ? '0 4px 20px 0 rgba(0,0,0,0.5)' 
+              : '0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15)',
+          }
+        }
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8,
+            textTransform: 'none',
+            fontWeight: 500
+          }
+        }
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 8
+          }
+        }
+      }
+    }
+  }), [darkMode]);
+  
+  // Salvar despesas no localStorage quando o estado mudar
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }, [expenses]);
+  
+  // Salvar preferência de tema
+  useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+  
+  // Filtrar despesas com base nos critérios atuais
+  const filteredExpenses = useMemo(() => {
+    return expenses.filter(expense => {
+      const expenseDate = parseISO(expense.date);
+      const startDate = filters.startDate ? parseISO(filters.startDate) : null;
+      const endDate = filters.endDate ? parseISO(filters.endDate) : null;
+      
+      // Verificar data
+      const dateMatch = !startDate || !endDate || isWithinInterval(expenseDate, { start: startDate, end: endDate });
+      
+      // Verificar categoria
+      const categoryMatch = !filters.category || expense.category === filters.category;
+      
+      // Verificar tipo
+      const typeMatch = !filters.type || expense.type === filters.type;
+      
+      // Verificar método de pagamento
+      const paymentMatch = !filters.paymentMethod || expense.paymentMethod === filters.paymentMethod;
+      
+      // Verificar pessoa
+      const personMatch = !filters.person || expense.person === filters.person;
+      
+      // Verificar valor mínimo
+      const minAmountMatch = !filters.minAmount || Number(expense.amount) >= Number(filters.minAmount);
+      
+      // Verificar valor máximo
+      const maxAmountMatch = !filters.maxAmount || Number(expense.amount) <= Number(filters.maxAmount);
+      
+      return dateMatch && categoryMatch && typeMatch && paymentMatch && personMatch && minAmountMatch && maxAmountMatch;
+    });
+  }, [expenses, filters]);
+  
+  // Calcular KPIs
+  const kpis = useMemo(() => {
+    // Total do mês
+    const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+    
+    // Média por dia (se houver pelo menos uma despesa)
+    const startDate = parseISO(filters.startDate);
+    const endDate = parseISO(filters.endDate);
+    const daysInPeriod = filteredExpenses.length > 0 
+      ? eachDayOfInterval({ start: startDate, end: endDate }).length 
+      : 1;
+    const average = total / daysInPeriod;
+    
+    // Categoria mais cara
+    const categoryTotals = {};
+    filteredExpenses.forEach(expense => {
+      const category = expense.category || 'Sem categoria';
+      categoryTotals[category] = (categoryTotals[category] || 0) + Number(expense.amount);
+    });
+    
+    let topCategory = 'Nenhuma';
+    let topCategoryAmount = 0;
+    
+    Object.entries(categoryTotals).forEach(([category, amount]) => {
+      if (amount > topCategoryAmount) {
+        topCategory = category;
+        topCategoryAmount = amount;
+      }
+    });
+    
+    // Pessoa que mais gastou
+    const personTotals = {};
+    filteredExpenses.forEach(expense => {
+      const person = expense.person || 'Não especificado';
+      personTotals[person] = (personTotals[person] || 0) + Number(expense.amount);
+    });
+    
+    let topSpender = 'Ninguém';
+    let topSpenderAmount = 0;
+    
+    Object.entries(personTotals).forEach(([person, amount]) => {
+      if (amount > topSpenderAmount) {
+        topSpender = person;
+        topSpenderAmount = amount;
+      }
+    });
+    
+    // Projeção para o final do mês (baseada na média diária)
+    const daysInMonth = eachDayOfInterval({ 
+      start: startOfMonth(currentMonth), 
+      end: endOfMonth(currentMonth) 
+    }).length;
+    
+    const projection = average * daysInMonth;
+    
+    return {
+      total,
+      average,
+      topCategory,
+      topSpender,
+      projection
+    };
+  }, [filteredExpenses, filters.startDate, filters.endDate, currentMonth]);
+  
+  // Dados para os gráficos
+  const chartData = useMemo(() => {
+    // Dados para o gráfico de linha (despesas ao longo do tempo)
+    const dateLabels = eachDayOfInterval({
+      start: parseISO(filters.startDate),
+      end: parseISO(filters.endDate)
+    }).map(date => format(date, 'dd/MM'));
+    
+    const dailyExpenses = dateLabels.map(dateLabel => {
+      const day = dateLabel.split('/')[0];
+      const month = dateLabel.split('/')[1];
+      
+      // Somar todas as despesas deste dia
+      return filteredExpenses
+        .filter(exp => {
+          const expDate = format(parseISO(exp.date), 'dd/MM');
+          return expDate === dateLabel;
+        })
+        .reduce((sum, exp) => sum + Number(exp.amount), 0);
+    });
+    
+    // Dados para o gráfico de pizza (por tipo)
+    const typeLabels = types;
+    const typeData = typeLabels.map(type => {
+      return filteredExpenses
+        .filter(exp => exp.type === type)
+        .reduce((sum, exp) => sum + Number(exp.amount), 0);
+    });
+    
+    // Dados para o gráfico de barras (por categoria)
+    const categoryLabels = categories;
+    const categoryData = categoryLabels.map(category => {
+      return filteredExpenses
+        .filter(exp => exp.category === category)
+        .reduce((sum, exp) => sum + Number(exp.amount), 0);
+    });
+    
+    // Dados para o gráfico de pessoas
+    const peopleLabels = people;
+    const peopleData = peopleLabels.map(person => {
+      return filteredExpenses
+        .filter(exp => exp.person === person)
+        .reduce((sum, exp) => sum + Number(exp.amount), 0);
+    });
+    
+    return {
+      line: {
+        labels: dateLabels,
+        datasets: [{
+          label: 'Despesas',
+          data: dailyExpenses,
+          fill: false,
+          borderColor: '#4285F4',
+          backgroundColor: 'rgba(66, 133, 244, 0.2)',
+          tension: 0.4,
+          pointRadius: 3,
+          pointBackgroundColor: '#4285F4',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 1,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: '#3367d6',
+          fill: true
+        }]
+      },
+      pie: {
+        labels: typeLabels,
+        datasets: [{
+          data: typeData,
+          backgroundColor: [
+            'rgba(66, 133, 244, 0.8)',   // Google Blue
+            'rgba(219, 68, 55, 0.8)',    // Google Red
+            'rgba(244, 180, 0, 0.8)',    // Google Yellow
+            'rgba(15, 157, 88, 0.8)',    // Google Green
+            'rgba(138, 78, 222, 0.8)',   // Purple
+            'rgba(255, 109, 0, 0.8)'     // Orange
+          ],
+          borderColor: darkMode ? '#1e1e1e' : '#fff',
+          borderWidth: 2
+        }]
+      },
+      bar: {
+        labels: categoryLabels,
+        datasets: [{
+          label: 'Gastos por Categoria',
+          data: categoryData,
+          backgroundColor: 'rgba(66, 133, 244, 0.7)',
+          borderColor: '#4285F4',
+          borderWidth: 1,
+          borderRadius: 8,
+          hoverBackgroundColor: '#3367d6'
+        }]
+      },
+      people: {
+        labels: peopleLabels,
+        datasets: [{
+          label: 'Gastos por Pessoa',
+          data: peopleData,
+          backgroundColor: [
+            'rgba(66, 133, 244, 0.8)',   // Wagner
+            'rgba(219, 68, 55, 0.8)',    // Bárbara
+            'rgba(244, 180, 0, 0.8)',    // Joaquim
+            'rgba(15, 157, 88, 0.8)'     // Família
+          ],
+          borderColor: darkMode ? '#1e1e1e' : '#fff',
+          borderWidth: 2
+        }]
+      }
+    };
+  }, [filteredExpenses, filters.startDate, filters.endDate, darkMode]);
+  
+  // Opções para os gráficos
+  const chartOptions = {
+    line: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+          titleColor: darkMode ? '#fff' : '#333', 
+          bodyColor: darkMode ? '#fff' : '#333',
+          borderColor: darkMode ? '#444' : '#ddd',
+          borderWidth: 1,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return formatCurrency(context.raw);
+            }
+          }
+        }
+      },
       scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.1)' } }
+        x: {
+          grid: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            color: darkMode ? '#aaa' : '#666',
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 10
+          }
+        },
+        y: {
+          grid: {
+            color: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            drawBorder: false
+          },
+          ticks: {
+            color: darkMode ? '#aaa' : '#666',
+            callback: function(value) {
+              return formatCurrency(value);
+            }
+          }
+        }
+      }
+    },
+    pie: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            boxWidth: 15,
+            padding: 15,
+            color: darkMode ? '#ddd' : '#555'
+          }
+        },
+        tooltip: {
+          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+          titleColor: darkMode ? '#fff' : '#333', 
+          bodyColor: darkMode ? '#fff' : '#333',
+          borderColor: darkMode ? '#444' : '#ddd',
+          borderWidth: 1,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = formatCurrency(context.raw);
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((context.raw / total) * 100);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    },
+    bar: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+          titleColor: darkMode ? '#fff' : '#333', 
+          bodyColor: darkMode ? '#fff' : '#333',
+          borderColor: darkMode ? '#444' : '#ddd',
+          borderWidth: 1,
+          callbacks: {
+            label: function(context) {
+              return formatCurrency(context.raw);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false,
+            drawBorder: false
+          },
+          ticks: {
+            color: darkMode ? '#aaa' : '#666'
+          }
+        },
+        y: {
+          grid: {
+            color: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+            drawBorder: false
+          },
+          ticks: {
+            color: darkMode ? '#aaa' : '#666',
+            callback: function(value) {
+              return formatCurrency(value);
+            }
+          }
+        }
+      }
+    },
+    people: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            boxWidth: 15,
+            padding: 15,
+            color: darkMode ? '#ddd' : '#555'
+          }
+        },
+        tooltip: {
+          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+          titleColor: darkMode ? '#fff' : '#333', 
+          bodyColor: darkMode ? '#fff' : '#333',
+          borderColor: darkMode ? '#444' : '#ddd',
+          borderWidth: 1,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = formatCurrency(context.raw);
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((context.raw / total) * 100);
+              return `${label}: ${value} (${percentage}%)`;
+            }
+          }
+        }
       }
     }
-  });
-
-  console.info('✅ Gráfico criado');
-  console.groupEnd();
+  };
+  
+  // Funções para navegação de mês
+  const nextMonth = () => {
+    const next = addMonths(currentMonth, 1);
+    setCurrentMonth(next);
+    setFilters({
+      ...filters,
+      startDate: format(startOfMonth(next), 'yyyy-MM-dd'),
+      endDate: format(endOfMonth(next), 'yyyy-MM-dd')
+    });
+  };
+  
+  const prevMonth = () => {
+    const prev = subMonths(currentMonth, 1);
+    setCurrentMonth(prev);
+    setFilters({
+      ...filters,
+      startDate: format(startOfMonth(prev), 'yyyy-MM-dd'),
+      endDate: format(endOfMonth(prev), 'yyyy-MM-dd')
+    });
+  };
+  
+  // Funções para abrir/fechar o diálogo
+  const handleOpenDialog = () => {
+    setNewExpense(initialExpenseState);
+    setEditMode(false);
+    setDialogOpen(true);
+  };
+  
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedExpense(null);
+  };
+  
+  // Função para lidar com alterações de campos
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (type === 'checkbox') {
+      setNewExpense(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setNewExpense(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  
+  // Função para enviar o formulário
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const expenseData = {
+      ...newExpense,
+      id: editMode ? selectedExpense.id : generateId(),
+      amount: Number(newExpense.amount) || 0
+    };
+    
+    if (editMode) {
+      // Atualizar despesa existente
+      setExpenses(prev => prev.map(expense => 
+        expense.id === selectedExpense.id ? expenseData : expense
+      ));
+      setSnackbar({
+        open: true, 
+        message: 'Despesa atualizada com sucesso!', 
+        severity: 'success'
+      });
+    } else {
+      // Adicionar nova despesa
+      setExpenses(prev => [...prev, expenseData]);
+      setSnackbar({
+        open: true, 
+        message: 'Despesa adicionada com sucesso!', 
+        severity: 'success'
+      });
+    }
+    
+    handleCloseDialog();
+  };
+  
+  // Função para editar uma despesa
+  const handleEditExpense = (expense) => {
+    setSelectedExpense(expense);
+    setNewExpense(expense);
+    setEditMode(true);
+    setDialogOpen(true);
+  };
+  
+  // Função para excluir uma despesa
+  const handleDeleteExpense = (id) => {
+    setExpenses(prev => prev.filter(expense => expense.id !== id));
+    setSnackbar({
+      open: true, 
+      message: 'Despesa excluída com sucesso!', 
+      severity: 'success'
+    });
+  };
+  
+  // Função para lidar com alterações nos filtros
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Função para aplicar os filtros atuais
+  const applyFilters = () => {
+    setDrawerOpen(false);
+  };
+  
+  // Função para redefinir os filtros
+  const resetFilters = () => {
+    setFilters({
+      startDate: format(startOfMonth(currentMonth), 'yyyy-MM-dd'),
+      endDate: format(endOfMonth(currentMonth), 'yyyy-MM-dd'),
+      category: '',
+      type: '',
+      paymentMethod: '',
+      person: '',
+      minAmount: '',
+      maxAmount: '',
+    });
+    setDrawerOpen(false);
+  };
+  
+  // Funções para exportação
+  const handleExportClick = (event) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+  
+  const handleExportClose = () => {
+    setExportAnchorEl(null);
+  };
+  
+  const handleExportCSV = () => {
+    downloadCSV(filteredExpenses, `financas-familia-${format(currentMonth, 'MMM-yyyy')}.csv`);
+    handleExportClose();
+    setSnackbar({
+      open: true, 
+      message: 'Relatório CSV exportado com sucesso!', 
+      severity: 'success'
+    });
+  };
+  
+  // Função para fechar o Snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar(prev => ({
+      ...prev,
+      open: false
+    }));
+  };
+  
+  // Função para alternar entre abas
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+  
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        {/* AppBar */}
+        <AppBar 
+          position="sticky" 
+          elevation={0}
+          sx={{ 
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton 
+                edge="start" 
+                color="inherit" 
+                onClick={() => setDrawerOpen(true)}
+                sx={{ mr: 2 }}
+              >
+                <FilterListIcon />
+              </IconButton>
+              <Typography variant="h6" noWrap component="div">
+                Vida Financeira da Família
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <IconButton onClick={prevMonth}>
+                  <ChevronLeftIcon />
+                </IconButton>
+                <Typography variant="body1" sx={{ minWidth: 100, textAlign: 'center' }}>
+                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                </Typography>
+                <IconButton onClick={nextMonth}>
+                  <ChevronRightIcon />
+                </IconButton>
+              </Box>
+              <IconButton onClick={() => setDarkMode(!darkMode)}>
+                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<DownloadIcon />}
+                  onClick={handleExportClick}
+                  sx={{ mr: 1 }}
+                >
+                  Exportar
+                </Button>
+              </Box>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleOpenDialog}
+              >
+                Nova Despesa
+              </Button>
+            </Box>
+          </Toolbar>
+        </AppBar>
+        
+        {/* Menu de Exportação */}
+        <Menu
+          anchorEl={exportAnchorEl}
+          open={Boolean(exportAnchorEl)}
+          onClose={handleExportClose}
+        >
+          <MenuItem onClick={handleExportCSV}>
+            Exportar para CSV
+          </MenuItem>
+        </Menu>
+        
+        {/* Drawer de Filtros */}
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+        >
+          <Box
+            sx={{ width: 300 }}
+            role="presentation"
+          >
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              p: 2, 
+              borderBottom: `1px solid ${theme.palette.divider}` 
+            }}>
+              <Typography variant="h6">Filtros</Typography>
+              <IconButton onClick={() => setDrawerOpen(false)}>
+                <MenuOpenIcon />
+              </IconButton>
+            </Box>
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Período</Typography>
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                  <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
+                    <DatePicker
+  label="Data Inicial"
+  value={parseISO(filters.startDate)}
+  onChange={(newValue) => {
+    if (newValue) {
+      setFilters(prev => ({
+        ...prev,
+        startDate: format(newValue, 'yyyy-MM-dd')
+      }));
+    }
+  }}
+  renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+/>
+                    <DatePicker
+                        label="Data Final"
+                        value={parseISO(filters.endDate)}
+                        onChange={(newValue) => {
+                          if (newValue) {
+                            setFilters(prev => ({
+                              ...prev,
+                              endDate: format(newValue, 'yyyy-MM-dd')
+                            }));
+                          }
+                        }}
+                        renderInput={(params) => <TextField {...params} fullWidth size="small" />}
+                    />
+                  </Box>
+                </LocalizationProvider>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Categoria</Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    name="category"
+                    value={filters.category}
+                    onChange={handleFilterChange}
+                    displayEmpty
+                  >
+                    <MenuItem value="">Todas</MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category} value={category}>{category}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Tipo</Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    name="type"
+                    value={filters.type}
+                    onChange={handleFilterChange}
+                    displayEmpty
+                  >
+                    <MenuItem value="">Todos</MenuItem>
+                    {types.map((type) => (
+                      <MenuItem key={type} value={type}>{type}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Forma de Pagamento</Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    name="paymentMethod"
+                    value={filters.paymentMethod}
+                    onChange={handleFilterChange}
+                    displayEmpty
+                  >
+                    <MenuItem value="">Todas</MenuItem>
+                    {paymentMethods.map((method) => (
+                      <MenuItem key={method} value={method}>{method}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Pessoa</Typography>
+                <FormControl fullWidth size="small">
+                  <Select
+                    name="person"
+                    value={filters.person}
+                    onChange={handleFilterChange}
+                    displayEmpty
+                  >
+                    <MenuItem value="">Todas</MenuItem>
+                    {people.map((person) => (
+                      <MenuItem key={person} value={person}>{person}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+              
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Valor</Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    name="minAmount"
+                    label="Mínimo"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={filters.minAmount}
+                    onChange={handleFilterChange}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                    }}
+                  />
+                  <TextField
+                    name="maxAmount"
+                    label="Máximo"
+                    type="number"
+                    size="small"
+                    fullWidth
+                    value={filters.maxAmount}
+                    onChange={handleFilterChange}
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                    }}
+                  />
+                </Box>
+              </Box>
+              
+              <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+                <Button 
+                  variant="outlined" 
+                  fullWidth
+                  onClick={resetFilters}
+                >
+                  Limpar
+                </Button>
+                <Button 
+                  variant="contained" 
+                  color="primary" 
+                  fullWidth
+                  onClick={applyFilters}
+                >
+                  Aplicar
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Drawer>
+        
+        {/* Conteúdo Principal */}
+        <Container maxWidth="xl" sx={{ py: 4, flexGrow: 1 }}>
+          {/* KPIs */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total do Período
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {formatCurrency(kpis.total)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Média por Dia
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {formatCurrency(kpis.average)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Categoria Principal
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {kpis.topCategory}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ height: '100%' }}>
+                <CardContent>
+                  <Typography color="textSecondary" gutterBottom>
+                    Projeção Mensal
+                  </Typography>
+                  <Typography variant="h4" component="div">
+                    {formatCurrency(kpis.projection)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+          
+          {/* Abas para diferentes visualizações */}
+          <Paper sx={{ mb: 4 }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleTabChange}
+              variant="scrollable"
+              scrollButtons="auto"
+              sx={{ borderBottom: 1, borderColor: 'divider' }}
+            >
+              <Tab icon={<DashboardIcon />} label="Dashboard" />
+              <Tab icon={<AttachMoneyIcon />} label="Despesas" />
+              <Tab icon={<PersonIcon />} label="Por Pessoa" />
+            </Tabs>
+          </Paper>
+          
+          {/* Conteúdo da aba de Dashboard */}
+          {tabValue === 0 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', minHeight: 400 }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Despesas ao Longo do Tempo
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <Line data={chartData.line} options={chartOptions.line} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', minHeight: 400 }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Distribuição por Tipo
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <Doughnut data={chartData.pie} options={chartOptions.pie} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', minHeight: 400 }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Gastos por Categoria
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <Bar data={chartData.bar} options={chartOptions.bar} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ height: '100%', minHeight: 400 }}>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>
+                      Gastos por Pessoa
+                    </Typography>
+                    <Box sx={{ height: 300 }}>
+                      <Pie data={chartData.people} options={chartOptions.people} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+          
+          {/* Conteúdo da aba de Despesas */}
+          {tabValue === 1 && (
+            <Card>
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Lista de Despesas
+                </Typography>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Data</TableCell>
+                        <TableCell>Descrição</TableCell>
+                        <TableCell>Categoria</TableCell>
+                        <TableCell>Tipo</TableCell>
+                        <TableCell>Pessoa</TableCell>
+                        <TableCell align="right">Valor</TableCell>
+                        <TableCell>Pagamento</TableCell>
+                        <TableCell>Ações</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredExpenses.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} align="center">
+                            Nenhuma despesa encontrada para os filtros atuais.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredExpenses.map((expense) => (
+                          <TableRow key={expense.id}>
+                            <TableCell>{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
+                            <TableCell>{expense.description || 'Sem descrição'}</TableCell>
+                            <TableCell>
+                              {expense.category ? (
+                                <Chip 
+                                  label={expense.category} 
+                                  size="small" 
+                                  sx={{ 
+                                    backgroundColor: expense.category === 'Moradia' ? 'rgba(66, 133, 244, 0.1)' :
+                                                    expense.category === 'Alimentação' ? 'rgba(219, 68, 55, 0.1)' :
+                                                    expense.category === 'Transporte' ? 'rgba(244, 180, 0, 0.1)' :
+                                                    expense.category === 'Lazer' ? 'rgba(15, 157, 88, 0.1)' :
+                                                    'rgba(66, 133, 244, 0.1)',
+                                    color: expense.category === 'Moradia' ? '#4285F4' :
+                                           expense.category === 'Alimentação' ? '#DB4437' :
+                                           expense.category === 'Transporte' ? '#F4B400' :
+                                           expense.category === 'Lazer' ? '#0F9D58' :
+                                           '#4285F4',
+                                  }}
+                                />
+                              ) : (
+                                'Não especificada'
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {expense.type ? (
+                                <Chip 
+                                  label={expense.type} 
+                                  size="small" 
+                                  sx={{ 
+                                    backgroundColor: expense.type === 'Essencial' ? 'rgba(15, 157, 88, 0.1)' :
+                                                    expense.type === 'Variável' ? 'rgba(66, 133, 244, 0.1)' :
+                                                    expense.type === 'Supérfluo' ? 'rgba(219, 68, 55, 0.1)' :
+                                                    expense.type === 'Dívida' ? 'rgba(244, 180, 0, 0.1)' :
+                                                    'rgba(66, 133, 244, 0.1)',
+                                    color: expense.type === 'Essencial' ? '#0F9D58' :
+                                           expense.type === 'Variável' ? '#4285F4' :
+                                           expense.type === 'Supérfluo' ? '#DB4437' :
+                                           expense.type === 'Dívida' ? '#F4B400' :
+                                           '#4285F4',
+                                  }}
+                                />
+                              ) : (
+                                'Não especificado'
+                              )}
+                            </TableCell>
+                            <TableCell>{expense.person || 'Não especificada'}</TableCell>
+                            <TableCell align="right">{formatCurrency(expense.amount)}</TableCell>
+                            <TableCell>{expense.paymentMethod || 'Não especificado'}</TableCell>
+                            <TableCell>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleEditExpense(expense)}
+                                color="primary"
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDeleteExpense(expense.id)}
+                                color="error"
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* Conteúdo da aba Por Pessoa */}
+          {tabValue === 2 && (
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card sx={{ minHeight: 500 }}>
+                  <CardContent>
+                    <Typography variant="h6" sx={{ mb: 2 }}>
+                      Gastos por Membro da Família
+                    </Typography>
+                    <Box sx={{ height: 400 }}>
+                      <Pie data={chartData.people} options={chartOptions.people} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              {people.map(person => {
+                const personExpenses = filteredExpenses.filter(e => e.person === person);
+                const total = personExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
+                
+                if (personExpenses.length === 0) return null;
+                
+                return (
+                  <Grid item xs={12} md={6} key={person}>
+                    <Card>
+                      <CardContent>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                          {person} - {formatCurrency(total)}
+                        </Typography>
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell>Data</TableCell>
+                                <TableCell>Descrição</TableCell>
+                                <TableCell>Categoria</TableCell>
+                                <TableCell align="right">Valor</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {personExpenses.map(expense => (
+                                <TableRow key={expense.id}>
+                                  <TableCell>{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
+                                  <TableCell>{expense.description || 'Sem descrição'}</TableCell>
+                                  <TableCell>{expense.category || 'Não especificada'}</TableCell>
+                                  <TableCell align="right">{formatCurrency(expense.amount)}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
+        </Container>
+        
+        {/* Diálogo para adicionar/editar despesa */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+          <DialogTitle>
+            {editMode ? 'Editar Despesa' : 'Nova Despesa'}
+          </DialogTitle>
+          <DialogContent>
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                    <DatePicker
+                      label="Data"
+                      value={parseISO(newExpense.date)}
+                      onChange={(newValue) => {
+                        if (newValue) {
+                          setNewExpense(prev => ({
+                            ...prev,
+                            date: format(newValue, 'yyyy-MM-dd')
+                          }));
+                        }
+                      }}
+                      renderInput={(params) => <TextField {...params} fullWidth />}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    name="description"
+                    label="Descrição"
+                    value={newExpense.description}
+                    onChange={handleInputChange}
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Categoria</InputLabel>
+                    <Select
+                      name="category"
+                      value={newExpense.category}
+                      onChange={handleInputChange}
+                      label="Categoria"
+                    >
+                      <MenuItem value="">
+                        <em>Nenhuma</em>
+                      </MenuItem>
+                      {categories.map((category) => (
+                        <MenuItem key={category} value={category}>
+                          {category}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    name="amount"
+                    label="Valor (R$)"
+                    type="number"
+                    value={newExpense.amount}
+                    onChange={handleInputChange}
+                    fullWidth
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Tipo</InputLabel>
+                    <Select
+                      name="type"
+                      value={newExpense.type}
+                      onChange={handleInputChange}
+                      label="Tipo"
+                    >
+                      <MenuItem value="">
+                        <em>Nenhum</em>
+                      </MenuItem>
+                      {types.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Forma de Pagamento</InputLabel>
+                    <Select
+                      name="paymentMethod"
+                      value={newExpense.paymentMethod}
+                      onChange={handleInputChange}
+                      label="Forma de Pagamento"
+                    >
+                      <MenuItem value="">
+                        <em>Nenhuma</em>
+                      </MenuItem>
+                      {paymentMethods.map((method) => (
+                        <MenuItem key={method} value={method}>
+                          {method}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name="isInstallment"
+                        checked={newExpense.isInstallment}
+                        onChange={handleInputChange}
+                      />
+                    }
+                    label="Pagamento Parcelado"
+                  />
+                </Grid>
+                {newExpense.isInstallment && (
+                  <Grid item xs={12}>
+                    <TextField
+                      name="installmentCount"
+                      label="Número de Parcelas"
+                      type="number"
+                      value={newExpense.installmentCount}
+                      onChange={handleInputChange}
+                      fullWidth
+                    />
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel>Pessoa</InputLabel>
+                    <Select
+                      name="person"
+                      value={newExpense.person}
+                      onChange={handleInputChange}
+                      label="Pessoa"
+                    >
+                      <MenuItem value="">
+                        <em>Nenhuma</em>
+                      </MenuItem>
+                      {people.map((person) => (
+                        <MenuItem key={person} value={person}>
+                          {person}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancelar</Button>
+            <Button variant="contained" color="primary" onClick={handleSubmit}>
+              {editMode ? 'Atualizar' : 'Adicionar'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+        
+        {/* Snackbar para mensagens de feedback */}
+        <Snackbar 
+          open={snackbar.open} 
+          autoHideDuration={4000} 
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity={snackbar.severity} 
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    </ThemeProvider>
+  );
 }
-// ==========================================================
-// ===== FIM: BLOCO 07 - desenharGraficoInativosReativados ===
-// ===== NÃO EDITE NADA ABAIXO DESSE PONTO NESSE BLOCO ======
-// ==========================================================
-   
-    // Desenhar gráfico de status (rosca)
-    function desenharGraficoStatus(dados) {
-      const ctx = document.getElementById('chart-status').getContext('2d');
-      
-      // Destruir gráfico existente se houver
-      if (window.graficoStatus) {
-        window.graficoStatus.destroy();
-      }
-      
-      // Agrupar dados por status
-      const statusCount = agruparPorStatus(dados);
-      
-      // Preparar dados para o gráfico
-      const labels = Object.keys(statusCount);
-      const values = Object.values(statusCount);
-      
-      // Gerar cores para cada status
-      const cores = [
-        '#4caf50', // Verde
-        getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
-        '#f59e0b', // Amarelo
-        '#ef4444', // Vermelho
-        '#8b5cf6', // Roxo
-        '#ec4899'  // Rosa
-      ];
-      
-      // Armazenar dados para interatividade
-      window.mapasGraficos.status = statusCount;
-      
-      // Configuração do gráfico
-      window.graficoStatus = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: cores.slice(0, labels.length),
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                padding: 15,
-                usePointStyle: true,
-                pointStyle: 'circle'
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100);
-                  return `${label}: ${value} (${percentage}%)`;
-                }
-              }
-            }
-          },
-          cutout: '60%'
-        }
-      });
-    }
-    
-    // Desenhar gráfico de motivos (pizza)
-    function desenharGraficoMotivos(dados) {
-      const ctx = document.getElementById('chart-motivos').getContext('2d');
-      
-      // Destruir gráfico existente se houver
-      if (window.graficoMotivos) {
-        window.graficoMotivos.destroy();
-      }
-      
-      // Agrupar dados por motivo
-      const motivoCount = agruparPorMotivo(dados);
-      
-      // Preparar dados para o gráfico
-      const labels = Object.keys(motivoCount);
-      const values = Object.values(motivoCount);
-      
-      // Gerar cores para cada motivo
-      const cores = [
-        '#4caf50', // Verde
-        '#3b82f6', // Azul
-        '#f59e0b', // Amarelo
-        '#ef4444', // Vermelho
-        '#8b5cf6', // Roxo
-        '#ec4899',  // Rosa
-        '#06b6d4', // Ciano
-        '#84cc16', // Verde-limão
-        '#14b8a6', // Teal
-        '#8b5cf6'  // Roxo
-      ];
-      
-      // Armazenar dados para interatividade
-      window.mapasGraficos.motivos = motivoCount;
-      
-      // Configuração do gráfico
-      window.graficoMotivos = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: cores.slice(0, labels.length),
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                padding: 15,
-                usePointStyle: true,
-                pointStyle: 'circle'
-              }
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const label = context.label || '';
-                  const value = context.raw || 0;
-                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                  const percentage = Math.round((value / total) * 100);
-                  return `${label}: ${value} (${percentage}%)`;
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // Desenhar gráfico de taxa de reativação por mês
-    function desenharGraficoTaxaReativacao(dados) {
-      const ctx = document.getElementById('chart-taxa-reativacao').getContext('2d');
-      
-      // Destruir gráfico existente se houver
-      if (window.graficoTaxaReativacao) {
-        window.graficoTaxaReativacao.destroy();
-      }
-      
-      // Calcular taxa de reativação por mês
-      const { meses, taxas } = calcularTaxaReativacaoPorMes(dados);
-      
-      // Configuração do gráfico
-      window.graficoTaxaReativacao = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: meses,
-          datasets: [{
-            label: 'Taxa de Reativação (%)',
-            data: taxas,
-            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return `Taxa: ${context.raw.toFixed(1)}%`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: {
-                display: false
-              }
-            },
-            y: {
-              grid: {
-                color: 'rgba(200, 200, 200, 0.1)'
-              },
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
-              }
-            }
-          }
-        }
-      });
-    }
-    
-    // Atualizar alertas
-    function atualizarAlertaSemContato(dados) {
-      const clientesSemContato = identificarClientesSemContato(dados);
-      const container = document.getElementById('alerta-sem-contato');
-      
-      if (clientesSemContato.length === 0) {
-        container.innerHTML = '<p class="text-sm opacity-70">Nenhum cliente sem contato há mais de 30 dias.</p>';
-        return;
-      }
-      
-      const lista = document.createElement('ul');
-      lista.className = 'space-y-2';
-      
-      // Limitar a 10 itens para não sobrecarregar a UI
-      clientesSemContato.slice(0, 10).forEach(cliente => {
-        const item = document.createElement('li');
-        item.className = 'text-sm flex justify-between';
-        
-        const dias = diasDesde(cliente.Data);
-        
-        item.innerHTML = `
-          <span>${cliente.Cliente} (${cliente.UF})</span>
-          <span class="opacity-70">${dias} dias</span>
-        `;
-        
-        lista.appendChild(item);
-      });
-      
-      // Adicionar contador se houver mais itens
-      if (clientesSemContato.length > 10) {
-        const mais = document.createElement('li');
-        mais.className = 'text-sm text-center mt-2 opacity-70';
-        mais.textContent = `+ ${clientesSemContato.length - 10} outros clientes`;
-        lista.appendChild(mais);
-      }
-      
-      container.innerHTML = '';
-      container.appendChild(lista);
-    }
-    
-    // Atualizar alerta de previsões vencidas
-    function atualizarAlertaPrevisoesVencidas(dados) {
-      const previsoesVencidas = identificarPrevisoesVencidas(dados);
-      const container = document.getElementById('alerta-previsoes-vencidas');
-      
-      if (previsoesVencidas.length === 0) {
-        container.innerHTML = '<p class="text-sm opacity-70">Nenhuma previsão de recompra vencida.</p>';
-        return;
-      }
-      
-      const lista = document.createElement('ul');
-      lista.className = 'space-y-2';
-      
-      // Limitar a 10 itens para não sobrecarregar a UI
-      previsoesVencidas.slice(0, 10).forEach(cliente => {
-        const item = document.createElement('li');
-        item.className = 'text-sm flex justify-between';
-        
-        item.innerHTML = `
-          <span>${cliente.Cliente} (${cliente.UF})</span>
-          <span class="opacity-70">${formatarData(cliente.Recompra)}</span>
-        `;
-        
-        lista.appendChild(item);
-      });
-      
-      // Adicionar contador se houver mais itens
-      if (previsoesVencidas.length > 10) {
-        const mais = document.createElement('li');
-        mais.className = 'text-sm text-center mt-2 opacity-70';
-        mais.textContent = `+ ${previsoesVencidas.length - 10} outras previsões vencidas`;
-        lista.appendChild(mais);
-      }
-      
-      container.innerHTML = '';
-      container.appendChild(lista);
-    }
-    
-    // ==========================================
-    // FUNÇÕES DA TABELA DE CLIENTES
-    // ==========================================
-    
-    // Renderizar tabela de clientes
-    function renderizarTabelaClientes(dados) {
-      const tbody = document.getElementById('corpo-tabela-clientes');
-      const totalRegistros = document.getElementById('total-registros');
-      const paginacao = document.getElementById('paginacao');
-      const btnAnterior = document.getElementById('btn-anterior');
-      const btnProximo = document.getElementById('btn-proximo');
-      
-      // Atualizar contadores
-      totalRegistros.textContent = dados.length;
-      
-      // Calcular total de páginas
-      window.paginacao.totalPaginas = Math.ceil(dados.length / window.paginacao.itensPorPagina);
-      
-      // Ajustar página atual se necessário
-      if (window.paginacao.paginaAtual > window.paginacao.totalPaginas) {
-        window.paginacao.paginaAtual = Math.max(1, window.paginacao.totalPaginas);
-      }
-      
-      // Atualizar texto de paginação
-      paginacao.textContent = `Página ${window.paginacao.paginaAtual} de ${window.paginacao.totalPaginas}`;
-      
-      // Habilitar/desabilitar botões de navegação
-      btnAnterior.disabled = window.paginacao.paginaAtual <= 1;
-      btnProximo.disabled = window.paginacao.paginaAtual >= window.paginacao.totalPaginas;
-      
-      btnAnterior.style.opacity = btnAnterior.disabled ? '0.5' : '1';
-      btnProximo.style.opacity = btnProximo.disabled ? '0.5' : '1';
-      
-      // Calcular índices para a página atual
-      const inicio = (window.paginacao.paginaAtual - 1) * window.paginacao.itensPorPagina;
-      const fim = Math.min(inicio + window.paginacao.itensPorPagina, dados.length);
-      
-      // Limpar tabela
-      tbody.innerHTML = '';
-      
-      // Verificar se não há dados
-      if (dados.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="7" class="text-center py-4">Nenhum registro encontrado</td>`;
-        tbody.appendChild(tr);
-        return;
-      }
-      
-      // Renderizar linhas da página atual
-      const dadosPagina = dados.slice(inicio, fim);
-      
-      dadosPagina.forEach(cliente => {
-        const tr = document.createElement('tr');
-        
-        tr.innerHTML = `
-          <td class="cursor-pointer hover:text-primary" data-cliente="${cliente.Cliente}">${cliente.Cliente}</td>
-          <td>${cliente.UF || '-'}</td>
-          <td>${cliente.Status || '-'}</td>
-          <td>${cliente.Ativo || '-'}</td>
-          <td>${cliente.Motivo || '-'}</td>
-          <td>${cliente.Data ? formatarData(cliente.Data) : '-'}</td>
-          <td>${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</td>
-        `;
-        
-        // Adicionar evento de clique para exibir detalhes
-        const tdCliente = tr.querySelector('td[data-cliente]');
-        if (tdCliente) {
-          tdCliente.addEventListener('click', () => {
-            abrirModalDetalhes(cliente);
-          });
-        }
-        
-        tbody.appendChild(tr);
-      });
-    }
-    
-    // Filtrar tabela por texto de pesquisa e status
-    function filtrarTabela() {
-      const pesquisa = document.getElementById('pesquisa-cliente').value.toLowerCase();
-      const statusFiltro = document.getElementById('filtro-tabela-status').value;
-      
-      // Aplicar filtros aos dados já filtrados globalmente
-      const dadosFiltrados = window.dadosFiltrados.filter(cliente => {
-        // Filtro de texto
-        const matchTexto = !pesquisa || 
-                         (cliente.Cliente && cliente.Cliente.toLowerCase().includes(pesquisa)) ||
-                         (cliente.UF && cliente.UF.toLowerCase().includes(pesquisa)) ||
-                         (cliente.Motivo && cliente.Motivo.toLowerCase().includes(pesquisa));
-        
-        // Filtro de status
-        const matchStatus = !statusFiltro || cliente.Ativo === statusFiltro;
-        
-        return matchTexto && matchStatus;
-      });
-      
-      // Resetar paginação
-      window.paginacao.paginaAtual = 1;
-      
-      // Renderizar tabela
-      renderizarTabelaClientes(dadosFiltrados);
-    }
-    
-    // Abrir modal com detalhes do cliente
-    function abrirModalDetalhes(cliente) {
-      const modal = document.getElementById('modal-detalhes');
-      const conteudo = document.getElementById('modal-conteudo');
-      
-      // Formatar dados para o modal
-      conteudo.innerHTML = `
-        <div class="mb-4 pb-3 border-b" style="border-color: var(--border);">
-          <div class="text-xl font-bold mb-1">${cliente.Cliente}</div>
-          <div class="flex items-center opacity-70 text-sm">
-            <span class="mr-2">${cliente.UF || '-'}</span>
-            <span class="inline-block w-1.5 h-1.5 rounded-full mx-2" style="background-color: var(--border);"></span>
-            <span>${cliente.Aba || ''}</span>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <p class="text-sm opacity-70 mb-1">Status Principal</p>
-            <p class="font-medium">${cliente.Status || '-'}</p>
-          </div>
-          <div>
-            <p class="text-sm opacity-70 mb-1">Status Atual</p>
-            <p class="font-medium">${cliente.Ativo || '-'}</p>
-          </div>
-          <div>
-            <p class="text-sm opacity-70 mb-1">Motivo</p>
-            <p class="font-medium">${cliente.Motivo || '-'}</p>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <p class="text-sm opacity-70 mb-1">Último Contato</p>
-            <p class="font-medium">${cliente.Data ? formatarData(cliente.Data) : '-'}</p>
-            ${cliente.Data ? `<p class="text-xs opacity-50 mt-1">Há ${diasDesde(cliente.Data)} dias</p>` : ''}
-          </div>
-          <div>
-            <p class="text-sm opacity-70 mb-1">Próximo Contato</p>
-            <p class="font-medium">${cliente.ProxContato ? formatarData(cliente.ProxContato) : '-'}</p>
-          </div>
-          <div>
-            <p class="text-sm opacity-70 mb-1">Previsão de Recompra</p>
-            <p class="font-medium">${cliente.Recompra ? formatarData(cliente.Recompra) : '-'}</p>
-          </div>
-        </div>
-      `;
-      
-      // Exibir o modal
-      modal.style.display = 'flex';
-    }
-    
-    // ==========================================
-    // FUNÇÕES DE EVENTO E INICIALIZAÇÃO
-    // ==========================================
-    
-    // Aplicar os filtros aos dados
-    function aplicarFiltrosDashboard() {
-      // Coletar valores dos filtros
-      const statusValue = document.getElementById('filter-status').value;
-      const ufValue = document.getElementById('filter-uf').value;
-      const fromValue = document.getElementById('filter-from').value;
-      const toValue = document.getElementById('filter-to').value;
-      
-      // Atualizar objeto de filtros
-      window.filtros = {
-        status: statusValue,
-        uf: ufValue,
-        dataInicio: fromValue ? converterStringParaData(fromValue) : null,
-        dataFim: toValue ? converterStringParaData(toValue) : null
-      };
-      
-      // Se a data final for válida, ajustar para o final do dia
-      if (window.filtros.dataFim) {
-        window.filtros.dataFim.setHours(23, 59, 59, 999);
-      }
-      
-      // Aplicar filtros aos dados
-      window.dadosFiltrados = aplicarFiltros(window.dadosClientes, window.filtros);
-      
-      // Calcular KPIs
-      const kpis = calcularKPIs(window.dadosFiltrados);
-      
-      // Atualizar gráficos e KPIs
-      atualizarKPIs(kpis);
-      desenharGraficoInativosReativados(window.dadosFiltrados);
-      desenharGraficoStatus(window.dadosFiltrados);
-      desenharGraficoMotivos(window.dadosFiltrados);
-      desenharGraficoTaxaReativacao(window.dadosFiltrados);
-      atualizarAlertaSemContato(window.dadosFiltrados);
-      atualizarAlertaPrevisoesVencidas(window.dadosFiltrados);
-      renderizarTabelaClientes(window.dadosFiltrados);
-    }
-    
-    // Limpar todos os filtros
-    function limparFiltros() {
-      document.getElementById('filter-status').value = '';
-      document.getElementById('filter-uf').value = '';
-      
-      // Restaurar datas para o último mês
-      inicializarFiltros();
-      
-      // Aplicar filtros
-      aplicarFiltrosDashboard();
-    }
-    
-    // Alternar entre temas claro e escuro
-    function alternarTema() {
-      const html = document.documentElement;
-      const novoTema = html.dataset.theme === 'light' ? 'dark' : 'light';
-      
-      html.dataset.theme = novoTema;
-      window.temaAtual = novoTema;
-      
-      // Salvar preferência
-      localStorage.setItem('tema', novoTema);
-      
-      // Atualizar gráficos se existirem
-      if (window.dadosFiltrados) {
-        desenharGraficoInativosReativados(window.dadosFiltrados);
-        desenharGraficoStatus(window.dadosFiltrados);
-        desenharGraficoMotivos(window.dadosFiltrados);
-        desenharGraficoTaxaReativacao(window.dadosFiltrados);
-      }
-    }
-    
-    // Navegar para página anterior da tabela
-    function paginaAnterior() {
-      if (window.paginacao.paginaAtual > 1) {
-        window.paginacao.paginaAtual--;
-        renderizarTabelaClientes(window.dadosFiltrados);
-      }
-    }
-    
-    // Navegar para próxima página da tabela
-    function paginaProxima() {
-      if (window.paginacao.paginaAtual < window.paginacao.totalPaginas) {
-        window.paginacao.paginaAtual++;
-        renderizarTabelaClientes(window.dadosFiltrados);
-      }
-    }
-    
-    // Configuração de todos os event listeners
-    function configurarEventListeners() {
-      // Botão de alternar tema
-      document.getElementById('theme-toggle').addEventListener('click', alternarTema);
-      
-      // Botões de filtro
-      document.getElementById('btn-aplicar-filtros').addEventListener('click', aplicarFiltrosDashboard);
-      document.getElementById('btn-limpar-filtros').addEventListener('click', limparFiltros);
-      
-      // Filtros da tabela
-      document.getElementById('pesquisa-cliente').addEventListener('input', filtrarTabela);
-      document.getElementById('filtro-tabela-status').addEventListener('change', filtrarTabela);
-      
-      // Paginação da tabela
-      document.getElementById('btn-anterior').addEventListener('click', paginaAnterior);
-      document.getElementById('btn-proximo').addEventListener('click', paginaProxima);
-      
-      // Modal de detalhes
-      document.getElementById('btn-fechar-modal').addEventListener('click', () => {
-        document.getElementById('modal-detalhes').style.display = 'none';
-      });
-      
-      // Fechar modal ao clicar fora
-      const modal = document.getElementById('modal-detalhes');
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.style.display = 'none';
-        }
-      });
-      
-      // Tecla ESC para fechar modal
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.style.display === 'flex') {
-          modal.style.display = 'none';
-        }
-      });
-    }
-    
-    // Inicialização do dashboard
-    async function inicializarDashboard() {
-      try {
-        // Aplicar tema salvo
-        document.documentElement.dataset.theme = window.temaAtual;
-        
-        // Inicializar filtros de data
-        inicializarFiltros();
-        
-        // Configurar event listeners
-        configurarEventListeners();
-        
-        // Carregar dados
-        const dados = await carregarTodosDados();
-        
-        // Verificar se há dados
-        if (!dados || dados.length === 0) {
-          mostrarErro('Não foram encontrados dados na planilha. Verifique se há registros nas abas.');
-          toggleLoader(false);
-          return;
-        }
-        
-        console.log(`Carregados ${dados.length} registros no total`);
-        
-        // Armazenar dados globalmente
-        window.dadosClientes = dados;
-        window.dadosFiltrados = dados;
-        
-        // Popular filtros
-        popularFiltros(dados);
-        
-        // Aplicar filtros iniciais e atualizar dashboard
-        aplicarFiltrosDashboard();
-        
-        // Esconder loader
-        toggleLoader(false);
-      } catch (erro) {
-        console.error('Erro ao inicializar dashboard:', erro);
-        mostrarErro('Ocorreu um erro ao inicializar o dashboard. Tente novamente mais tarde.');
-        toggleLoader(false);
-      }
-    }
-    
-    // Iniciar o dashboard quando o DOM estiver carregado
-    document.addEventListener('DOMContentLoaded', inicializarDashboard);
-  </script>
-</body>
-</html>
+
+export default App;
