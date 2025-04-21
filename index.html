@@ -1,729 +1,280 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Radar de Retenção</title>
-
-  <!-- Google Fonts - Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Chart.js -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Reativação de Clientes</title>
+  <!-- ===== INÍCIO: BLOCO 06 - Estilos Gerais & Apple Palette ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Tailwind CSS (via CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#007aff',
-            bgLight: '#f9f9f9',
-            bgDark: '#1c1c1e',
-            cardLight: '#ffffff',
-            cardDark: '#2c2c2e',
-            textLight: '#1c1c1e',
-            textDark: '#f9f9f9',
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif']
-          },
-          boxShadow: {
-            soft: '0 10px 30px rgba(0,0,0,0.1)'
-          },
-          borderRadius: {
-            xl: '1.5rem',
-            full: '9999px'
-          }
-        }
-      }
-    }
-  </script>
-
   <style>
-    /* Tema escuro/claro - Variáveis de cores */
     :root {
-      --bg-main: #f9fafb;
-      --text-main: #111827;
-      --card-bg: #ffffff;
-      --card-shadow: rgba(0, 0, 0, 0.1);
-      --primary: #007aff;
-      --primary-hover: #0056b3;
-      --danger: #dc2626;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --info: #3b82f6;
-      --border: #e5e7eb;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --radius: 1rem;
+      --shadow: 0 8px 24px rgba(0,0,0,0.1);
+      --transition: background-color 0.3s ease, color 0.3s ease;
+      --bg: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --text: #1C1C1E;
+      --primary: #0A84FF;
+      --success: #30D158;
+      --warning: #FF9F0A;
+      --danger: #FF375F;
+      --border: rgba(0,0,0,0.1);
     }
-
     [data-theme="dark"] {
-      --bg-main: #1f1f1f;
-      --text-main: #f1f1f1;
-      --card-bg: #2a2a2a;
-      --card-shadow: rgba(0, 0, 0, 0.4);
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --danger: #ef4444;
-      --success: #34d399;
-      --warning: #fbbf24;
-      --info: #60a5fa;
-      --border: #374151;
+      --bg: #1C1C1E;
+      --card-bg: #2C2C2E;
+      --text: #F2F2F7;
+      --primary: #0A84FF;
+      --success: #30D158;
+      --warning: #FF9F0A;
+      --danger: #FF375F;
+      --border: rgba(255,255,255,0.2);
     }
-
-    /* Estilos globais */
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      transition: background-color 0.3s, color 0.3s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      box-shadow: 0 4px 6px var(--card-shadow);
-      border-radius: 1rem;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      transition: background-color 0.3s, box-shadow 0.3s;
-    }
-
-    .text-primary {
-      color: var(--primary);
-    }
-
-    /* Controles e inputs */
-    select, input, button {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      color: var(--text-main);
-      border-radius: 0.5rem;
-      padding: 0.5rem 1rem;
-      transition: all 0.2s;
-    }
-
-    select:focus, input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-
-    button {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 500;
-    }
-
-    button:hover {
-      background-color: var(--primary-hover);
-    }
-
-    /* Tabelas */
-    table {
-      width: 100%;
-      border-spacing: 0;
-    }
-
-    th {
-      text-align: left;
-      font-weight: 600;
-      padding: 0.75rem 1rem;
-      color: var(--text-main);
-      opacity: 0.7;
-    }
-
-    td {
-      padding: 0.75rem 1rem;
-      border-top: 1px solid var(--border);
-    }
-
-    /* Animação de loading */
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .animate-spin {
-      animation: spin 1s linear infinite;
-    }
-    
-    /* Classe para erros */
-    .border-error {
-      border-color: var(--danger) !important;
-    }
-
-    /* Tooltip personalizado */
-    .tooltip {
-      position: relative;
-      display: inline-block;
-    }
-
-    .tooltip .tooltip-text {
-      visibility: hidden;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px 10px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 0.75rem;
-    }
-
-    .tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; font-family: var(--font-sans); background: var(--bg); color: var(--text); transition: var(--transition); }
+    .container { max-width: 1200px; margin: auto; padding: 2rem; }
+    .header { display:flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    h1 { font-size: 2rem; margin:0; }
+    .filters { display:flex; gap:1rem; }
+    select { padding:0.5rem 1rem; border-radius: var(--radius); border:1px solid var(--border); background:var(--card-bg); color:var(--text); }
+    .theme-toggle { background:none; border:none; cursor:pointer; }
+    .kpis { display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding:1.5rem; transition: var(--transition); }
+    .charts { display:grid; grid-template-columns: 1fr 1fr; gap:2rem; }
+    .full { grid-column: 1 / -1; }
+    @media(max-width:768px){ .charts{grid-template-columns:1fr;} }
   </style>
+  <!-- ===== FIM: BLOCO 06 - Estilos Gerais & Apple Palette ===== -->
 </head>
-<body class="font-sans min-h-screen">
-  <header class="flex justify-between items-center px-6 py-4 bg-opacity-90 backdrop-blur-sm sticky top-0 z-10" style="background-color: var(--card-bg);">
-    <h1 class="text-2xl font-bold" style="color: var(--primary);">Radar de Retenção</h1>
-    <div class="flex items-center gap-4">
-      <span id="data-update" class="text-sm opacity-70"></span>
-      <button id="theme-toggle" class="px-4 py-2 rounded-full text-sm transition-colors">
-        Alternar Tema
-      </button>
-    </div>
-  </header>
-
-  <div id="loader" class="fixed inset-0 flex items-center justify-center z-50" style="background-color: var(--bg-main);">
-    <div class="flex flex-col items-center space-y-4">
-      <div class="w-12 h-12 border-4 rounded-full animate-spin" style="border-color: var(--primary); border-top-color: transparent;"></div>
-      <p class="font-medium" style="color: var(--primary);">Carregando dados...</p>
-    </div>
-  </div>
-
-  <main class="container mx-auto px-4 py-6">
-    <!-- Filtros -->
-    <section class="card mb-6">
-      <div class="mb-4">
-        <h2 class="text-lg font-semibold mb-3">Filtros</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label for="filter-status" class="block text-sm font-medium mb-1">Status Principal</label>
-            <select id="filter-status" class="w-full">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-uf" class="block text-sm font-medium mb-1">UF</label>
-            <select id="filter-uf" class="w-full">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div>
-            <label for="filter-from" class="block text-sm font-medium mb-1">De</label>
-            <input type="date" id="filter-from" class="w-full">
-          </div>
-          <div>
-            <label for="filter-to" class="block text-sm font-medium mb-1">Até</label>
-            <input type="date" id="filter-to" class="w-full">
-          </div>
+<body>
+  <div class="container">
+    <!-- ===== INÍCIO: BLOCO 01 - Header & Filtros ===== -->
+    <div class="header">
+      <h1>Dashboard de Reativação de Clientes</h1>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div class="filters">
+          <select id="filter-uf"><option value="Todos">Todas UFs</option></select>
+          <select id="filter-categoria"><option value="Todas">Todas Categorias</option></select>
+          <select id="filter-statusPrincipal"><option value="Todos">Status Principal</option></select>
+          <select id="filter-statusAtual"><option value="Todos">Status Atual</option></select>
         </div>
-      </div>
-      <div class="flex justify-end">
-        <button id="btn-limpar-filtros" class="px-4 py-2 rounded text-sm mr-2" style="background-color: transparent; border: 1px solid var(--border); color: var(--text-main);">
-          Limpar Filtros
-        </button>
-        <button id="btn-aplicar-filtros" class="px-4 py-2 rounded text-sm" style="background-color: var(--primary);">
-          Aplicar Filtros
-        </button>
-      </div>
-    </section>
-
-    <!-- KPIs -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Inativos</h2>
-        <p id="count-inativos" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Ex-Clientes</h2>
-        <p id="count-exclientes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Reativações</h2>
-        <p id="count-reativacoes" class="text-2xl font-bold" style="color: var(--primary);">0</p>
-      </div>
-      <div class="card !p-4 !m-0 text-center">
-        <h2 class="text-sm opacity-70 mb-1">Taxa de Retenção</h2>
-        <p id="count-retencao" class="text-2xl font-bold" style="color: var(--primary);">0%</p>
-      </div>
-    </section>
-
-    <!-- Gráficos principais -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-  <!-- Gráfico Inativos vs Reativados -->
-  <section class="card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Inativos vs Reativados</h2>
-      <div id="inativos-reativados-info" class="text-xs opacity-70">
-        <span class="inline-block w-3 h-3 rounded-full mr-1" style="background-color: #ff9800;"></span> Ex‑clientes
-        <span class="inline-block w-3 h-3 rounded-full mx-3" style="background-color: #4caf50;"></span> Inativos
-        <span class="inline-block w-3 h-3 rounded-full ml-3" style="background-color: var(--primary);"></span> Reativados
+        <button class="theme-toggle" id="theme-toggle" aria-label="Alternar Tema"></button>
       </div>
     </div>
-    <div class="h-72 relative">
-      <canvas id="chart-inativos-reativados"></canvas>
+    <!-- ===== FIM: BLOCO 01 - Header & Filtros ===== -->
+
+    <!-- ===== INÍCIO: BLOCO 02 - KPIs ===== -->
+    <div class="kpis">
+      <div class="card" id="kpi-total">Total de Clientes: 0</div>
+      <div class="card" id="kpi-reativados">Reativados: 0%</div>
+      <div class="card" id="kpi-inativos">Inativos: 0%</div>
+      <div class="card" id="kpi-ex">Ex‑clientes: 0%</div>
+      <div class="card" id="kpi-contatosSemana">Contatos Semana: 0</div>
+      <div class="card" id="kpi-contatosMes">Contatos Mês: 0</div>
+      <div class="card" id="kpi-contatosAtrasados">Contatos Atrasados: 0</div>
+      <div class="card" id="kpi-mediaDias">Média Dias: 0</div>
+      <div class="card" id="kpi-taxaReativacao">Taxa Reativação: 0%</div>
     </div>
-  </section>
+    <!-- ===== FIM: BLOCO 02 - KPIs ===== -->
 
-  <!-- Gráfico Status Atual -->
-  <section class="card">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Status Atual</h2>
+    <!-- ===== INÍCIO: BLOCO 03 - Gráficos ===== -->
+    <div class="charts">
+      <div class="card"><canvas id="chart-status"></canvas></div>
+      <div class="card"><canvas id="chart-evolucao"></canvas></div>
+      <div class="card"><canvas id="chart-motivos"></canvas></div>
+      <div class="card"><canvas id="chart-uf"></canvas></div>
+      <div class="card full"><canvas id="chart-previsao"></canvas></div>
     </div>
-    <div class="h-72 relative">
-      <canvas id="chart-status"></canvas>
-    </div>
-  </section>
-</div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Gráfico Motivos de Evasão -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Motivos de Evasão</h2>
-        </div>
-        <div class="h-72 relative">
-          <canvas id="chart-motivos"></canvas>
-        </div>
-      </section>
-
-      <!-- Taxa de Reativação por Mês -->
-      <section class="card">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-semibold">Taxa de Reativação por Mês</h2>
-        </div>
-        <div class="h-72 relative">
-          <canvas id="chart-taxa-reativacao"></canvas>
-        </div>
-      </section>
-    </div>
-
-    <!-- Alertas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      <!-- Clientes sem contato há mais de 30 dias -->
-      <section class="card border-l-4" style="border-left-color: var(--danger);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--danger);">Clientes sem contato há mais de 30 dias</h2>
-        <div id="alerta-sem-contato" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-
-      <!-- Previsões de recompra vencidas -->
-      <section class="card border-l-4" style="border-left-color: var(--warning);">
-        <h2 class="text-lg font-semibold mb-3" style="color: var(--warning);">Previsões de recompra vencidas</h2>
-        <div id="alerta-previsoes-vencidas" class="max-h-60 overflow-y-auto">
-          <p class="text-sm opacity-70">Carregando...</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Tabela de clientes -->
-    <section class="card">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">Análise Detalhada de Clientes</h2>
-        <div class="flex items-center">
-          <input type="text" id="pesquisa-cliente" placeholder="Pesquisar cliente..." class="text-sm px-3 py-1 mr-2">
-          <select id="filtro-tabela-status" class="text-sm px-3 py-1">
-            <option value="">Todos os status</option>
-          </select>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table id="tabela-clientes" class="min-w-full">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>UF</th>
-              <th>Status Principal</th>
-              <th>Status Atual</th>
-              <th>Motivo</th>
-              <th>Último Contato</th>
-              <th>Previsão de Recompra</th>
-            </tr>
-          </thead>
-          <tbody id="corpo-tabela-clientes">
-            <tr>
-              <td colspan="7" class="text-center py-4">Carregando dados...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="flex justify-between items-center mt-4">
-        <div class="text-sm">
-          <span id="total-registros">0</span> registros encontrados
-        </div>
-        <div class="flex items-center">
-          <button id="btn-anterior" class="px-3 py-1 rounded mr-2" disabled style="background-color: var(--primary); opacity: 0.5;">Anterior</button>
-          <span id="paginacao" class="text-sm mx-2">Página 1 de 1</span>
-          <button id="btn-proximo" class="px-3 py-1 rounded" disabled style="background-color: var(--primary); opacity: 0.5;">Próximo</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Modal para detalhes do cliente -->
-  <div id="modal-detalhes" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="max-w-md w-full mx-4 rounded-xl overflow-hidden" style="background-color: var(--card-bg);">
-      <div class="flex justify-between items-center p-4 border-b" style="border-color: var(--border);">
-        <h3 class="text-lg font-semibold">Detalhes do Cliente</h3>
-        <button id="btn-fechar-modal" class="text-2xl font-bold hover:opacity-70">&times;</button>
-      </div>
-      <div class="p-4" id="modal-conteudo">
-        <p class="text-sm opacity-70">Carregando...</p>
-      </div>
-    </div>
+    <!-- ===== FIM: BLOCO 03 - Gráficos ===== -->
   </div>
 
   <script>
-    // ==========================================
-    // BLOCO - CONFIGURAÇÕES INICIAIS
-    // ==========================================
-    
-    // API e configurações
-    const API_BASE = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
-    
-    // Armazenamento global de dados
-    window.dadosClientes = [];
-    window.dadosFiltrados = [];
-    window.abas = [];
-    window.filtros = {
-      status: '',
-      uf: '',
-      dataInicio: null,
-      dataFim: null
-    };
-    
-    // Configuração de paginação da tabela
-    window.paginacao = {
-      paginaAtual: 1,
-      itensPorPagina: 10,
-      totalPaginas: 1
-    };
-    
-    // Mapas para armazenar dados dos gráficos
-    window.mapasGraficos = {
-      inativosVsReativados: {},
-      status: {},
-      motivos: {}
-    };
-    
-    // Tema atual
-    window.temaAtual = localStorage.getItem('tema') || 'dark';
-    document.documentElement.dataset.theme = window.temaAtual;
+    // ===== INÍCIO: BLOCO 04 - Configuração =====
+    console.log('INÍCIO: BLOCO 04 - Configuração');
+    const API_URL = 'https://api.sheetbest.com/sheets/78734191-4124-48c9-b69f-f2460ec9a294';
+    const root = document.documentElement;
+    console.log('FIM: BLOCO 04 - Configuração');
+    // ===== FIM: BLOCO 04 - Configuração =====
 
-    // Mapeamento correto de colunas da API para uso no código
-    window.MAP_COLUNAS = {
-      cliente: 'cliente',
-      uf: 'uf',
-      categoria: 'categoria',
-      statusPrincipal: 'statusPrincipal',
-      motivoStatus: 'motivoStatus',
-      ultimoPedido: 'ultimoPedido',
-      ultimoContato: 'ultimoContato',
-      statusAtual: 'statusAtual',
-      observacao: 'observacao',
-      proximoContato: 'proximoContato',
-      previsaoRecompra: 'previsaoRecompra',
-      mesReferencia: 'mesReferencia',
-      responsavel: 'responsavel',
-      ultimoPedidoEmDias: 'ultimoPedidoEmDias'
-    };
+    // ===== INÍCIO: BLOCO 05 - Parsing de Datas =====
+    console.log('INÍCIO: BLOCO 05 - Parsing de Datas');
+    function parseBRDate(str) {
+      if (!str) return null;
+      const [d, m, y] = str.split('/').map(Number);
+      const date = new Date(y, m-1, d);
+      return isNaN(date) ? null : date;
+    }
+    console.log('FIM: BLOCO 05 - Parsing de Datas');
+    // ===== FIM: BLOCO 05 - Parsing de Datas =====
 
-    // Definições para classificação de clientes por dias
-    window.LIMITES_CLIENTE = {
-      reativado: { min: 0, max: 120 },
-      inativo: { min: 121, max: 180 },
-      exCliente: { min: 181, max: 5000 }
-    };
-    
-    // ==========================================
-    // BLOCO - FUNÇÕES DE UTILIDADE
-    // ==========================================
-    
-    // Converter string de data DD/MM/AAAA para objeto Date
-    function converterStringParaData(dataString) {
-      if (!dataString) return null;
-      
-      // Verifica se já é um objeto Date
-      if (dataString instanceof Date) return dataString;
-      
-      // Tenta converter de DD/MM/AAAA
-      if (typeof dataString === 'string' && dataString.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        const [dia, mes, ano] = dataString.split('/').map(Number);
-        return new Date(ano, mes - 1, dia);
-      }
-      
-      // Tenta converter de YYYY-MM-DD (formato do input date)
-      if (typeof dataString === 'string' && dataString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return new Date(dataString + 'T00:00:00');
-      }
-      
-      // Para outros formatos, tenta conversão direta
-      const data = new Date(dataString);
-      return isNaN(data) ? null : data;
+    // ===== INÍCIO: BLOCO 06 - Fetch & Processamento =====
+    console.log('INÍCIO: BLOCO 06 - Fetch & Processamento');
+    let rawData = [];
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        rawData = data.map(item => ({
+          cliente: item.cliente,
+          uf: item.uf,
+          categoria: item.categoria,
+          statusPrincipal: item.statusPrincipal,
+          motivoStatus: item.motivoStatus,
+          ultimoPedido: parseBRDate(item.ultimoPedido),
+          ultimoContato: parseBRDate(item.ultimoContato),
+          statusAtual: item.statusAtual,
+          proximoContato: parseBRDate(item.proximoContato),
+          previsaoRecompra: parseBRDate(item.previsaoRecompra),
+          mesReferencia: item.mesReferencia,
+          ultPedDias: Number(item.ultimoPedidoEmDias)
+        }));
+        initFilters();
+        updateAll();
+      } catch (e) { console.error('Erro:', e); }
     }
-    
-    // Formatar data para exibição (DD/MM/AAAA)
-    function formatarData(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '-';
-      
-      const dia = data.getDate().toString().padStart(2, '0');
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const ano = data.getFullYear();
-      return `${dia}/${mes}/${ano}`;
+    fetchData();
+    console.log('FIM: BLOCO 06 - Fetch & Processamento');
+    // ===== FIM: BLOCO 06 - Fetch & Processamento =====
+
+    // ===== INÍCIO: BLOCO 07 - Classificação =====
+    console.log('INÍCIO: BLOCO 07 - Classificação');
+    function classify(dias) {
+      if (dias <= 120) return 'Reativados';
+      if (dias <= 180) return 'Inativos';
+      return 'Ex‑clientes';
     }
-    
-    // Formatar data para o formato ISO (YYYY-MM-DD)
-    function formatarDataISO(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return '';
-      
-      const ano = data.getFullYear();
-      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-      const dia = data.getDate().toString().padStart(2, '0');
-      return `${ano}-${mes}-${dia}`;
+    console.log('FIM: BLOCO 07 - Classificação');
+    // ===== FIM: BLOCO 07 - Classificação =====
+
+    // ===== INÍCIO: BLOCO 08 - Filtros =====
+    console.log('INÍCIO: BLOCO 08 - Filtros');
+    function initFilters() {
+      const fns = ['uf','categoria','statusPrincipal','statusAtual'];
+      fns.forEach(fn => {
+        const sel = document.getElementById(`filter-${fn}`);
+        [...new Set(rawData.map(d=>d[fn]))].sort().forEach(v => sel.add(new Option(v,v)));
+        sel.addEventListener('change', updateAll);
+      });
     }
-    
-    // Calcular dias desde uma data até hoje
-    function diasDesde(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return null;
-      
+    console.log('FIM: BLOCO 08 - Filtros');
+    // ===== FIM: BLOCO 08 - Filtros =====
+
+    // ===== INÍCIO: BLOCO 09 - Preparar Dados =====
+    console.log('INÍCIO: BLOCO 09 - Preparar Dados');
+    function prepareData() {
+      const uf = document.getElementById('filter-uf').value;
+      const cat = document.getElementById('filter-categoria').value;
+      const sp = document.getElementById('filter-statusPrincipal').value;
+      const sa = document.getElementById('filter-statusAtual').value;
+      return rawData
+        .filter(d => (uf==='Todos'||d.uf===uf) && (cat==='Todas'||d.categoria===cat)
+                 && (sp==='Todos'||d.statusPrincipal===sp) && (sa==='Todos'||d.statusAtual===sa))
+        .map(d => ({ ...d, group: classify(d.ultPedDias) }));
+    }
+    console.log('FIM: BLOCO 09 - Preparar Dados');
+    // ===== FIM: BLOCO 09 - Preparar Dados =====
+
+    // ===== INÍCIO: BLOCO 10 - KPIs =====
+    console.log('INÍCIO: BLOCO 10 - KPIs');
+    function updateKPIs(data) {
+      const total = data.length;
+      const counts = {Reativados:0,Inativos:0,'Ex‑clientes':0};
+      data.forEach(d=>counts[d.group]++);
+      const semana = [], mes=[], atrasado=[];
       const hoje = new Date();
-      hoje.setHours(0, 0, 0, 0);
-      const diff = hoje - data;
-      return Math.floor(diff / (1000 * 60 * 60 * 24));
-    }
-    
-    // Extrair mês/ano de uma data para agrupamento
-    function extrairMesAno(data) {
-      if (!data || !(data instanceof Date) || isNaN(data)) return null;
-      
-      const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-      return `${meses[data.getMonth()]}/${data.getFullYear()}`;
-    }
-    
-    // Mostrar mensagem de erro
-    function mostrarErro(mensagem, duracao = 5000) {
-      const alerta = document.createElement('div');
-      alerta.className = 'fixed bottom-4 right-4 p-4 rounded-lg z-50 text-white text-sm';
-      alerta.style.backgroundColor = 'var(--danger)';
-      alerta.textContent = mensagem;
-      
-      document.body.appendChild(alerta);
-      
-      setTimeout(() => {
-        alerta.style.opacity = '0';
-        alerta.style.transition = 'opacity 0.5s';
-        
-        setTimeout(() => {
-          document.body.removeChild(alerta);
-        }, 500);
-      }, duracao);
-    }
-    
-    // Alternar visibilidade do loader
-    function toggleLoader(mostrar = true) {
-      const loader = document.getElementById('loader');
-      if (loader) {
-        loader.style.display = mostrar ? 'flex' : 'none';
-      }
-    }
-
-    // Obter categoria do cliente com base nos dias desde o último pedido
-    function categorizarClientePorDias(dias) {
-      if (dias === null || dias === undefined) return null;
-      
-      // Garantir que o valor seja numérico
-      dias = parseInt(dias, 10);
-      if (isNaN(dias)) return null;
-      
-      const limites = window.LIMITES_CLIENTE;
-      if (dias >= limites.reativado.min && dias <= limites.reativado.max) {
-        return 'Reativado';
-      } else if (dias >= limites.inativo.min && dias <= limites.inativo.max) {
-        return 'Inativo';
-      } else if (dias >= limites.exCliente.min && dias <= limites.exCliente.max) {
-        return 'Ex-cliente';
-      }
-      return null;
-    }
-    
-    // ==========================================
-    // BLOCO - FUNÇÕES DE CARREGAMENTO DE DADOS
-    // ==========================================
-    
-    // Obter a lista de abas da planilha
-    async function obterListaAbas() {
-      try {
-        const response = await fetch(`${API_BASE}?info=true`);
-        const info = await response.json();
-
-        // Se a API retornar direto um array de registros, força uma "aba vazia"
-        if (Array.isArray(info)) {
-          return [''];
+      const day = hoje.getDay();
+      const diff = (day+6)%7; // seg=1->diff=0
+      const startWeek = new Date(hoje); startWeek.setDate(hoje.getDate()-diff);
+      const endWeek = new Date(startWeek); endWeek.setDate(startWeek.getDate()+4);
+      data.forEach(d=>{
+        const pc = d.proximoContato;
+        if(pc){
+          if(pc>=startWeek && pc<=endWeek) semana.push(d);
+          else if(pc.getMonth()===hoje.getMonth() && pc>hoje) mes.push(d);
+          else if(pc<hoje) atrasado.push(d);
         }
-        // Caso padrão, quando existe info.sheets
-        if (info && info.sheets) {
-          return info.sheets;
-        }
-        return [];
-      } catch (erro) {
-        console.error('Erro ao obter lista de abas:', erro);
-        mostrarErro('Não foi possível obter a lista de abas da planilha');
-        return [];
-      }
+      });
+      const avg = arr=> arr.reduce((s,d)=>s+d.ultPedDias,0)/arr.length||0;
+      document.getElementById('kpi-total').innerText=`Total: ${total}`;
+      ['Reativados','Inativos','Ex‑clientes'].forEach(g=>{
+        document.getElementById(`kpi-${g.toLowerCase().replace(' ','')}`)
+          .innerText=`${g}: ${((counts[g]/total)*100).toFixed(1)}%`;
+      });
+      document.getElementById('kpi-contatosSemana').innerText=`Semana: ${semana.length}`;
+      document.getElementById('kpi-contatosMes').innerText=`Mês: ${mes.length}`;
+      document.getElementById('kpi-contatosAtrasados').innerText=`Atrasados: ${atrasado.length}`;
+      document.getElementById('kpi-mediaDias').innerText=`Média Dias: ${avg(data).toFixed(0)}`;
+      document.getElementById('kpi-taxaReativacao').innerText=
+        `Taxa Reativação: ${(counts.Reativados/(counts.Inativos+counts['Ex‑clientes'])*100||0).toFixed(1)}%`;
     }
+    console.log('FIM: BLOCO 10 - KPIs');
+    // ===== FIM: BLOCO 10 - KPIs =====
 
-    // Carregar dados de uma aba específica
-    async function carregarDadosAba(nomeAba) {
-      try {
-        // Se nomeAba for vazio, busca pelo endpoint principal; caso contrário, filtra pela aba
-        const url = nomeAba
-          ? `${API_BASE}?sheet=${nomeAba}`
-          : API_BASE;
+    // ===== INÍCIO: BLOCO 11 - Gráficos =====
+    console.log('INÍCIO: BLOCO 11 - Gráficos');
+    let charts = {};
+    function updateCharts(data) {
+      // 1: Barra por Status
+      const counts = {Reativados:0,Inativos:0,'Ex‑clientes':0}; data.forEach(d=>counts[d.group]++);
+      const labels = Object.keys(counts), vals = labels.map(l=>counts[l]);
+      const colors = [getComputedStyle(root).getPropertyValue('--success'),
+                      getComputedStyle(root).getPropertyValue('--warning'),
+                      getComputedStyle(root).getPropertyValue('--danger')];
+      if(charts.status) charts.status.destroy();
+      charts.status = new Chart(document.getElementById('chart-status'),{ type:'bar', data:{labels, datasets:[{data:vals, backgroundColor:colors}]} });
 
-        const response = await fetch(url);
-        const dados = await response.json();
+      // 2: Evolução Inativos vs Ex
+      const evoMap={}; data.forEach(d=>{
+        evoMap[d.mesReferencia]??={Inativos:0,'Ex‑clientes':0};
+        if(d.group==='Inativos') evoMap[d.mesReferencia].Inativos++;
+        if(d.group==='Ex‑clientes') evoMap[d.mesReferencia]['Ex‑clientes']++;
+      });
+      const months=Object.keys(evoMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
+      const ds1={label:'Inativos',data:months.map(m=>evoMap[m].Inativos), borderColor:getComputedStyle(root).getPropertyValue('--warning'), fill:false};
+      const ds2={label:'Ex‑clientes',data:months.map(m=>evoMap[m]['Ex‑clientes']), borderColor:getComputedStyle(root).getPropertyValue('--danger'), fill:false};
+      if(charts.evolucao) charts.evolucao.destroy();
+      charts.evolucao=new Chart(document.getElementById('chart-evolucao'),{type:'line',data:{labels:months,datasets:[ds1,ds2]}});
 
-        if (Array.isArray(dados) && dados.length > 0) {
-          console.log(`✅ Carregados ${dados.length} registros da aba "${nomeAba || 'principal'}"`);
-          
-          return dados.map(registro => {
-            // Dias desde o último pedido (garantindo que seja número)
-            const diasUltimoPedido = registro[window.MAP_COLUNAS.ultimoPedidoEmDias];
-            let diasComoNumero = null;
-            
-            if (diasUltimoPedido !== null && diasUltimoPedido !== undefined) {
-              diasComoNumero = parseInt(diasUltimoPedido, 10);
-              if (isNaN(diasComoNumero)) {
-                diasComoNumero = null;
-              }
-            }
-            
-            // Determinar a categoria do cliente com base nos dias desde o último pedido
-            const categoriaCliente = categorizarClientePorDias(diasComoNumero);
-            
-            return {
-              // Dados principais
-              Cliente: registro[window.MAP_COLUNAS.cliente] || '',
-              UF: registro[window.MAP_COLUNAS.uf] || '',
-              Categoria: registro[window.MAP_COLUNAS.categoria] || '',
-              // Status principal agora baseado na contagem de dias (não no campo da API)
-              Status: categoriaCliente || registro[window.MAP_COLUNAS.statusPrincipal] || '',
-              // Campos originais
-              StatusOriginal: registro[window.MAP_COLUNAS.statusPrincipal] || '',
-              Motivo: registro[window.MAP_COLUNAS.motivoStatus] || '',
-              // Status atual do registro
-              Ativo: registro[window.MAP_COLUNAS.statusAtual] || '',
-              // Datas convertidas
-              Data: converterStringParaData(registro[window.MAP_COLUNAS.ultimoContato]),
-              ProxContato: converterStringParaData(registro[window.MAP_COLUNAS.proximoContato]),
-              Recompra: converterStringParaData(registro[window.MAP_COLUNAS.previsaoRecompra]),
-              UltimoPedido: converterStringParaData(registro[window.MAP_COLUNAS.ultimoPedido]),
-              // Metadados
-              Aba: nomeAba || registro[window.MAP_COLUNAS.mesReferencia] || '',
-              DiasDesdeUltimoPedido: diasComoNumero,
-              Observacao: registro[window.MAP_COLUNAS.observacao] || ''
-            };
-          });
-        }
-        return [];
-      } catch (erro) {
-        console.error(`Erro ao carregar dados da aba ${nomeAba}:`, erro);
-        mostrarErro(`Não foi possível carregar os dados da aba ${nomeAba}`);
-        return [];
-      }
+      // 3: Pizza Motivos
+      const motMap={}; data.filter(d=>d.ultPedDias>120).forEach(d=>motMap[d.motivoStatus]=(motMap[d.motivoStatus]||0)+1);
+      const mLabels=Object.keys(motMap), mVals=mLabels.map(l=>motMap[l]);
+      if(charts.motivos) charts.motivos.destroy();
+      charts.motivos=new Chart(document.getElementById('chart-motivos'),{type:'pie',data:{labels:mLabels,datasets:[{data:mVals}]}});
+
+      // 4: Barras Empilhadas UF
+      const ufMap={}; data.forEach(d=>{
+        ufMap[d.uf]??={Reativados:0,Inativos:0,'Ex‑clientes':0}; ufMap[d.uf][d.group]++;
+      });
+      const ufs=Object.keys(ufMap), dsUF=['Reativados','Inativos','Ex‑clientes'].map((g,i)=>({label:g,data:ufs.map(u=>ufMap[u][g]), backgroundColor:colors[i]}));
+      if(charts.uf) charts.uf.destroy();
+      charts.uf=new Chart(document.getElementById('chart-uf'),{type:'bar',data:{labels:ufs,datasets:dsUF},options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+
+      // 5: Previsão Recompra
+      const preMap={}; data.filter(d=>d.ultPedDias>120 && d.previsaoRecompra>new Date()).forEach(d=>{
+        const key=`${d.previsaoRecompra.getMonth()+1}/${d.previsaoRecompra.getFullYear()}`;
+        preMap[key]=(preMap[key]||0)+1;
+      });
+      const pMonths=Object.keys(preMap).sort((a,b)=>new Date(a.split('/').reverse().join('-'))-new Date(b.split('/').reverse().join('-')));
+      const pVals=pMonths.map(m=>preMap[m]);
+      if(charts.previsao) charts.previsao.destroy();
+      charts.previsao=new Chart(document.getElementById('chart-previsao'),{type:'bar',data:{labels:pMonths,datasets:[{label:'Previsão',data:pVals,backgroundColor:getComputedStyle(root).getPropertyValue('--primary')}]} });
     }
+    console.log('FIM: BLOCO 11 - Gráficos');
+    // ===== FIM: BLOCO 11 - Gráficos =====
 
-    // Carregar todos os dados de todas as abas com conteúdo
-    async function carregarTodosDados() {
-      toggleLoader(true);
-      try {
-        const listaAbas = await obterListaAbas();
-        window.abas = listaAbas;
-
-        let dadosCombinados = [];
-        
-        // Se não houver abas, tentar carregar direto da API
-        if (listaAbas.length === 0) {
-          const dadosDiretos = await fetch(API_BASE)
-            .then(resp => resp.json())
-            .catch(err => {
-              console.error('Erro ao carregar dados diretos:', err);
-              return [];
-            });
-            
-          if (Array.isArray(dadosDiretos) && dadosDiretos.length > 0) {
-            console.log(`✅ Carregados ${dadosDiretos.length} registros diretamente da API`);
-            dadosCombinados = dadosDiretos.map(registro => {
-              // Dias desde o último pedido (garantindo que seja número)
-              const diasUltimoPedido = registro[window.MAP_COLUNAS.ultimoPedidoEmDias];
-              let diasComoNumero = null;
-              
-              if (diasUltimoPedido !== null && diasUltimoPedido !== undefined) {
-                diasComoNumero = parseInt(diasUltimoPedido, 10);
-                if (isNaN(diasComoNumero)) {
-                  diasComoNumero = null;
-                }
-              }
-              
-              // Determinar a categoria do cliente com base nos dias desde o último pedido
-              const categoriaCliente = categorizarClientePorDias(diasComoNumero);
-              
-              return {
-                // Dados principais
-                Cliente: registro[window.MAP_COLUNAS.cliente] || '',
-                UF: registro[window.MAP_COLUNAS.uf] || '',
-                Categoria: registro[window.MAP_COLUNAS.categoria] || '',
-                // Status baseado na contagem de dias
-                Status: categoriaCliente || registro[window.MAP_COLUNAS.statusPrincipal] || '',
-                // Campos originais
-                StatusOriginal: registro[window.MAP_COLUNAS.statusPrincipal] || '',
-                Motivo: registro[window.MAP_COLUNAS.motivoStatus] || '',
-                // Status atual do registro
-                Ativo: registro[window.MAP_COLUNAS.statusAtual] || '',
-                // Datas convertidas
-                Data: converterStringParaData(registro[window.MAP_COLUNAS.ultimoContato]),
-                ProxContato: converterStringParaData(registro[window.MAP_COLUNAS.proximoContato]),
-                Recompra: converterStringParaData(registro[window.MAP_COLUNAS.previsaoRecompra]),
-                UltimoPedido: converterStringParaData(registro[window.MAP_COLUNAS.ultimoPedido]),
-                // Metadados
-                Aba: registro[window.MAP_COLUNAS.mesReferencia] || '',
-                DiasDesdeUltimoPedido: diasComoNumero,
-                Observacao: registro[window.MAP_COLUNAS.observacao] || ''
-              };
-            });
-          }
-        } else {
-          // Carregar dados de cada aba encontrada
-          for (const aba of listaAbas) {
-            const dadosAba = await carregarDadosAba(aba);
-            if (dadosAba.length > 0) {
-              dadosCombinados = [...dadosCombinados, ...dadosAba];
-            }
-          }
-        }
-
-        // Atualiza data de última atualização
-        const dataAtualizacao = document.getElementById('data-update');
-        if (dataAtualizacao) {
-          const agora = new Date();
-          dataAtualizacao.textContent = `Atualizado em: ${formatarData(agora)} às ${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
-        }
-
-        return dadosCombinados;
-      } catch (erro) {
-        console.error('Erro ao carregar todos os dados:', erro);
-        mostrarErro('Ocorreu um erro ao carregar os dados da planilha');
-        return [];
-      } finally {
-        toggleLoader(false);
-      }
+    // ===== INÍCIO: BLOCO 12 - Update All =====
+    console.log('INÍCIO: BLOCO 12 - Update All');
+    function updateAll() {
+      const data = prepareData();
+      updateKPIs(data);
+      updateCharts(data);
     }
+    console.log('FIM: BLOCO 12 - Update All');
+    // ===== FIM: BLOCO 12 - Update All =====
+  </script>
+</body>
+</html>
