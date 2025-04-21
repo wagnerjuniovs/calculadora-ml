@@ -1455,7 +1455,7 @@ function setupDrillDown() {
       const index = elements[0].index;
       const mesAno = mesesPrevisao[index]; // Obtém o mês/ano clicado
       
-      // Filtrar apenas clientes inativos e ex-clientes com previsão no mês selecionado
+      // Filtrar apenas clientes com previsão no mês selecionado
       const clientesMes = prepareData().filter(item => {
         // Verifica se tem previsão de recompra
         if (!item.previsaoRecompra) return false;
@@ -1475,23 +1475,6 @@ function setupDrillDown() {
 
   // Adicionar cursor pointer ao container do gráfico para indicar que é clicável
   document.getElementById('chart-previsao').parentElement.style.cursor = 'pointer';
-
-  // Adicionar interatividade ao clicar no container do gráfico (não apenas nas barras)
-  document.getElementById('chart-previsao').parentElement.addEventListener('click', (event) => {
-    // Verificar se o clique foi diretamente no container e não em uma barra
-    // (event.target é o elemento exato que foi clicado)
-    if (event.target === document.getElementById('chart-previsao')) {
-      // Mostrar todos os clientes com previsão de recompra
-      const clientesComPrevisao = prepareData().filter(item => {
-        return item.previsaoRecompra && item.previsaoRecompra > new Date();
-      });
-      
-      if (clientesComPrevisao.length > 0) {
-        const title = 'Todos os Clientes com Previsão de Recompra';
-        showClientModal(title, clientesComPrevisao);
-      }
-    }
-  });
 
   // Atualize cada gráfico para aplicar as novas opções
   Object.values(charts).forEach(chart => chart.update());
