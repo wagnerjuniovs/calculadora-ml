@@ -1,1528 +1,398 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { createTheme, ThemeProvider, CssBaseline, useMediaQuery } from '@mui/material';
-import { 
-  AppBar, Toolbar, Typography, Box, Container, Card, CardContent, 
-  Button, IconButton, Grid, TextField, Select, MenuItem, FormControl,
-  InputLabel, Checkbox, FormControlLabel, Drawer, Divider, List, ListItem,
-  ListItemText, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogActions,
-  Snackbar, Alert, Paper, Tabs, Tab, TableContainer, Table, TableHead, TableBody,
-  TableRow, TableCell, Chip, Menu, InputAdornment
-} from '@mui/material';
-import { 
-  Add as AddIcon, 
-  DarkMode as DarkModeIcon, 
-  LightMode as LightModeIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  FilterList as FilterListIcon,
-  Download as DownloadIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Person as PersonIcon,
-  Category as CategoryIcon,
-  Payment as PaymentIcon,
-  DateRange as DateRangeIcon,
-  Dashboard as DashboardIcon,
-  AttachMoney as AttachMoneyIcon,
-  MenuOpen as MenuOpenIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon
-} from '@mui/icons-material';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { ptBR } from 'date-fns/locale';
-import Chart from 'chart.js/auto';
-import { Line, Bar, Pie, Doughnut } from 'react-chartjs-2';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, parseISO, isWithinInterval, addMonths, subMonths } from 'date-fns';
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vida Financeira da Família</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    body { margin: 0; font-family: "Roboto", sans-serif; }
+    #root { min-height: 100vh; }
+    /* fallback para quem desabilitar JS */
+    noscript{display:block;margin:2rem;text-align:center;color:#d32f2f;font-weight:500}
+  </style>
+</head>
+<body>
+  <noscript>⚠️ Esta calculadora requer JavaScript habilitado.</noscript>
+  <div id="root"></div>
 
-// Função para gerar ID único
-const generateId = () => Math.random().toString(36).substr(2, 9);
+  <!-- React & Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// Valores iniciais
-const initialExpenseState = {
-  id: '',
-  date: format(new Date(), 'yyyy-MM-dd'),
-  description: '',
-  category: '',
-  amount: '',
-  type: '',
-  paymentMethod: '',
-  isInstallment: false,
-  installmentCount: 1,
-  person: '',
-  status: 'pendente'
-};
+  <!-- MUI 5 UMD -->
+  <script src="https://unpkg.com/@mui/material@5.15.15/umd/material-ui.development.js"></script>
+  <script src="https://unpkg.com/@mui/icons-material@5.15.15/umd/material-ui-icons.development.js"></script>
+  <script src="https://unpkg.com/@mui/x-date-pickers@6.19.0/umd/x-date-pickers.development.js"></script>
+  <!-- date-fns & pt-BR locale -->
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/dist/date-fns.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/locale/pt-BR/index.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- idb-keyval para IndexedDB persistência -->
+  <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
 
-// Categorias e tipos
-const categories = ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Serviços', 'Vestuário', 'Outros'];
-const types = ['Essencial', 'Variável', 'Supérfluo', 'Dívida', 'Educação', 'Lazer'];
-const paymentMethods = ['Pix', 'Crédito', 'Débito', 'Dinheiro', 'Carnê', 'Boleto', 'Transferência'];
-const people = ['Wagner', 'Bárbara', 'Joaquim', 'Família'];
-
-// Funções auxiliares
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(value) || 0);
-};
-
-const downloadCSV = (data, filename) => {
-  if (data.length === 0) {
-    alert('Não há dados para exportar');
-    return;
-  }
-  
-  // Cria cabeçalhos CSV
-  const headers = Object.keys(data[0]).join(',');
-  
-  // Converte cada objeto em uma linha CSV
-  const csvRows = data.map(row => 
-    Object.values(row).map(value => 
-      typeof value === 'string' ? `"${value}"` : value
-    ).join(',')
-  );
-  
-  // Combina cabeçalhos e linhas
-  const csvContent = [headers, ...csvRows].join('\n');
-  
-  // Cria um blob e link para download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-function App() {
-  console.log('Aplicação inicializada');
-  
-  // Estado para tema claro/escuro
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode !== null ? JSON.parse(savedMode) : prefersDarkMode;
-  });
-
-  // Estados para armazenar as despesas e filtros
-  const [expenses, setExpenses] = useState(() => {
-    const savedExpenses = localStorage.getItem('expenses');
-    return savedExpenses ? JSON.parse(savedExpenses) : [];
-  });
-  
-  const [newExpense, setNewExpense] = useState(initialExpenseState);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  
-  // Estados para navegação de data
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  
-  // Estado para filtros
-  const [filters, setFilters] = useState({
-    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    endDate: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
-    category: '',
-    type: '',
-    paymentMethod: '',
-    person: '',
-    minAmount: '',
-    maxAmount: '',
-  });
-  
-  // Estado para abas
-  const [tabValue, setTabValue] = useState(0);
-  
-  // Menu de exportação
-  const [exportAnchorEl, setExportAnchorEl] = useState(null);
-  
-  // Tema baseado no modo claro/escuro
-  const theme = useMemo(() => createTheme({
-    palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: '#4285F4', // Google Blue
-        dark: '#3367d6',
-        light: '#5e97f6'
-      },
-      secondary: {
-        main: '#0F9D58', // Google Green
-      },
-      error: {
-        main: '#DB4437', // Google Red
-      },
-      warning: {
-        main: '#F4B400', // Google Yellow
-      },
-      background: {
-        default: darkMode ? '#121212' : '#F5F5F5',
-        paper: darkMode ? '#1e1e1e' : '#FFFFFF',
-      },
-    },
-    typography: {
-      fontFamily: '"Google Sans", "Roboto", "Arial", sans-serif'
-    },
-    components: {
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            borderRadius: 12,
-            boxShadow: darkMode 
-              ? '0 4px 20px 0 rgba(0,0,0,0.5)' 
-              : '0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15)',
-          }
-        }
-      },
-      MuiButton: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8,
-            textTransform: 'none',
-            fontWeight: 500
-          }
-        }
-      },
-      MuiChip: {
-        styleOverrides: {
-          root: {
-            borderRadius: 8
-          }
-        }
-      }
-    }
-  }), [darkMode]);
-  
-  // Salvar despesas no localStorage quando o estado mudar
-  useEffect(() => {
-    console.log('Despesas salvas no localStorage:', expenses.length);
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-  }, [expenses]);
-  
-  // Salvar preferência de tema
-  useEffect(() => {
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-  }, [darkMode]);
-  
-  // Filtrar despesas com base nos critérios atuais
-  const filteredExpenses = useMemo(() => {
-    return expenses.filter(expense => {
-      try {
-        const expenseDate = parseISO(expense.date);
-        const startDate = filters.startDate ? parseISO(filters.startDate) : null;
-        const endDate = filters.endDate ? parseISO(filters.endDate) : null;
-        
-        // Verificar data
-        const dateMatch = !startDate || !endDate || isWithinInterval(expenseDate, { start: startDate, end: endDate });
-        
-        // Verificar categoria
-        const categoryMatch = !filters.category || expense.category === filters.category;
-        
-        // Verificar tipo
-        const typeMatch = !filters.type || expense.type === filters.type;
-        
-        // Verificar método de pagamento
-        const paymentMatch = !filters.paymentMethod || expense.paymentMethod === filters.paymentMethod;
-        
-        // Verificar pessoa
-        const personMatch = !filters.person || expense.person === filters.person;
-        
-        // Verificar valor mínimo
-        const minAmountMatch = !filters.minAmount || Number(expense.amount) >= Number(filters.minAmount);
-        
-        // Verificar valor máximo
-        const maxAmountMatch = !filters.maxAmount || Number(expense.amount) <= Number(filters.maxAmount);
-        
-        return dateMatch && categoryMatch && typeMatch && paymentMatch && personMatch && minAmountMatch && maxAmountMatch;
-      } catch (error) {
-        console.error('Erro ao filtrar despesa:', error, expense);
-        return false;
-      }
-    });
-  }, [expenses, filters]);
-  
-  // Calcular KPIs
-  const kpis = useMemo(() => {
-    try {
-      // Total do mês
-      const total = filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
-      
-      // Média por dia (se houver pelo menos uma despesa)
-      const startDate = parseISO(filters.startDate);
-      const endDate = parseISO(filters.endDate);
-      const daysInPeriod = filteredExpenses.length > 0 
-        ? eachDayOfInterval({ start: startDate, end: endDate }).length 
-        : 1;
-      const average = total / daysInPeriod;
-      
-      // Categoria mais cara
-      const categoryTotals = {};
-      filteredExpenses.forEach(expense => {
-        const category = expense.category || 'Sem categoria';
-        categoryTotals[category] = (categoryTotals[category] || 0) + Number(expense.amount);
-      });
-      
-      let topCategory = 'Nenhuma';
-      let topCategoryAmount = 0;
-      
-      Object.entries(categoryTotals).forEach(([category, amount]) => {
-        if (amount > topCategoryAmount) {
-          topCategory = category;
-          topCategoryAmount = amount;
-        }
-      });
-      
-      // Pessoa que mais gastou
-      const personTotals = {};
-      filteredExpenses.forEach(expense => {
-        const person = expense.person || 'Não especificado';
-        personTotals[person] = (personTotals[person] || 0) + Number(expense.amount);
-      });
-      
-      let topSpender = 'Ninguém';
-      let topSpenderAmount = 0;
-      
-      Object.entries(personTotals).forEach(([person, amount]) => {
-        if (amount > topSpenderAmount) {
-          topSpender = person;
-          topSpenderAmount = amount;
-        }
-      });
-      
-      // Projeção para o final do mês (baseada na média diária)
-      const daysInMonth = eachDayOfInterval({ 
-        start: startOfMonth(currentMonth), 
-        end: endOfMonth(currentMonth) 
-      }).length;
-      
-      const projection = average * daysInMonth;
-      
-      return {
-        total,
-        average,
-        topCategory,
-        topSpender,
-        projection
-      };
-    } catch (error) {
-      console.error('Erro ao calcular KPIs:', error);
-      return {
-        total: 0,
-        average: 0,
-        topCategory: 'Erro',
-        topSpender: 'Erro',
-        projection: 0
-      };
-    }
-  }, [filteredExpenses, filters.startDate, filters.endDate, currentMonth]);
-  
-  // Dados para os gráficos
-  const chartData = useMemo(() => {
-    try {
-      // Dados para o gráfico de linha (despesas ao longo do tempo)
-      const dateLabels = eachDayOfInterval({
-        start: parseISO(filters.startDate),
-        end: parseISO(filters.endDate)
-      }).map(date => format(date, 'dd/MM'));
-      
-      const dailyExpenses = dateLabels.map(dateLabel => {
-        const day = dateLabel.split('/')[0];
-        const month = dateLabel.split('/')[1];
-        
-        // Somar todas as despesas deste dia
-        return filteredExpenses
-          .filter(exp => {
-            const expDate = format(parseISO(exp.date), 'dd/MM');
-            return expDate === dateLabel;
-          })
-          .reduce((sum, exp) => sum + Number(exp.amount), 0);
-      });
-      
-      // Dados para o gráfico de pizza (por tipo)
-      const typeLabels = types;
-      const typeData = typeLabels.map(type => {
-        return filteredExpenses
-          .filter(exp => exp.type === type)
-          .reduce((sum, exp) => sum + Number(exp.amount), 0);
-      });
-      
-      // Dados para o gráfico de barras (por categoria)
-      const categoryLabels = categories;
-      const categoryData = categoryLabels.map(category => {
-        return filteredExpenses
-          .filter(exp => exp.category === category)
-          .reduce((sum, exp) => sum + Number(exp.amount), 0);
-      });
-      
-      // Dados para o gráfico de pessoas
-      const peopleLabels = people;
-      const peopleData = peopleLabels.map(person => {
-        return filteredExpenses
-          .filter(exp => exp.person === person)
-          .reduce((sum, exp) => sum + Number(exp.amount), 0);
-      });
-      
-      return {
-        line: {
-          labels: dateLabels,
-          datasets: [{
-            label: 'Despesas',
-            data: dailyExpenses,
-            fill: true,
-            borderColor: '#4285F4',
-            backgroundColor: 'rgba(66, 133, 244, 0.2)',
-            tension: 0.4,
-            pointRadius: 3,
-            pointBackgroundColor: '#4285F4',
-            pointBorderColor: '#FFFFFF',
-            pointBorderWidth: 1,
-            pointHoverRadius: 5,
-            pointHoverBackgroundColor: '#3367d6'
-          }]
-        },
-        pie: {
-          labels: typeLabels,
-          datasets: [{
-            data: typeData,
-            backgroundColor: [
-              'rgba(66, 133, 244, 0.8)',   // Google Blue
-              'rgba(219, 68, 55, 0.8)',    // Google Red
-              'rgba(244, 180, 0, 0.8)',    // Google Yellow
-              'rgba(15, 157, 88, 0.8)',    // Google Green
-              'rgba(138, 78, 222, 0.8)',   // Purple
-              'rgba(255, 109, 0, 0.8)'     // Orange
-            ],
-            borderColor: darkMode ? '#1e1e1e' : '#fff',
-            borderWidth: 2
-          }]
-        },
-        bar: {
-          labels: categoryLabels,
-          datasets: [{
-            label: 'Gastos por Categoria',
-            data: categoryData,
-            backgroundColor: 'rgba(66, 133, 244, 0.7)',
-            borderColor: '#4285F4',
-            borderWidth: 1,
-            borderRadius: 8,
-            hoverBackgroundColor: '#3367d6'
-          }]
-        },
-        people: {
-          labels: peopleLabels,
-          datasets: [{
-            label: 'Gastos por Pessoa',
-            data: peopleData,
-            backgroundColor: [
-              'rgba(66, 133, 244, 0.8)',   // Wagner
-              'rgba(219, 68, 55, 0.8)',    // Bárbara
-              'rgba(244, 180, 0, 0.8)',    // Joaquim
-              'rgba(15, 157, 88, 0.8)'     // Família
-            ],
-            borderColor: darkMode ? '#1e1e1e' : '#fff',
-            borderWidth: 2
-          }]
-        }
-      };
-    } catch (error) {
-      console.error('Erro ao gerar dados dos gráficos:', error);
-      return {
-        line: { labels: [], datasets: [{ data: [] }] },
-        pie: { labels: [], datasets: [{ data: [] }] },
-        bar: { labels: [], datasets: [{ data: [] }] },
-        people: { labels: [], datasets: [{ data: [] }] }
-      };
-    }
-  }, [filteredExpenses, filters.startDate, filters.endDate, darkMode]);
-  
-  // Opções para os gráficos
-  const chartOptions = {
-    line: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-          titleColor: darkMode ? '#fff' : '#333', 
-          bodyColor: darkMode ? '#fff' : '#333',
-          borderColor: darkMode ? '#444' : '#ddd',
-          borderWidth: 1,
-          displayColors: false,
-          callbacks: {
-            label: function(context) {
-              return formatCurrency(context.raw);
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-            drawBorder: false
-          },
-          ticks: {
-            color: darkMode ? '#aaa' : '#666',
-            maxRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: 10
-          }
-        },
-        y: {
-          grid: {
-            color: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-            drawBorder: false
-          },
-          ticks: {
-            color: darkMode ? '#aaa' : '#666',
-            callback: function(value) {
-              return formatCurrency(value);
-            }
-          }
-        }
-      }
-    },
-    pie: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 15,
-            padding: 15,
-            color: darkMode ? '#ddd' : '#555'
-          }
-        },
-        tooltip: {
-          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-          titleColor: darkMode ? '#fff' : '#333', 
-          bodyColor: darkMode ? '#fff' : '#333',
-          borderColor: darkMode ? '#444' : '#ddd',
-          borderWidth: 1,
-          callbacks: {
-            label: function(context) {
-              const label = context.label || '';
-              const value = formatCurrency(context.raw);
-              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = Math.round((context.raw / total) * 100);
-              return `${label}: ${value} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    },
-    bar: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
-        },
-        tooltip: {
-          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-          titleColor: darkMode ? '#fff' : '#333', 
-          bodyColor: darkMode ? '#fff' : '#333',
-          borderColor: darkMode ? '#444' : '#ddd',
-          borderWidth: 1,
-          callbacks: {
-            label: function(context) {
-              return formatCurrency(context.raw);
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: {
-            display: false,
-            drawBorder: false
-          },
-          ticks: {
-            color: darkMode ? '#aaa' : '#666'
-          }
-        },
-        y: {
-          grid: {
-            color: darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
-            drawBorder: false
-          },
-          ticks: {
-            color: darkMode ? '#aaa' : '#666',
-            callback: function(value) {
-              return formatCurrency(value);
-            }
-          }
-        }
-      }
-    },
-    people: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            boxWidth: 15,
-            padding: 15,
-            color: darkMode ? '#ddd' : '#555'
-          }
-        },
-        tooltip: {
-          backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.9)' : 'rgba(255, 255, 255, 0.9)',
-          titleColor: darkMode ? '#fff' : '#333', 
-          bodyColor: darkMode ? '#fff' : '#333',
-          borderColor: darkMode ? '#444' : '#ddd',
-          borderWidth: 1,
-          callbacks: {
-            label: function(context) {
-              const label = context.label || '';
-              const value = formatCurrency(context.raw);
-              const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = Math.round((context.raw / total) * 100);
-              return `${label}: ${value} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    }
-  };
-  
-  // Funções para navegação de mês
-  const nextMonth = () => {
-    console.log('Avançando para o próximo mês');
-    const next = addMonths(currentMonth, 1);
-    setCurrentMonth(next);
-    setFilters({
-      ...filters,
-      startDate: format(startOfMonth(next), 'yyyy-MM-dd'),
-      endDate: format(endOfMonth(next), 'yyyy-MM-dd')
-    });
-  };
-  
-  const prevMonth = () => {
-    console.log('Voltando para o mês anterior');
-    const prev = subMonths(currentMonth, 1);
-    setCurrentMonth(prev);
-    setFilters({
-      ...filters,
-      startDate: format(startOfMonth(prev), 'yyyy-MM-dd'),
-      endDate: format(endOfMonth(prev), 'yyyy-MM-dd')
-    });
-  };
-  
-  // Funções para abrir/fechar o diálogo
-  const handleOpenDialog = () => {
-    console.log('Abrindo diálogo para nova despesa');
-    setNewExpense({
-      ...initialExpenseState,
-      date: format(new Date(), 'yyyy-MM-dd')
-    });
-    setEditMode(false);
-    setDialogOpen(true);
-  };
-  
-  const handleCloseDialog = () => {
-    console.log('Fechando diálogo');
-    setDialogOpen(false);
-    setSelectedExpense(null);
-  };
-  
-  // Função para lidar com alterações de campos
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+    const { createRoot } = ReactDOM;
+    const {
+      AppBar, Toolbar, Typography, IconButton, Box, CssBaseline, Drawer,
+      List, ListItem, ListItemText, Divider, Button, Container, Grid, Card, CardContent,
+      Menu, MenuItem, Snackbar, Alert, Tabs, Tab, TextField, Select, FormControl, InputLabel,
+      FormControlLabel, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment,
+      useMediaQuery, createTheme, ThemeProvider, Chip
+    } = MaterialUI;
+    const { AdapterDateFns, LocalizationProvider, DatePicker } = DatePickers;
+    const {
+      DarkMode, LightMode, FilterList, Download, Add, Edit, Delete, MenuOpen, Dashboard,
+      AttachMoney, Person, ChevronLeft, ChevronRight
+    } = MaterialUIIcons;
+    const { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval } = dateFns;
+    const ptBR = dateFnsLocale_ptBR;
     
-    if (type === 'checkbox') {
-      setNewExpense(prev => ({
-        ...prev,
-        [name]: checked
-      }));
-    } else {
-      setNewExpense(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
-  };
-  
-  // Função para enviar o formulário
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Submetendo formulário de despesa:', newExpense);
-    
-    const expenseData = {
-      ...newExpense,
-      id: editMode ? selectedExpense.id : generateId(),
-      amount: Number(newExpense.amount) || 0
+    // Helpers
+    const currency = (v)=> new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+
+    // Índice para IndexedDB
+    const storeKey = 'expenses';
+
+    // fallback IndexedDB -> localStorage
+    const persist = {
+      async get(){
+        try{ return await idbKeyval.get(storeKey) || []; }catch(e){ return JSON.parse(localStorage.getItem(storeKey)||'[]'); }
+      },
+      async set(data){
+        try{ await idbKeyval.set(storeKey,data);}catch(e){ localStorage.setItem(storeKey,JSON.stringify(data)); }
+      }
     };
-    
-    if (editMode) {
-      // Atualizar despesa existente
-      setExpenses(prev => prev.map(expense => 
-        expense.id === selectedExpense.id ? expenseData : expense
-      ));
-      setSnackbar({
-        open: true, 
-        message: 'Despesa atualizada com sucesso!', 
-        severity: 'success'
-      });
-    } else {
-      // Adicionar nova despesa
-      setExpenses(prev => [...prev, expenseData]);
-      setSnackbar({
-        open: true, 
-        message: 'Despesa adicionada com sucesso!', 
-        severity: 'success'
-      });
-    }
-    
-    handleCloseDialog();
-  };
-  
-  // Função para editar uma despesa
-  const handleEditExpense = (expense) => {
-    console.log('Editando despesa:', expense);
-    setSelectedExpense(expense);
-    setNewExpense(expense);
-    setEditMode(true);
-    setDialogOpen(true);
-  };
-  
-  // Função para excluir uma despesa
-  const handleDeleteExpense = (id) => {
-    console.log('Excluindo despesa com ID:', id);
-    setExpenses(prev => prev.filter(expense => expense.id !== id));
-    setSnackbar({
-      open: true, 
-      message: 'Despesa excluída com sucesso!', 
-      severity: 'success'
-    });
-  };
-  
-  // Função para lidar com alterações nos filtros
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    console.log(`Alterando filtro ${name} para ${value}`);
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Função para aplicar os filtros atuais
-  const applyFilters = () => {
-    console.log('Aplicando filtros');
-    setDrawerOpen(false);
-  };
-  
-  // Função para redefinir os filtros
-  const resetFilters = () => {
-    console.log('Redefinindo filtros');
-    setFilters({
-      startDate: format(startOfMonth(currentMonth), 'yyyy-MM-dd'),
-      endDate: format(endOfMonth(currentMonth), 'yyyy-MM-dd'),
-      category: '',
-      type: '',
-      paymentMethod: '',
-      person: '',
-      minAmount: '',
-      maxAmount: '',
-    });
-    setDrawerOpen(false);
-  };
-  
-  // Funções para exportação
-  const handleExportClick = (event) => {
-    console.log('Abrindo menu de exportação');
-    setExportAnchorEl(event.currentTarget);
-  };
-  
-  const handleExportClose = () => {
-    console.log('Fechando menu de exportação');
-    setExportAnchorEl(null);
-  };
-  
-  const handleExportCSV = () => {
-    console.log('Exportando para CSV');
-    downloadCSV(filteredExpenses, `financas-familia-${format(currentMonth, 'MMM-yyyy')}.csv`);
-    handleExportClose();
-    setSnackbar({
-      open: true, 
-      message: 'Relatório CSV exportado com sucesso!', 
-      severity: 'success'
-    });
-  };
-  
-  // Função para fechar o Snackbar
-  const handleCloseSnackbar = () => {
-    setSnackbar(prev => ({
-      ...prev,
-      open: false
-    }));
-  };
-  
-  // Função para alternar entre abas
-  const handleTabChange = (event, newValue) => {
-    console.log(`Alterando para a aba ${newValue}`);
-    setTabValue(newValue);
-  };
-  
-  // Logging principal
-  console.log('Renderizando aplicação, tabValue:', tabValue);
-  console.log('Filtros atuais:', filters);
-  
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        {/* AppBar */}
-        <AppBar 
-          position="sticky" 
-          elevation={0}
-          sx={{ 
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderBottom: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Toolbar sx={{ justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton 
-                edge="start" 
-                color="inherit" 
-                onClick={() => setDrawerOpen(true)}
-                sx={{ mr: 2 }}
-              >
-                <FilterListIcon />
-              </IconButton>
-              <Typography variant="h6" noWrap component="div">
-                Vida Financeira da Família
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <IconButton onClick={prevMonth}>
-                  <ChevronLeftIcon />
-                </IconButton>
-                <Typography variant="body1" sx={{ minWidth: 100, textAlign: 'center' }}>
-                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                </Typography>
-                <IconButton onClick={nextMonth}>
-                  <ChevronRightIcon />
-                </IconButton>
-              </Box>
-              <IconButton onClick={() => setDarkMode(!darkMode)}>
-                {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-              </IconButton>
-              <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  startIcon={<DownloadIcon />}
-                  onClick={handleExportClick}
-                  sx={{ mr: 1 }}
-                >
-                  Exportar
-                </Button>
-              </Box>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={handleOpenDialog}
-              >
-                Nova Despesa
-              </Button>
-            </Box>
-          </Toolbar>
-        </AppBar>
-        
-        {/* Menu de Exportação */}
-        <Menu
-          anchorEl={exportAnchorEl}
-          open={Boolean(exportAnchorEl)}
-          onClose={handleExportClose}
-        >
-          <MenuItem onClick={handleExportCSV}>
-            Exportar para CSV
-          </MenuItem>
-        </Menu>
-        
-        {/* Drawer de Filtros */}
-        <Drawer
-          anchor="left"
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-        >
-          <Box
-            sx={{ width: 300 }}
-            role="presentation"
-          >
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between', 
-              p: 2, 
-              borderBottom: `1px solid ${theme.palette.divider}` 
-            }}>
-              <Typography variant="h6">Filtros</Typography>
-              <IconButton onClick={() => setDrawerOpen(false)}>
-                <MenuOpenIcon />
-              </IconButton>
-            </Box>
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Período</Typography>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                  <Box sx={{ display: 'flex', gap: 2, flexDirection: 'column' }}>
-                    <DatePicker
-                      label="Data Inicial"
-                      value={parseISO(filters.startDate)}
-                      onChange={(newValue) => {
-                        if (newValue) {
-                          setFilters(prev => ({
-                            ...prev,
-                            startDate: format(newValue, 'yyyy-MM-dd')
-                          }));
-                        }
-                      }}
-                      slots={{
-                        textField: TextField
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          size: "small"
-                        }
-                      }}
-                    />
-                    <DatePicker
-                      label="Data Final"
-                      value={parseISO(filters.endDate)}
-                      onChange={(newValue) => {
-                        if (newValue) {
-                          setFilters(prev => ({
-                            ...prev,
-                            endDate: format(newValue, 'yyyy-MM-dd')
-                          }));
-                        }
-                      }}
-                      slots={{
-                        textField: TextField
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          size: "small"
-                        }
-                      }}
-                    />
-                  </Box>
-                </LocalizationProvider>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Categoria</Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    name="category"
-                    value={filters.category}
-                    onChange={handleFilterChange}
-                    displayEmpty
-                  >
-                    <MenuItem value="">Todas</MenuItem>
-                    {categories.map((category) => (
-                      <MenuItem key={category} value={category}>{category}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Tipo</Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    name="type"
-                    value={filters.type}
-                    onChange={handleFilterChange}
-                    displayEmpty
-                  >
-                    <MenuItem value="">Todos</MenuItem>
-                    {types.map((type) => (
-                      <MenuItem key={type} value={type}>{type}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Forma de Pagamento</Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    name="paymentMethod"
-                    value={filters.paymentMethod}
-                    onChange={handleFilterChange}
-                    displayEmpty
-                  >
-                    <MenuItem value="">Todas</MenuItem>
-                    {paymentMethods.map((method) => (
-                      <MenuItem key={method} value={method}>{method}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Pessoa</Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    name="person"
-                    value={filters.person}
-                    onChange={handleFilterChange}
-                    displayEmpty
-                  >
-                    <MenuItem value="">Todas</MenuItem>
-                    {people.map((person) => (
-                      <MenuItem key={person} value={person}>{person}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-              
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Valor</Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField
-                    name="minAmount"
-                    label="Mínimo"
-                    type="number"
-                    size="small"
-                    fullWidth
-                    value={filters.minAmount}
-                    onChange={handleFilterChange}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                    }}
-                  />
-                  <TextField
-                    name="maxAmount"
-                    label="Máximo"
-                    type="number"
-                    size="small"
-                    fullWidth
-                    value={filters.maxAmount}
-                    onChange={handleFilterChange}
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                    }}
-                  />
-                </Box>
-              </Box>
-              
-              <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-                <Button 
-                  variant="outlined" 
-                  fullWidth
-                  onClick={resetFilters}
-                >
-                  Limpar
-                </Button>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  fullWidth
-                  onClick={applyFilters}
-                >
-                  Aplicar
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-        </Drawer>
-        
-        {/* Conteúdo Principal */}
-        <Container maxWidth="xl" sx={{ py: 4, flexGrow: 1 }}>
-          {/* KPIs */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Total do Período
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {formatCurrency(kpis.total)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Média por Dia
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {formatCurrency(kpis.average)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Categoria Principal
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {kpis.topCategory}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ height: '100%' }}>
-                <CardContent>
-                  <Typography color="textSecondary" gutterBottom>
-                    Projeção Mensal
-                  </Typography>
-                  <Typography variant="h4" component="div">
-                    {formatCurrency(kpis.projection)}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-          
-          {/* Abas para diferentes visualizações */}
-          <Paper sx={{ mb: 4 }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleTabChange}
-              variant="scrollable"
-              scrollButtons="auto"
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Tab icon={<DashboardIcon />} label="Dashboard" />
-              <Tab icon={<AttachMoneyIcon />} label="Despesas" />
-              <Tab icon={<PersonIcon />} label="Por Pessoa" />
-            </Tabs>
-          </Paper>
-          
-          {/* Conteúdo da aba de Dashboard */}
-          {tabValue === 0 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', minHeight: 400 }}>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Despesas ao Longo do Tempo
-                    </Typography>
-                    <Box sx={{ height: 300 }}>
-                      <Line data={chartData.line} options={chartOptions.line} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', minHeight: 400 }}>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Distribuição por Tipo
-                    </Typography>
-                    <Box sx={{ height: 300 }}>
-                      <Doughnut data={chartData.pie} options={chartOptions.pie} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', minHeight: 400 }}>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Gastos por Categoria
-                    </Typography>
-                    <Box sx={{ height: 300 }}>
-                      <Bar data={chartData.bar} options={chartOptions.bar} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ height: '100%', minHeight: 400 }}>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom>
-                      Gastos por Pessoa
-                    </Typography>
-                    <Box sx={{ height: 300 }}>
-                      <Pie data={chartData.people} options={chartOptions.people} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          )}
-          
-          {/* Conteúdo da aba de Despesas */}
-          {tabValue === 1 && (
-            <Card>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Lista de Despesas
-                </Typography>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Data</TableCell>
-                        <TableCell>Descrição</TableCell>
-                        <TableCell>Categoria</TableCell>
-                        <TableCell>Tipo</TableCell>
-                        <TableCell>Pessoa</TableCell>
-                        <TableCell align="right">Valor</TableCell>
-                        <TableCell>Pagamento</TableCell>
-                        <TableCell>Ações</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredExpenses.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={8} align="center">
-                            Nenhuma despesa encontrada para os filtros atuais.
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredExpenses.map((expense) => (
-                          <TableRow key={expense.id}>
-                            <TableCell>{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
-                            <TableCell>{expense.description || 'Sem descrição'}</TableCell>
-                            <TableCell>
-                              {expense.category ? (
-                                <Chip 
-                                  label={expense.category} 
-                                  size="small" 
-                                  sx={{ 
-                                    backgroundColor: expense.category === 'Moradia' ? 'rgba(66, 133, 244, 0.1)' :
-                                                    expense.category === 'Alimentação' ? 'rgba(219, 68, 55, 0.1)' :
-                                                    expense.category === 'Transporte' ? 'rgba(244, 180, 0, 0.1)' :
-                                                    expense.category === 'Lazer' ? 'rgba(15, 157, 88, 0.1)' :
-                                                    'rgba(66, 133, 244, 0.1)',
-                                    color: expense.category === 'Moradia' ? '#4285F4' :
-                                           expense.category === 'Alimentação' ? '#DB4437' :
-                                           expense.category === 'Transporte' ? '#F4B400' :
-                                           expense.category === 'Lazer' ? '#0F9D58' :
-                                           '#4285F4',
-                                  }}
-                                />
-                              ) : (
-                                'Não especificada'
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {expense.type ? (
-                                <Chip 
-                                  label={expense.type} 
-                                  size="small" 
-                                  sx={{ 
-                                    backgroundColor: expense.type === 'Essencial' ? 'rgba(15, 157, 88, 0.1)' :
-                                                    expense.type === 'Variável' ? 'rgba(66, 133, 244, 0.1)' :
-                                                    expense.type === 'Supérfluo' ? 'rgba(219, 68, 55, 0.1)' :
-                                                    expense.type === 'Dívida' ? 'rgba(244, 180, 0, 0.1)' :
-                                                    'rgba(66, 133, 244, 0.1)',
-                                    color: expense.type === 'Essencial' ? '#0F9D58' :
-                                           expense.type === 'Variável' ? '#4285F4' :
-                                           expense.type === 'Supérfluo' ? '#DB4437' :
-                                           expense.type === 'Dívida' ? '#F4B400' :
-                                           '#4285F4',
-                                  }}
-                                />
-                              ) : (
-                                'Não especificado'
-                              )}
-                            </TableCell>
-                            <TableCell>{expense.person || 'Não especificada'}</TableCell>
-                            <TableCell align="right">{formatCurrency(expense.amount)}</TableCell>
-                            <TableCell>{expense.paymentMethod || 'Não especificado'}</TableCell>
-                            <TableCell>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleEditExpense(expense)}
-                                color="primary"
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteExpense(expense.id)}
-                                color="error"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          )}
-          
-          {/* Conteúdo da aba Por Pessoa */}
-          {tabValue === 2 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Card sx={{ minHeight: 500 }}>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ mb: 2 }}>
-                      Gastos por Membro da Família
-                    </Typography>
-                    <Box sx={{ height: 400 }}>
-                      <Pie data={chartData.people} options={chartOptions.people} />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-              {people.map(person => {
-                const personExpenses = filteredExpenses.filter(e => e.person === person);
-                const total = personExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-                
-                if (personExpenses.length === 0) return null;
-                
-                return (
-                  <Grid item xs={12} md={6} key={person}>
-                    <Card>
-                      <CardContent>
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                          {person} - {formatCurrency(total)}
-                        </Typography>
-                        <TableContainer>
-                          <Table size="small">
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>Data</TableCell>
-                                <TableCell>Descrição</TableCell>
-                                <TableCell>Categoria</TableCell>
-                                <TableCell align="right">Valor</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {personExpenses.map(expense => (
-                                <TableRow key={expense.id}>
-                                  <TableCell>{format(parseISO(expense.date), 'dd/MM/yyyy')}</TableCell>
-                                  <TableCell>{expense.description || 'Sem descrição'}</TableCell>
-                                  <TableCell>{expense.category || 'Não especificada'}</TableCell>
-                                  <TableCell align="right">{formatCurrency(expense.amount)}</TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </TableContainer>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          )}
-        </Container>
-        
-        {/* Diálogo para adicionar/editar despesa */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            {editMode ? 'Editar Despesa' : 'Nova Despesa'}
-          </DialogTitle>
-          <DialogContent>
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                    <DatePicker
-                      label="Data"
-                      value={parseISO(newExpense.date)}
-                      onChange={(newValue) => {
-                        if (newValue) {
-                          setNewExpense(prev => ({
-                            ...prev,
-                            date: format(newValue, 'yyyy-MM-dd')
-                          }));
-                        }
-                      }}
-                      slots={{
-                        textField: TextField
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true
-                        }
-                      }}
-                    />
-                  </LocalizationProvider>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    name="description"
-                    label="Descrição"
-                    value={newExpense.description}
-                    onChange={handleInputChange}
-                    fullWidth
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Categoria</InputLabel>
-                    <Select
-                      name="category"
-                      value={newExpense.category}
-                      onChange={handleInputChange}
-                      label="Categoria"
-                    >
-                      <MenuItem value="">
-                        <em>Nenhuma</em>
-                      </MenuItem>
-                      {categories.map((category) => (
-                        <MenuItem key={category} value={category}>
-                          {category}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    name="amount"
-                    label="Valor (R$)"
-                    type="number"
-                    value={newExpense.amount}
-                    onChange={handleInputChange}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Tipo</InputLabel>
-                    <Select
-                      name="type"
-                      value={newExpense.type}
-                      onChange={handleInputChange}
-                      label="Tipo"
-                    >
-                      <MenuItem value="">
-                        <em>Nenhum</em>
-                      </MenuItem>
-                      {types.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Forma de Pagamento</InputLabel>
-                    <Select
-                      name="paymentMethod"
-                      value={newExpense.paymentMethod}
-                      onChange={handleInputChange}
-                      label="Forma de Pagamento"
-                    >
-                      <MenuItem value="">
-                        <em>Nenhuma</em>
-                      </MenuItem>
-                      {paymentMethods.map((method) => (
-                        <MenuItem key={method} value={method}>
-                          {method}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        name="isInstallment"
-                        checked={newExpense.isInstallment}
-                        onChange={handleInputChange}
-                      />
-                    }
-                    label="Pagamento Parcelado"
-                  />
-                </Grid>
-                {newExpense.isInstallment && (
-                  <Grid item xs={12}>
-                    <TextField
-                      name="installmentCount"
-                      label="Número de Parcelas"
-                      type="number"
-                      value={newExpense.installmentCount}
-                      onChange={handleInputChange}
-                      fullWidth
-                    />
-                  </Grid>
-                )}
-                <Grid item xs={12}>
-                  <FormControl fullWidth>
-                    <InputLabel>Pessoa</InputLabel>
-                    <Select
-                      name="person"
-                      value={newExpense.person}
-                      onChange={handleInputChange}
-                      label="Pessoa"
-                    >
-                      <MenuItem value="">
-                        <em>Nenhuma</em>
-                      </MenuItem>
-                      {people.map((person) => (
-                        <MenuItem key={person} value={person}>
-                          {person}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancelar</Button>
-            <Button variant="contained" color="primary" onClick={handleSubmit}>
-              {editMode ? 'Atualizar' : 'Adicionar'}
-            </Button>
-          </DialogActions>
-        </Dialog>
-        
-        {/* Snackbar para mensagens de feedback */}
-        <Snackbar 
-          open={snackbar.open} 
-          autoHideDuration={4000} 
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert 
-            onClose={handleCloseSnackbar} 
-            severity={snackbar.severity} 
-            variant="filled"
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </Box>
-    </ThemeProvider>
-  );
-}
 
-export default App;
+    // Listas fixas
+    const categories = ['Moradia','Alimentação','Transporte','Lazer','Saúde','Educação','Serviços','Vestuário','Outros'];
+    const types = ['Essencial','Variável','Supérfluo','Dívida','Educação','Lazer'];
+    const paymentMethods = ['Pix','Crédito','Débito','Dinheiro','Carnê','Boleto','Transferência'];
+    const people = ['Wagner','Bárbara','Joaquim','Família'];
+
+    // Component ChartWrapper (usa Chart.js puro)
+    function ChartWrapper({ type, data, options }){
+      const canvasRef = useRef();
+      const chartRef = useRef();
+      useEffect(()=>{
+        if(chartRef.current) chartRef.current.destroy();
+        chartRef.current = new Chart(canvasRef.current,{ type,data,options });
+      },[data,options,type]);
+      return <canvas ref={canvasRef} style={{width:'100%',height:'100%'}}/>;
+    }
+
+    function KPI({ title, value }){
+      return (
+        <Card sx={{height:'100%'}}>
+          <CardContent>
+            <Typography color="textSecondary" gutterBottom>{title}</Typography>
+            <Typography variant="h4">{value}</Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    function App(){
+      // Tema
+      const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)');
+      const [darkMode,setDarkMode] = useState(()=>JSON.parse(localStorage.getItem('darkMode')||'null')??systemPrefersDark);
+      const theme = useMemo(()=>createTheme({palette:{mode:darkMode?'dark':'light',primary:{main:'#4285F4'},secondary:{main:'#0F9D58'}}}),[darkMode]);
+      useEffect(()=>localStorage.setItem('darkMode',JSON.stringify(darkMode)),[darkMode]);
+
+      // Dados
+      const [expenses,setExpenses] = useState([]);
+      useEffect(()=>{ persist.get().then(setExpenses); },[]);
+      useEffect(()=>{ persist.set(expenses); },[expenses]);
+
+      // Navegação de datas
+      const [currentMonth,setCurrentMonth]=useState(new Date());
+
+      // Filtros
+      const [filters,setFilters] = useState(()=>({
+        startDate: format(startOfMonth(new Date()),'yyyy-MM-dd'),
+        endDate: format(endOfMonth(new Date()),'yyyy-MM-dd'),
+        category:'',type:'',paymentMethod:'',person:'',minAmount:'',maxAmount:''
+      }));
+
+      // Drawer filtros
+      const [drawerOpen,setDrawerOpen]=useState(false);
+
+      // Tabelas & abas
+      const [tab,setTab]=useState(0);
+
+      // Dialog despesa
+      const emptyExpense = {date:format(new Date(),'yyyy-MM-dd'),description:'',category:'',amount:'',type:'',paymentMethod:'',person:'',isInstallment:false,installmentCount:1};
+      const [dialogOpen,setDialogOpen]=useState(false);
+      const [editing,setEditing]=useState(null);
+      const [expenseForm,setExpenseForm]=useState(emptyExpense);
+
+      // Snackbar
+      const [snack,setSnack]=useState({open:false,msg:'',severity:'success'});
+      const notify=(msg,severity='success')=>setSnack({open:true,msg,severity});
+
+      // Filtragem
+      const filtered = useMemo(()=>{
+        return expenses.filter(exp=>{
+          const d=parseISO(exp.date);
+          const s=parseISO(filters.startDate);
+          const e=parseISO(filters.endDate);
+          if(!isWithinInterval(d,{start:s,end:e})) return false;
+          if(filters.category && exp.category!==filters.category) return false;
+          if(filters.type && exp.type!==filters.type) return false;
+          if(filters.paymentMethod && exp.paymentMethod!==filters.paymentMethod) return false;
+          if(filters.person && exp.person!==filters.person) return false;
+          if(filters.minAmount && Number(exp.amount)<Number(filters.minAmount)) return false;
+          if(filters.maxAmount && Number(exp.amount)>Number(filters.maxAmount)) return false;
+          return true;
+        });
+      },[expenses,filters]);
+
+      // KPIs
+      const kpis = useMemo(()=>{
+        const total = filtered.reduce((s,e)=>s+Number(e.amount),0);
+        const days = eachDayOfInterval({start:parseISO(filters.startDate),end:parseISO(filters.endDate)}).length;
+        const average = total/days;
+        const byCat={}; filtered.forEach(e=>byCat[e.category]= (byCat[e.category]||0)+Number(e.amount));
+        const topCat = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a])[0]||'Nenhuma';
+        const monthDays = eachDayOfInterval({start:startOfMonth(currentMonth),end:endOfMonth(currentMonth)}).length;
+        const projection = average*monthDays;
+        return {total,average,topCat,projection};
+      },[filtered,filters,currentMonth]);
+
+      // Gráficos
+      const charts = useMemo(()=>{
+        const dateRange = eachDayOfInterval({start:parseISO(filters.startDate),end:parseISO(filters.endDate)});
+        const lineLabels = dateRange.map(d=>format(d,'dd/MM'));
+        const lineData = lineLabels.map(lbl=>{
+          const [day,month]=lbl.split('/');
+          return filtered.filter(e=>format(parseISO(e.date),'dd/MM')===lbl).reduce((s,e)=>s+Number(e.amount),0);
+        });
+        const pieData = types.map(t=>filtered.filter(e=>e.type===t).reduce((s,e)=>s+Number(e.amount),0));
+        const barData = categories.map(c=>filtered.filter(e=>e.category===c).reduce((s,e)=>s+Number(e.amount),0));
+        const peopleData = people.map(p=>filtered.filter(e=>e.person===p).reduce((s,e)=>s+Number(e.amount),0));
+        return {line:{labels:lineLabels,datasets:[{data:lineData,borderColor:'#4285F4',backgroundColor:'rgba(66,133,244,.25)',fill:true}]},
+          pie:{labels:types,datasets:[{data:pieData,backgroundColor:['#4285F4','#DB4437','#F4B400','#0F9D58','#8A4EDE','#FF6D00']} ]},
+          bar:{labels:categories,datasets:[{data:barData,backgroundColor:'rgba(66,133,244,.7)'}]},
+          people:{labels:people,datasets:[{data:peopleData,backgroundColor:['#4285F4','#DB4437','#F4B400','#0F9D58']} ]}};
+      },[filtered,filters]);
+
+      // Navegação meses
+      const changeMonth=(delta)=>{
+        const newDate = delta>0?addMonths(currentMonth,delta):subMonths(currentMonth,-delta);
+        setCurrentMonth(newDate);
+        setFilters(f=>({...f,startDate:format(startOfMonth(newDate),'yyyy-MM-dd'),endDate:format(endOfMonth(newDate),'yyyy-MM-dd')}));
+      };
+
+      // Export CSV
+      const exportCSV = ()=>{
+        if(!filtered.length){notify('Sem dados para exportar','warning');return;}
+        const headers = Object.keys(filtered[0]).join(',');
+        const rows = filtered.map(o=>Object.values(o).map(v=>`"${v}"`).join(',')).join('\n');
+        const blob = new Blob([headers+'\n'+rows],{type:'text/csv;charset=utf-8;'});
+        const link = document.createElement('a');
+        link.href=URL.createObjectURL(blob);
+        link.download=`financas-${format(currentMonth,'MM-yyyy')}.csv`;
+        link.click();
+      };
+
+      // CRUD helpers
+      const openNew=()=>{setEditing(null);setExpenseForm(emptyExpense);setDialogOpen(true);} ;
+      const editExp=(exp)=>{setEditing(exp);setExpenseForm(exp);setDialogOpen(true);} ;
+      const deleteExp=(id)=>{setExpenses(e=>e.filter(x=>x.id!==id));notify('Despesa removida');};
+
+      const saveExpense=()=>{
+        // validações básicas
+        if(!expenseForm.amount||Number(expenseForm.amount)<=0){notify('Valor deve ser maior que 0','error');return;}
+        const base={...expenseForm,amount:Number(expenseForm.amount)};
+        const newData=[...expenses];
+        if(editing){
+          const idx=newData.findIndex(e=>e.id===editing.id);
+          newData[idx]=base;
+        }else{
+          if(base.isInstallment&&base.installmentCount>1){
+            const count=parseInt(base.installmentCount);
+            for(let i=0;i<count;i++){
+              const d=format(addMonths(parseISO(base.date),i),'yyyy-MM-dd');
+              newData.push({...base,id:crypto.randomUUID(),date:d});
+            }
+          }else{
+            newData.push({...base,id:crypto.randomUUID()});
+          }
+        }
+        setExpenses(newData);
+        setDialogOpen(false);
+        notify(editing?'Despesa atualizada':'Despesa adicionada');
+      };
+
+      // UI -------------------------
+      return (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {/* AppBar */}
+          <AppBar position="sticky" color="default" elevation={0} sx={{borderBottom:1,borderColor:'divider'}}>
+            <Toolbar sx={{justifyContent:'space-between'}}>
+              <Box sx={{display:'flex',alignItems:'center'}}>
+                <IconButton onClick={()=>setDrawerOpen(true)}><FilterList/></IconButton>
+                <Typography variant="h6" sx={{ml:1}}>Vida Financeira da Família</Typography>
+              </Box>
+              <Box sx={{display:'flex',alignItems:'center',gap:1}}>
+                <IconButton onClick={()=>changeMonth(-1)}><ChevronLeft/></IconButton>
+                <Typography sx={{minWidth:120,textAlign:'center'}}>{format(currentMonth,'MMMM yyyy',{locale:ptBR})}</Typography>
+                <IconButton onClick={()=>changeMonth(1)}><ChevronRight/></IconButton>
+                <IconButton onClick={()=>setDarkMode(p=>!p)}>{darkMode?<LightMode/>:<DarkMode/>}</IconButton>
+                <Button startIcon={<Download/>} variant="contained" onClick={exportCSV}>Exportar</Button>
+                <Button startIcon={<Add/>} variant="contained" onClick={openNew}>Nova Despesa</Button>
+              </Box>
+            </Toolbar>
+          </AppBar>
+
+          {/* Drawer filtros */}
+          <Drawer anchor="left" open={drawerOpen} onClose={()=>setDrawerOpen(false)}>
+            <Box sx={{width:300,p:2}} role="presentation">
+              <Box sx={{display:'flex',justifyContent:'space-between',alignItems:'center',mb:2}}>
+                <Typography variant="h6">Filtros</Typography>
+                <IconButton onClick={()=>setDrawerOpen(false)}><MenuOpen/></IconButton>
+              </Box>
+              {/* Filtros */}
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                <DatePicker label="Data inicial" value={parseISO(filters.startDate)} onChange={v=>setFilters(f=>({...f,startDate:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth size="small" {...p}/>}/>
+                <DatePicker label="Data final" value={parseISO(filters.endDate)} onChange={v=>setFilters(f=>({...f,endDate:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth size="small" sx={{mt:2}} {...p}/>}/>
+              </LocalizationProvider>
+              {[["category","Categoria",categories],["type","Tipo",types],["paymentMethod","Pagamento",paymentMethods],["person","Pessoa",people]].map(([key,label,opts])=>
+                <FormControl fullWidth size="small" sx={{mt:2}} key={key}>
+                  <InputLabel>{label}</InputLabel>
+                  <Select value={filters[key]} label={label} onChange={e=>setFilters(f=>({...f,[key]:e.target.value}))}>
+                    <MenuItem value=""><em>Todas</em></MenuItem>
+                    {opts.map(o=><MenuItem value={o} key={o}>{o}</MenuItem>)}
+                  </Select>
+                </FormControl>
+              )}
+              <Box sx={{display:'flex',gap:1,mt:2}}>
+                <TextField label="Mín" type="number" fullWidth size="small" value={filters.minAmount} onChange={e=>setFilters(f=>({...f,minAmount:e.target.value}))} InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}}/>
+                <TextField label="Máx" type="number" fullWidth size="small" value={filters.maxAmount} onChange={e=>setFilters(f=>({...f,maxAmount:e.target.value}))} InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}}/>
+              </Box>
+              <Divider sx={{my:2}}/>
+              <Button fullWidth variant="contained" onClick={()=>setDrawerOpen(false)}>Aplicar</Button>
+              <Button fullWidth sx={{mt:1}} onClick={()=>setFilters({...filters,category:'',type:'',paymentMethod:'',person:'',minAmount:'',maxAmount:''})}>Limpar</Button>
+            </Box>
+          </Drawer>
+
+          {/* Conteúdo principal */}
+          <Container maxWidth="xl" sx={{py:4}}>
+            {/* KPIs */}
+            <Grid container spacing={3} sx={{mb:4}}>
+              <Grid item xs={12} sm={6} md={3}><KPI title="Total" value={currency(kpis.total)}/></Grid>
+              <Grid item xs={12} sm={6} md={3}><KPI title="Média / dia" value={currency(kpis.average)}/></Grid>
+              <Grid item xs={12} sm={6} md={3}><KPI title="Categoria top" value={kpis.topCat}/></Grid>
+              <Grid item xs={12} sm={6} md={3}><KPI title="Projeção mês" value={currency(kpis.projection)}/></Grid>
+            </Grid>
+
+            {/* Abas */}
+            <Tabs value={tab} onChange={(e,v)=>setTab(v)} variant="scrollable" scrollButtons="auto" sx={{mb:3}}>
+              <Tab icon={<Dashboard/>} label="Dashboard"/>
+              <Tab icon={<AttachMoney/>} label="Despesas"/>
+              <Tab icon={<Person/>} label="Por pessoa"/>
+            </Tabs>
+
+            {tab===0 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Despesas no período</Typography><Box sx={{height:300}}><ChartWrapper type="line" data={charts.line} options={{responsive:true,plugins:{legend:{display:false}}}}/></Box></CardContent></Card></Grid>
+                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Distribuição por tipo</Typography><Box sx={{height:300}}><ChartWrapper type="doughnut" data={charts.pie} options={{responsive:true}}/></Box></CardContent></Card></Grid>
+                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Gastos por categoria</Typography><Box sx={{height:300}}><ChartWrapper type="bar" data={charts.bar} options={{responsive:true,plugins:{legend:{display:false}}}}/></Box></CardContent></Card></Grid>
+                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Gastos por pessoa</Typography><Box sx={{height:300}}><ChartWrapper type="pie" data={charts.people} options={{responsive:true}}/></Box></CardContent></Card></Grid>
+              </Grid>
+            )}
+
+            {tab===1 && (
+              <Card><CardContent>
+                <Typography variant="h6" sx={{mb:2}}>Lista de Despesas</Typography>
+                <table style={{width:'100%',borderCollapse:'collapse'}}>
+                  <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Pessoa</th><th style={{textAlign:'right'}}>Valor</th><th>Pagamento</th><th>Ações</th></tr></thead>
+                  <tbody>
+                    {filtered.length?filtered.map(e=>(
+                      <tr key={e.id} style={{borderTop:'1px solid #ddd'}}>
+                        <td>{format(parseISO(e.date),'dd/MM/yyyy')}</td>
+                        <td>{e.description||'-'}</td>
+                        <td>{e.category||'-'}</td>
+                        <td>{e.type||'-'}</td>
+                        <td>{e.person||'-'}</td>
+                        <td style={{textAlign:'right'}}>{currency(e.amount)}</td>
+                        <td>{e.paymentMethod||'-'}</td>
+                        <td>
+                          <IconButton size="small" color="primary" onClick={()=>editExp(e)}><Edit fontSize="inherit"/></IconButton>
+                          <IconButton size="small" color="error" onClick={()=>deleteExp(e.id)}><Delete fontSize="inherit"/></IconButton>
+                        </td>
+                      </tr>
+                    )):<tr><td colSpan="8" style={{textAlign:'center',padding:16}}>Nenhuma despesa para o filtro atual</td></tr>}
+                  </tbody>
+                </table>
+              </CardContent></Card>
+            )}
+
+            {tab===2 && (
+              <Grid container spacing={3}>
+                <Grid item xs={12}><Card sx={{minHeight:400}}><CardContent><Typography variant="h6">Gastos por membro</Typography><Box sx={{height:350}}><ChartWrapper type="pie" data={charts.people} options={{responsive:true}}/></Box></CardContent></Card></Grid>
+                {people.map(p=>{
+                  const list = filtered.filter(e=>e.person===p);
+                  if(!list.length) return null;
+                  const total = list.reduce((s,e)=>s+Number(e.amount),0);
+                  return (
+                    <Grid item xs={12} md={6} key={p}><Card><CardContent>
+                      <Typography variant="h6">{p} — {currency(total)}</Typography>
+                      <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
+                        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style={{textAlign:'right'}}>Valor</th></tr></thead>
+                        <tbody>
+                          {list.map(e=>(<tr key={e.id} style={{borderTop:'1px solid #ddd'}}>
+                            <td>{format(parseISO(e.date),'dd/MM/yyyy')}</td><td>{e.description||'-'}</td><td>{e.category||'-'}</td><td style={{textAlign:'right'}}>{currency(e.amount)}</td>
+                          </tr>))}
+                        </tbody>
+                      </table>
+                    </CardContent></Card></Grid>
+                  );
+                })}
+              </Grid>
+            )}
+          </Container>
+
+          {/* Dialog despesa */}
+          <Dialog open={dialogOpen} onClose={()=>setDialogOpen(false)} fullWidth maxWidth="sm">
+            <DialogTitle>{editing?'Editar':'Nova'} despesa</DialogTitle>
+            <DialogContent>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                <DatePicker label="Data" value={parseISO(expenseForm.date)} onChange={v=>setExpenseForm(f=>({...f,date:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth sx={{mt:2}} {...p}/>}/>
+              </LocalizationProvider>
+              <TextField fullWidth label="Descrição" sx={{mt:2}} value={expenseForm.description} onChange={e=>setExpenseForm(f=>({...f,description:e.target.value}))}/>
+              <Grid container spacing={2} sx={{mt:1}}>
+                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Categoria</InputLabel><Select value={expenseForm.category} label="Categoria" onChange={e=>setExpenseForm(f=>({...f,category:e.target.value}))}><MenuItem value=""><em>Nenhuma</em></MenuItem>{categories.map(c=><MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
+                <Grid item xs={12} sm={6}><TextField fullWidth label="Valor (R$)" type="number" InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}} value={expenseForm.amount} onChange={e=>setExpenseForm(f=>({...f,amount:e.target.value}))}/></Grid>
+                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Tipo</InputLabel><Select value={expenseForm.type} label="Tipo" onChange={e=>setExpenseForm(f=>({...f,type:e.target.value}))}><MenuItem value=""><em>Nenhum</em></MenuItem>{types.map(t=><MenuItem key={t} value={t}>{t}</MenuItem>)}</Select></FormControl></Grid>
+                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Pagamento</InputLabel><Select value={expenseForm.paymentMethod} label="Pagamento" onChange={e=>setExpenseForm(f=>({...f,paymentMethod:e.target.value}))}><MenuItem value=""><em>Nenhum</em></MenuItem>{paymentMethods.map(m=><MenuItem key={m} value={m}>{m}</MenuItem>)}</Select></FormControl></Grid>
+                <Grid item xs={12}><FormControlLabel control={<Checkbox checked={expenseForm.isInstallment} onChange={e=>setExpenseForm(f=>({...f,isInstallment:e.target.checked}))}/>} label="Pagamento parcelado"/></Grid>
+                {expenseForm.isInstallment && <Grid item xs={12}><TextField fullWidth label="Número de parcelas" type="number" value={expenseForm.installmentCount} onChange={e=>setExpenseForm(f=>({...f,installmentCount:e.target.value}))}/></Grid>}
+                <Grid item xs={12}><FormControl fullWidth size="small"><InputLabel>Pessoa</InputLabel><Select value={expenseForm.person} label="Pessoa" onChange={e=>setExpenseForm(f=>({...f,person:e.target.value}))}><MenuItem value=""><em>Nenhuma</em></MenuItem>{people.map(p=><MenuItem key={p} value={p}>{p}</MenuItem>)}</Select></FormControl></Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={()=>setDialogOpen(false)}>Cancelar</Button>
+              <Button variant="contained" onClick={saveExpense}>{editing?'Atualizar':'Adicionar'}</Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Snackbar */}
+          <Snackbar open={snack.open} autoHideDuration={4000} onClose={()=>setSnack(s=>({...s,open:false}))} anchorOrigin={{vertical:'bottom',horizontal:'center'}}>
+            <Alert severity={snack.severity} variant="filled" onClose={()=>setSnack(s=>({...s,open:false}))}>{snack.msg}</Alert>
+          </Snackbar>
+        </ThemeProvider>
+      );
+    }
+
+    createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
