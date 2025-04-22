@@ -1021,55 +1021,51 @@ select option {
         },
         options: commonOptions
       });
-
 // 6. Gráfico de Barras - Recorrência de Compras
 const recorrenciaData = {};
+
+// Coletar e contar recorrências diretamente do texto da coluna
 data.forEach(item => {
   const recorrencia = item.recorrencia || 'Não informado';
   recorrenciaData[recorrencia] = (recorrenciaData[recorrencia] || 0) + 1;
 });
+
+// Obter os rótulos (categorias de recorrência)
 const recorrenciaLabels = Object.keys(recorrenciaData).filter(rec => rec !== '');
+
+// Ordenar rótulos para exibição mais lógica
 recorrenciaLabels.sort((a, b) => {
+  // Tentar extrair valores numéricos para ordenação
   const numA = parseInt(a.match(/\d+/)?.[0] || '999');
   const numB = parseInt(b.match(/\d+/)?.[0] || '999');
+  
   return numA - numB;
 });
+
+// Valores correspondentes a cada rótulo
 const recorrenciaValues = recorrenciaLabels.map(rec => recorrenciaData[rec]);
 
 if (charts.recorrencia) {
   charts.recorrencia.destroy();
 }
-charts.recorrencia = new Chart(
-  document.getElementById('chart-recorrencia'),
-  {
-    type: 'bar',
-    data: {
-      labels: recorrenciaLabels,
-      datasets: [{
-        label: 'Quantidade de Clientes',
-        data: recorrenciaValues,
-        backgroundColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
-        borderColor:   getComputedStyle(root).getPropertyValue('--primary-light').trim(),
-        borderWidth: 1,
-        borderRadius: 6,
-        maxBarThickness: 40
-      }]
-    },  // ← NÃO REMOVA ESTA VÍRGULA
-    options: {
-      ...commonOptions,
-      scales: {
-        ...commonOptions.scales,
-        x: {
-          ...commonOptions.scales.x,
-          ticks: {
-            ...commonOptions.scales.x.ticks,
-            autoSkip: false    // ← impede o “auto-skip” das labels
-          }
-        }
-      }
+
+charts.recorrencia = new Chart(document.getElementById('chart-recorrencia'), {
+  type: 'bar',
+  data: {
+    labels: recorrenciaLabels,
+    datasets: [{
+      label: 'Quantidade de Clientes',
+      data: recorrenciaValues,
+      backgroundColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
+      borderColor: getComputedStyle(root).getPropertyValue('--primary-light').trim(),
+      borderWidth: 1,
+      borderRadius: 6,
+      maxBarThickness: 40
+    }]
+  },
+  options: commonOptions
+});
     }
-  }
-);
     
     // ===== Função Principal de Atualização =====
     
