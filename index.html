@@ -1,398 +1,134 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vida Financeira da Família</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <style>
-    body { margin: 0; font-family: "Roboto", sans-serif; }
-    #root { min-height: 100vh; }
-    /* fallback para quem desabilitar JS */
-    noscript{display:block;margin:2rem;text-align:center;color:#d32f2f;font-weight:500}
-  </style>
-</head>
-<body>
-  <noscript>⚠️ Esta calculadora requer JavaScript habilitado.</noscript>
-  <div id="root"></div>
+// App.js
+import React, { useState, useEffect, useMemo } from 'react';
+import './App.css';
 
-  <!-- React & Babel -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+const formatCurrency = (value) => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(Number(value) || 0);
+};
 
-  <!-- MUI 5 UMD -->
-  <script src="https://unpkg.com/@mui/material@5.15.15/umd/material-ui.development.js"></script>
-  <script src="https://unpkg.com/@mui/icons-material@5.15.15/umd/material-ui-icons.development.js"></script>
-  <script src="https://unpkg.com/@mui/x-date-pickers@6.19.0/umd/x-date-pickers.development.js"></script>
-  <!-- date-fns & pt-BR locale -->
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/dist/date-fns.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/locale/pt-BR/index.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- idb-keyval para IndexedDB persistência -->
-  <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
+const generateId = () => Math.random().toString(36).substr(2, 9);
 
-  <script type="text/babel">
-    const { useState, useEffect, useMemo, useRef } = React;
-    const { createRoot } = ReactDOM;
-    const {
-      AppBar, Toolbar, Typography, IconButton, Box, CssBaseline, Drawer,
-      List, ListItem, ListItemText, Divider, Button, Container, Grid, Card, CardContent,
-      Menu, MenuItem, Snackbar, Alert, Tabs, Tab, TextField, Select, FormControl, InputLabel,
-      FormControlLabel, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment,
-      useMediaQuery, createTheme, ThemeProvider, Chip
-    } = MaterialUI;
-    const { AdapterDateFns, LocalizationProvider, DatePicker } = DatePickers;
-    const {
-      DarkMode, LightMode, FilterList, Download, Add, Edit, Delete, MenuOpen, Dashboard,
-      AttachMoney, Person, ChevronLeft, ChevronRight
-    } = MaterialUIIcons;
-    const { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval } = dateFns;
-    const ptBR = dateFnsLocale_ptBR;
-    
-    // Helpers
-    const currency = (v)=> new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(Number(v)||0);
+const categories = ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Educação', 'Outros'];
+const people = ['Wagner', 'Bárbara', 'Joaquim', 'Família'];
 
-    // Índice para IndexedDB
-    const storeKey = 'expenses';
+function App() {
+  const [expenses, setExpenses] = useState(() => {
+    const saved = localStorage.getItem('expenses');
+    return saved ? JSON.parse(saved) : [];
+  });
 
-    // fallback IndexedDB -> localStorage
-    const persist = {
-      async get(){
-        try{ return await idbKeyval.get(storeKey) || []; }catch(e){ return JSON.parse(localStorage.getItem(storeKey)||'[]'); }
-      },
-      async set(data){
-        try{ await idbKeyval.set(storeKey,data);}catch(e){ localStorage.setItem(storeKey,JSON.stringify(data)); }
-      }
+  const [form, setForm] = useState({
+    id: '',
+    date: '',
+    description: '',
+    category: '',
+    amount: '',
+    person: '',
+  });
+
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
+  const total = useMemo(() => {
+    return expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+  }, [expenses]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.date || !form.description || !form.category || !form.amount || !form.person) return;
+
+    const newExpense = {
+      ...form,
+      id: editing ? form.id : generateId(),
+      amount: Number(form.amount),
     };
 
-    // Listas fixas
-    const categories = ['Moradia','Alimentação','Transporte','Lazer','Saúde','Educação','Serviços','Vestuário','Outros'];
-    const types = ['Essencial','Variável','Supérfluo','Dívida','Educação','Lazer'];
-    const paymentMethods = ['Pix','Crédito','Débito','Dinheiro','Carnê','Boleto','Transferência'];
-    const people = ['Wagner','Bárbara','Joaquim','Família'];
+    setExpenses((prev) => {
+      if (editing) {
+        return prev.map((e) => (e.id === form.id ? newExpense : e));
+      } else {
+        return [...prev, newExpense];
+      }
+    });
 
-    // Component ChartWrapper (usa Chart.js puro)
-    function ChartWrapper({ type, data, options }){
-      const canvasRef = useRef();
-      const chartRef = useRef();
-      useEffect(()=>{
-        if(chartRef.current) chartRef.current.destroy();
-        chartRef.current = new Chart(canvasRef.current,{ type,data,options });
-      },[data,options,type]);
-      return <canvas ref={canvasRef} style={{width:'100%',height:'100%'}}/>;
-    }
+    setForm({ id: '', date: '', description: '', category: '', amount: '', person: '' });
+    setEditing(false);
+  };
 
-    function KPI({ title, value }){
-      return (
-        <Card sx={{height:'100%'}}>
-          <CardContent>
-            <Typography color="textSecondary" gutterBottom>{title}</Typography>
-            <Typography variant="h4">{value}</Typography>
-          </CardContent>
-        </Card>
-      );
-    }
+  const handleEdit = (expense) => {
+    setForm(expense);
+    setEditing(true);
+  };
 
-    function App(){
-      // Tema
-      const systemPrefersDark = useMediaQuery('(prefers-color-scheme: dark)');
-      const [darkMode,setDarkMode] = useState(()=>JSON.parse(localStorage.getItem('darkMode')||'null')??systemPrefersDark);
-      const theme = useMemo(()=>createTheme({palette:{mode:darkMode?'dark':'light',primary:{main:'#4285F4'},secondary:{main:'#0F9D58'}}}),[darkMode]);
-      useEffect(()=>localStorage.setItem('darkMode',JSON.stringify(darkMode)),[darkMode]);
+  const handleDelete = (id) => {
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+  };
 
-      // Dados
-      const [expenses,setExpenses] = useState([]);
-      useEffect(()=>{ persist.get().then(setExpenses); },[]);
-      useEffect(()=>{ persist.set(expenses); },[expenses]);
+  return (
+    <div className="container">
+      <h1>Despesas da Família</h1>
 
-      // Navegação de datas
-      const [currentMonth,setCurrentMonth]=useState(new Date());
+      <form onSubmit={handleSubmit} className="form">
+        <input name="date" type="date" value={form.date} onChange={handleChange} required />
+        <input name="description" placeholder="Descrição" value={form.description} onChange={handleChange} required />
+        <select name="category" value={form.category} onChange={handleChange} required>
+          <option value="">Categoria</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+        <input name="amount" type="number" placeholder="Valor" value={form.amount} onChange={handleChange} required />
+        <select name="person" value={form.person} onChange={handleChange} required>
+          <option value="">Pessoa</option>
+          {people.map((p) => (
+            <option key={p} value={p}>{p}</option>
+          ))}
+        </select>
+        <button type="submit">{editing ? 'Atualizar' : 'Adicionar'}</button>
+      </form>
 
-      // Filtros
-      const [filters,setFilters] = useState(()=>({
-        startDate: format(startOfMonth(new Date()),'yyyy-MM-dd'),
-        endDate: format(endOfMonth(new Date()),'yyyy-MM-dd'),
-        category:'',type:'',paymentMethod:'',person:'',minAmount:'',maxAmount:''
-      }));
+      <h2>Total: {formatCurrency(total)}</h2>
 
-      // Drawer filtros
-      const [drawerOpen,setDrawerOpen]=useState(false);
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Valor</th>
+            <th>Pessoa</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {expenses.map((exp) => (
+            <tr key={exp.id}>
+              <td>{exp.date}</td>
+              <td>{exp.description}</td>
+              <td>{exp.category}</td>
+              <td>{formatCurrency(exp.amount)}</td>
+              <td>{exp.person}</td>
+              <td>
+                <button onClick={() => handleEdit(exp)}>Editar</button>
+                <button onClick={() => handleDelete(exp.id)}>Excluir</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-      // Tabelas & abas
-      const [tab,setTab]=useState(0);
-
-      // Dialog despesa
-      const emptyExpense = {date:format(new Date(),'yyyy-MM-dd'),description:'',category:'',amount:'',type:'',paymentMethod:'',person:'',isInstallment:false,installmentCount:1};
-      const [dialogOpen,setDialogOpen]=useState(false);
-      const [editing,setEditing]=useState(null);
-      const [expenseForm,setExpenseForm]=useState(emptyExpense);
-
-      // Snackbar
-      const [snack,setSnack]=useState({open:false,msg:'',severity:'success'});
-      const notify=(msg,severity='success')=>setSnack({open:true,msg,severity});
-
-      // Filtragem
-      const filtered = useMemo(()=>{
-        return expenses.filter(exp=>{
-          const d=parseISO(exp.date);
-          const s=parseISO(filters.startDate);
-          const e=parseISO(filters.endDate);
-          if(!isWithinInterval(d,{start:s,end:e})) return false;
-          if(filters.category && exp.category!==filters.category) return false;
-          if(filters.type && exp.type!==filters.type) return false;
-          if(filters.paymentMethod && exp.paymentMethod!==filters.paymentMethod) return false;
-          if(filters.person && exp.person!==filters.person) return false;
-          if(filters.minAmount && Number(exp.amount)<Number(filters.minAmount)) return false;
-          if(filters.maxAmount && Number(exp.amount)>Number(filters.maxAmount)) return false;
-          return true;
-        });
-      },[expenses,filters]);
-
-      // KPIs
-      const kpis = useMemo(()=>{
-        const total = filtered.reduce((s,e)=>s+Number(e.amount),0);
-        const days = eachDayOfInterval({start:parseISO(filters.startDate),end:parseISO(filters.endDate)}).length;
-        const average = total/days;
-        const byCat={}; filtered.forEach(e=>byCat[e.category]= (byCat[e.category]||0)+Number(e.amount));
-        const topCat = Object.keys(byCat).sort((a,b)=>byCat[b]-byCat[a])[0]||'Nenhuma';
-        const monthDays = eachDayOfInterval({start:startOfMonth(currentMonth),end:endOfMonth(currentMonth)}).length;
-        const projection = average*monthDays;
-        return {total,average,topCat,projection};
-      },[filtered,filters,currentMonth]);
-
-      // Gráficos
-      const charts = useMemo(()=>{
-        const dateRange = eachDayOfInterval({start:parseISO(filters.startDate),end:parseISO(filters.endDate)});
-        const lineLabels = dateRange.map(d=>format(d,'dd/MM'));
-        const lineData = lineLabels.map(lbl=>{
-          const [day,month]=lbl.split('/');
-          return filtered.filter(e=>format(parseISO(e.date),'dd/MM')===lbl).reduce((s,e)=>s+Number(e.amount),0);
-        });
-        const pieData = types.map(t=>filtered.filter(e=>e.type===t).reduce((s,e)=>s+Number(e.amount),0));
-        const barData = categories.map(c=>filtered.filter(e=>e.category===c).reduce((s,e)=>s+Number(e.amount),0));
-        const peopleData = people.map(p=>filtered.filter(e=>e.person===p).reduce((s,e)=>s+Number(e.amount),0));
-        return {line:{labels:lineLabels,datasets:[{data:lineData,borderColor:'#4285F4',backgroundColor:'rgba(66,133,244,.25)',fill:true}]},
-          pie:{labels:types,datasets:[{data:pieData,backgroundColor:['#4285F4','#DB4437','#F4B400','#0F9D58','#8A4EDE','#FF6D00']} ]},
-          bar:{labels:categories,datasets:[{data:barData,backgroundColor:'rgba(66,133,244,.7)'}]},
-          people:{labels:people,datasets:[{data:peopleData,backgroundColor:['#4285F4','#DB4437','#F4B400','#0F9D58']} ]}};
-      },[filtered,filters]);
-
-      // Navegação meses
-      const changeMonth=(delta)=>{
-        const newDate = delta>0?addMonths(currentMonth,delta):subMonths(currentMonth,-delta);
-        setCurrentMonth(newDate);
-        setFilters(f=>({...f,startDate:format(startOfMonth(newDate),'yyyy-MM-dd'),endDate:format(endOfMonth(newDate),'yyyy-MM-dd')}));
-      };
-
-      // Export CSV
-      const exportCSV = ()=>{
-        if(!filtered.length){notify('Sem dados para exportar','warning');return;}
-        const headers = Object.keys(filtered[0]).join(',');
-        const rows = filtered.map(o=>Object.values(o).map(v=>`"${v}"`).join(',')).join('\n');
-        const blob = new Blob([headers+'\n'+rows],{type:'text/csv;charset=utf-8;'});
-        const link = document.createElement('a');
-        link.href=URL.createObjectURL(blob);
-        link.download=`financas-${format(currentMonth,'MM-yyyy')}.csv`;
-        link.click();
-      };
-
-      // CRUD helpers
-      const openNew=()=>{setEditing(null);setExpenseForm(emptyExpense);setDialogOpen(true);} ;
-      const editExp=(exp)=>{setEditing(exp);setExpenseForm(exp);setDialogOpen(true);} ;
-      const deleteExp=(id)=>{setExpenses(e=>e.filter(x=>x.id!==id));notify('Despesa removida');};
-
-      const saveExpense=()=>{
-        // validações básicas
-        if(!expenseForm.amount||Number(expenseForm.amount)<=0){notify('Valor deve ser maior que 0','error');return;}
-        const base={...expenseForm,amount:Number(expenseForm.amount)};
-        const newData=[...expenses];
-        if(editing){
-          const idx=newData.findIndex(e=>e.id===editing.id);
-          newData[idx]=base;
-        }else{
-          if(base.isInstallment&&base.installmentCount>1){
-            const count=parseInt(base.installmentCount);
-            for(let i=0;i<count;i++){
-              const d=format(addMonths(parseISO(base.date),i),'yyyy-MM-dd');
-              newData.push({...base,id:crypto.randomUUID(),date:d});
-            }
-          }else{
-            newData.push({...base,id:crypto.randomUUID()});
-          }
-        }
-        setExpenses(newData);
-        setDialogOpen(false);
-        notify(editing?'Despesa atualizada':'Despesa adicionada');
-      };
-
-      // UI -------------------------
-      return (
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {/* AppBar */}
-          <AppBar position="sticky" color="default" elevation={0} sx={{borderBottom:1,borderColor:'divider'}}>
-            <Toolbar sx={{justifyContent:'space-between'}}>
-              <Box sx={{display:'flex',alignItems:'center'}}>
-                <IconButton onClick={()=>setDrawerOpen(true)}><FilterList/></IconButton>
-                <Typography variant="h6" sx={{ml:1}}>Vida Financeira da Família</Typography>
-              </Box>
-              <Box sx={{display:'flex',alignItems:'center',gap:1}}>
-                <IconButton onClick={()=>changeMonth(-1)}><ChevronLeft/></IconButton>
-                <Typography sx={{minWidth:120,textAlign:'center'}}>{format(currentMonth,'MMMM yyyy',{locale:ptBR})}</Typography>
-                <IconButton onClick={()=>changeMonth(1)}><ChevronRight/></IconButton>
-                <IconButton onClick={()=>setDarkMode(p=>!p)}>{darkMode?<LightMode/>:<DarkMode/>}</IconButton>
-                <Button startIcon={<Download/>} variant="contained" onClick={exportCSV}>Exportar</Button>
-                <Button startIcon={<Add/>} variant="contained" onClick={openNew}>Nova Despesa</Button>
-              </Box>
-            </Toolbar>
-          </AppBar>
-
-          {/* Drawer filtros */}
-          <Drawer anchor="left" open={drawerOpen} onClose={()=>setDrawerOpen(false)}>
-            <Box sx={{width:300,p:2}} role="presentation">
-              <Box sx={{display:'flex',justifyContent:'space-between',alignItems:'center',mb:2}}>
-                <Typography variant="h6">Filtros</Typography>
-                <IconButton onClick={()=>setDrawerOpen(false)}><MenuOpen/></IconButton>
-              </Box>
-              {/* Filtros */}
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                <DatePicker label="Data inicial" value={parseISO(filters.startDate)} onChange={v=>setFilters(f=>({...f,startDate:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth size="small" {...p}/>}/>
-                <DatePicker label="Data final" value={parseISO(filters.endDate)} onChange={v=>setFilters(f=>({...f,endDate:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth size="small" sx={{mt:2}} {...p}/>}/>
-              </LocalizationProvider>
-              {[["category","Categoria",categories],["type","Tipo",types],["paymentMethod","Pagamento",paymentMethods],["person","Pessoa",people]].map(([key,label,opts])=>
-                <FormControl fullWidth size="small" sx={{mt:2}} key={key}>
-                  <InputLabel>{label}</InputLabel>
-                  <Select value={filters[key]} label={label} onChange={e=>setFilters(f=>({...f,[key]:e.target.value}))}>
-                    <MenuItem value=""><em>Todas</em></MenuItem>
-                    {opts.map(o=><MenuItem value={o} key={o}>{o}</MenuItem>)}
-                  </Select>
-                </FormControl>
-              )}
-              <Box sx={{display:'flex',gap:1,mt:2}}>
-                <TextField label="Mín" type="number" fullWidth size="small" value={filters.minAmount} onChange={e=>setFilters(f=>({...f,minAmount:e.target.value}))} InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}}/>
-                <TextField label="Máx" type="number" fullWidth size="small" value={filters.maxAmount} onChange={e=>setFilters(f=>({...f,maxAmount:e.target.value}))} InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}}/>
-              </Box>
-              <Divider sx={{my:2}}/>
-              <Button fullWidth variant="contained" onClick={()=>setDrawerOpen(false)}>Aplicar</Button>
-              <Button fullWidth sx={{mt:1}} onClick={()=>setFilters({...filters,category:'',type:'',paymentMethod:'',person:'',minAmount:'',maxAmount:''})}>Limpar</Button>
-            </Box>
-          </Drawer>
-
-          {/* Conteúdo principal */}
-          <Container maxWidth="xl" sx={{py:4}}>
-            {/* KPIs */}
-            <Grid container spacing={3} sx={{mb:4}}>
-              <Grid item xs={12} sm={6} md={3}><KPI title="Total" value={currency(kpis.total)}/></Grid>
-              <Grid item xs={12} sm={6} md={3}><KPI title="Média / dia" value={currency(kpis.average)}/></Grid>
-              <Grid item xs={12} sm={6} md={3}><KPI title="Categoria top" value={kpis.topCat}/></Grid>
-              <Grid item xs={12} sm={6} md={3}><KPI title="Projeção mês" value={currency(kpis.projection)}/></Grid>
-            </Grid>
-
-            {/* Abas */}
-            <Tabs value={tab} onChange={(e,v)=>setTab(v)} variant="scrollable" scrollButtons="auto" sx={{mb:3}}>
-              <Tab icon={<Dashboard/>} label="Dashboard"/>
-              <Tab icon={<AttachMoney/>} label="Despesas"/>
-              <Tab icon={<Person/>} label="Por pessoa"/>
-            </Tabs>
-
-            {tab===0 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Despesas no período</Typography><Box sx={{height:300}}><ChartWrapper type="line" data={charts.line} options={{responsive:true,plugins:{legend:{display:false}}}}/></Box></CardContent></Card></Grid>
-                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Distribuição por tipo</Typography><Box sx={{height:300}}><ChartWrapper type="doughnut" data={charts.pie} options={{responsive:true}}/></Box></CardContent></Card></Grid>
-                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Gastos por categoria</Typography><Box sx={{height:300}}><ChartWrapper type="bar" data={charts.bar} options={{responsive:true,plugins:{legend:{display:false}}}}/></Box></CardContent></Card></Grid>
-                <Grid item xs={12} md={6}><Card sx={{minHeight:400}}><CardContent><Typography gutterBottom>Gastos por pessoa</Typography><Box sx={{height:300}}><ChartWrapper type="pie" data={charts.people} options={{responsive:true}}/></Box></CardContent></Card></Grid>
-              </Grid>
-            )}
-
-            {tab===1 && (
-              <Card><CardContent>
-                <Typography variant="h6" sx={{mb:2}}>Lista de Despesas</Typography>
-                <table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Pessoa</th><th style={{textAlign:'right'}}>Valor</th><th>Pagamento</th><th>Ações</th></tr></thead>
-                  <tbody>
-                    {filtered.length?filtered.map(e=>(
-                      <tr key={e.id} style={{borderTop:'1px solid #ddd'}}>
-                        <td>{format(parseISO(e.date),'dd/MM/yyyy')}</td>
-                        <td>{e.description||'-'}</td>
-                        <td>{e.category||'-'}</td>
-                        <td>{e.type||'-'}</td>
-                        <td>{e.person||'-'}</td>
-                        <td style={{textAlign:'right'}}>{currency(e.amount)}</td>
-                        <td>{e.paymentMethod||'-'}</td>
-                        <td>
-                          <IconButton size="small" color="primary" onClick={()=>editExp(e)}><Edit fontSize="inherit"/></IconButton>
-                          <IconButton size="small" color="error" onClick={()=>deleteExp(e.id)}><Delete fontSize="inherit"/></IconButton>
-                        </td>
-                      </tr>
-                    )):<tr><td colSpan="8" style={{textAlign:'center',padding:16}}>Nenhuma despesa para o filtro atual</td></tr>}
-                  </tbody>
-                </table>
-              </CardContent></Card>
-            )}
-
-            {tab===2 && (
-              <Grid container spacing={3}>
-                <Grid item xs={12}><Card sx={{minHeight:400}}><CardContent><Typography variant="h6">Gastos por membro</Typography><Box sx={{height:350}}><ChartWrapper type="pie" data={charts.people} options={{responsive:true}}/></Box></CardContent></Card></Grid>
-                {people.map(p=>{
-                  const list = filtered.filter(e=>e.person===p);
-                  if(!list.length) return null;
-                  const total = list.reduce((s,e)=>s+Number(e.amount),0);
-                  return (
-                    <Grid item xs={12} md={6} key={p}><Card><CardContent>
-                      <Typography variant="h6">{p} — {currency(total)}</Typography>
-                      <table style={{width:'100%',borderCollapse:'collapse',marginTop:8}}>
-                        <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th style={{textAlign:'right'}}>Valor</th></tr></thead>
-                        <tbody>
-                          {list.map(e=>(<tr key={e.id} style={{borderTop:'1px solid #ddd'}}>
-                            <td>{format(parseISO(e.date),'dd/MM/yyyy')}</td><td>{e.description||'-'}</td><td>{e.category||'-'}</td><td style={{textAlign:'right'}}>{currency(e.amount)}</td>
-                          </tr>))}
-                        </tbody>
-                      </table>
-                    </CardContent></Card></Grid>
-                  );
-                })}
-              </Grid>
-            )}
-          </Container>
-
-          {/* Dialog despesa */}
-          <Dialog open={dialogOpen} onClose={()=>setDialogOpen(false)} fullWidth maxWidth="sm">
-            <DialogTitle>{editing?'Editar':'Nova'} despesa</DialogTitle>
-            <DialogContent>
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                <DatePicker label="Data" value={parseISO(expenseForm.date)} onChange={v=>setExpenseForm(f=>({...f,date:format(v,'yyyy-MM-dd')}))} renderInput={(p)=><TextField fullWidth sx={{mt:2}} {...p}/>}/>
-              </LocalizationProvider>
-              <TextField fullWidth label="Descrição" sx={{mt:2}} value={expenseForm.description} onChange={e=>setExpenseForm(f=>({...f,description:e.target.value}))}/>
-              <Grid container spacing={2} sx={{mt:1}}>
-                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Categoria</InputLabel><Select value={expenseForm.category} label="Categoria" onChange={e=>setExpenseForm(f=>({...f,category:e.target.value}))}><MenuItem value=""><em>Nenhuma</em></MenuItem>{categories.map(c=><MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
-                <Grid item xs={12} sm={6}><TextField fullWidth label="Valor (R$)" type="number" InputProps={{startAdornment:<InputAdornment position="start">R$</InputAdornment>}} value={expenseForm.amount} onChange={e=>setExpenseForm(f=>({...f,amount:e.target.value}))}/></Grid>
-                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Tipo</InputLabel><Select value={expenseForm.type} label="Tipo" onChange={e=>setExpenseForm(f=>({...f,type:e.target.value}))}><MenuItem value=""><em>Nenhum</em></MenuItem>{types.map(t=><MenuItem key={t} value={t}>{t}</MenuItem>)}</Select></FormControl></Grid>
-                <Grid item xs={12} sm={6}><FormControl fullWidth size="small"><InputLabel>Pagamento</InputLabel><Select value={expenseForm.paymentMethod} label="Pagamento" onChange={e=>setExpenseForm(f=>({...f,paymentMethod:e.target.value}))}><MenuItem value=""><em>Nenhum</em></MenuItem>{paymentMethods.map(m=><MenuItem key={m} value={m}>{m}</MenuItem>)}</Select></FormControl></Grid>
-                <Grid item xs={12}><FormControlLabel control={<Checkbox checked={expenseForm.isInstallment} onChange={e=>setExpenseForm(f=>({...f,isInstallment:e.target.checked}))}/>} label="Pagamento parcelado"/></Grid>
-                {expenseForm.isInstallment && <Grid item xs={12}><TextField fullWidth label="Número de parcelas" type="number" value={expenseForm.installmentCount} onChange={e=>setExpenseForm(f=>({...f,installmentCount:e.target.value}))}/></Grid>}
-                <Grid item xs={12}><FormControl fullWidth size="small"><InputLabel>Pessoa</InputLabel><Select value={expenseForm.person} label="Pessoa" onChange={e=>setExpenseForm(f=>({...f,person:e.target.value}))}><MenuItem value=""><em>Nenhuma</em></MenuItem>{people.map(p=><MenuItem key={p} value={p}>{p}</MenuItem>)}</Select></FormControl></Grid>
-              </Grid>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={()=>setDialogOpen(false)}>Cancelar</Button>
-              <Button variant="contained" onClick={saveExpense}>{editing?'Atualizar':'Adicionar'}</Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Snackbar */}
-          <Snackbar open={snack.open} autoHideDuration={4000} onClose={()=>setSnack(s=>({...s,open:false}))} anchorOrigin={{vertical:'bottom',horizontal:'center'}}>
-            <Alert severity={snack.severity} variant="filled" onClose={()=>setSnack(s=>({...s,open:false}))}>{snack.msg}</Alert>
-          </Snackbar>
-        </ThemeProvider>
-      );
-    }
-
-    createRoot(document.getElementById('root')).render(<App/>);
-  </script>
-</body>
-</html>
+export default App;
