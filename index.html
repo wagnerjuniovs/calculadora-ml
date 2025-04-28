@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="styles.css">
 </head>
 <!-- ===== FIM: BLOCO 1 ================================ -->
 
@@ -4833,7 +4832,7 @@
 <!-- ===== INÍCIO: BLOCO 21 ============================== -->
   <script>
     // Inicialização da aplicação
-    const app = {
+    const appInit = {
       // Função de inicialização
       init: async () => {
         try {
@@ -4843,7 +4842,7 @@
           uiComponents.init();
           
           // Criar dados iniciais se necessário
-          await app.createInitialData();
+          await appInit.createInitialData();
           
           // Carregar o módulo padrão (Dashboard)
           dashboardModule.render();
@@ -4885,7 +4884,7 @@
     };
     
     // Iniciar a aplicação quando o DOM estiver carregado
-    document.addEventListener('DOMContentLoaded', app.init);
+    document.addEventListener('DOMContentLoaded', appInit.init);
   </script>
 <!-- ===== FIM: BLOCO 21 ================================ -->
 
