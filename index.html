@@ -1,1 +1,5909 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Calculadora da Família - Controle financeiro com estilo Apple">
+  <title>Calculadora da Família</title>
+  
+  <!-- Fonte Inter via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Scripts CDN: Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Scripts CDN: Firebase v9 compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.10.0/firebase-auth-compat.js"></script>
+  
+  <style>
+    /* Design-tokens em :root */
+    :root {
+      /* Cores neutras */
+      --color-background: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-surface-variant: #e8e8ed;
+      --color-on-surface: #1d1d1f;
+      --color-on-surface-variant: #86868b;
+      --color-outline: #d2d2d7;
+      
+      /* Cores semânticas */
+      --color-primary: #0071e3;
+      --color-on-primary: #ffffff;
+      --color-success: #34c759;
+      --color-on-success: #ffffff;
+      --color-warning: #ff9500;
+      --color-on-warning: #ffffff;
+      --color-error: #ff3b30;
+      --color-on-error: #ffffff;
+      --color-info: #007aff;
+      --color-on-info: #ffffff;
+      
+      /* Cores para receitas e despesas */
+      --color-income: #34c759;
+      --color-expense: #ff3b30;
+      
+      /* Cores de cartões */
+      --color-card-blue: #007aff;
+      --color-card-green: #34c759;
+      --color-card-orange: #ff9500;
+      --color-card-red: #ff3b30;
+      --color-card-purple: #af52de;
+      --color-card-invoice: #FFD700; /* Cor amarelo ouro para fatura */
+      
+      /* Tipografia */
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-md: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-weight-light: 300;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      
+      /* Espaçamento */
+      --spacing-2xs: 0.25rem;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 0.75rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+      
+      /* Bordas e raios */
+      --radius-sm: 0.5rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+      --radius-xl: 1.5rem;
+      --radius-full: 9999px;
+      
+      /* Sombras */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.05);
+      
+      /* Animações */
+      --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Tema escuro */
+    [data-theme="dark"] {
+      --color-background: #000000;
+      --color-surface: #1c1c1e;
+      --color-surface-variant: #2c2c2e;
+      --color-on-surface: #f5f5f7;
+      --color-on-surface-variant: #8e8e93;
+      --color-outline: #38383a;
+    }
+    
+    /* Reset básico */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html, body {
+      height: 100%;
+      font-family: var(--font-family);
+      background-color: var(--color-background);
+      color: var(--color-on-surface);
+      font-size: var(--font-size-md);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color var(--transition-normal), color var(--transition-normal);
+    }
+    
+    img, picture, video, canvas, svg {
+      display: block;
+      max-width: 100%;
+    }
+    
+    input, button, textarea, select {
+      font: inherit;
+      color: inherit;
+    }
+    
+    button {
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    /* Layout principal */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--spacing-md);
+    }
+  
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md) 0;
+      margin-bottom: var(--spacing-xl);
+      position: sticky;
+      top: 0;
+      background-color: var(--color-background);
+      z-index: 100;
+      transition: background-color var(--transition-normal);
+    }
+    
+    .header-filters {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    /* Área de KPIs */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    /* Insights banner */
+    .insights-banner {
+      margin-bottom: var(--spacing-xl);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    
+    /* Gráficos */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: var(--spacing-xl);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 300px;
+      border-radius: var(--radius-lg);
+      background-color: var(--color-surface);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    /* Compromissos longos */
+    .commitments {
+      margin-bottom: var(--spacing-xl);
+      background-color: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      margin-top: var(--spacing-2xl); /* Espaço extra no topo para separar do gráfico */
+    }
+    
+    .commitments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      cursor: pointer;
+    }
+    
+    .commitments-content {
+      overflow: hidden;
+      transition: max-height var(--transition-normal);
+    }
+    
+    .commitment-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md) 0;
+      border-bottom: 1px solid var(--color-outline);
+    }
+    
+    .commitment-progress {
+      flex: 1;
+      height: 8px;
+      background-color: var(--color-surface-variant);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    
+    .commitment-progress-bar {
+      height: 100%;
+      background-color: var(--color-primary);
+    }
+    
+    /* Tabela de transações */
+    .transactions {
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .transactions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      background-color: var(--color-background);
+      transition: background-color var(--transition-normal);
+    }
+    
+    .transactions-table {
+      width: 100%;
+      background-color: var(--color-surface);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .transactions-table th {
+      text-align: left;
+      padding: var(--spacing-md);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-on-surface-variant);
+      background-color: var(--color-surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .transactions-table td {
+      padding: var(--spacing-md);
+      border-top: 1px solid var(--color-outline);
+    }
+    
+    .transactions-table tr:hover {
+      background-color: var(--color-surface-variant);
+    }
+    
+    .transaction-icon {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-full);
+      background-color: var(--color-surface-variant);
+    }
+    
+    .actions-cell {
+      display: flex;
+      gap: var(--spacing-xs);
+      justify-content: flex-end;
+    }
+    
+    /* Responsividade */
+    @media (max-width: 992px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+      }
+      
+      .header-filters, .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+      }
+      
+      .transactions-table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .header-filters {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .transactions-table-wrapper {
+        margin: 0 calc(-1 * var(--spacing-md));
+      }
+      
+      .transaction-responsive-card {
+        display: flex;
+        flex-direction: column;
+        background-color: var(--color-surface);
+        margin-bottom: var(--spacing-md);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        padding: var(--spacing-md);
+      }
+      
+      /* Ajuste para seletores de data no mobile */
+      .select-date-container {
+        display: flex;
+        width: 100%;
+        gap: var(--spacing-xs);
+      }
+      
+      .select-date-container .select-wrapper {
+        flex: 1;
+      }
+    }
+
+    /* Componentes */
+    /* Botões */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      font-weight: var(--font-weight-medium);
+      transition: all var(--transition-normal);
+      white-space: nowrap;
+    }
+    
+    .btn-primary {
+      background-color: var(--color-primary);
+      color: var(--color-on-primary);
+    }
+    
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-success {
+      background-color: var(--color-success);
+      color: var(--color-on-success);
+    }
+    
+    .btn-success:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .btn-danger {
+      background-color: var(--color-error);
+      color: var(--color-on-error);
+    }
+    
+    .btn-danger:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .btn-outline {
+      border: 1px solid var(--color-outline);
+      background-color: transparent;
+    }
+    
+    .btn-outline:hover {
+      background-color: var(--color-surface-variant);
+    }
+    
+    .btn-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      padding: 0;
+      border-radius: var(--radius-full);
+    }
+    
+    /* Select personalizado */
+    .select-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding: var(--spacing-xs) var(--spacing-xl) var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-outline);
+      background-color: var(--color-surface);
+      cursor: pointer;
+      transition: border-color var(--transition-normal);
+    }
+    
+    .select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    
+    .select-icon {
+      position: absolute;
+      right: var(--spacing-md);
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+    
+    /* Cards */
+    .card {
+      background-color: var(--color-surface);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    }
+    
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    /* KPI Cards */
+    .kpi-card {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--color-surface);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    }
+    
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .kpi-title {
+      font-size: var(--font-size-sm);
+      color: var(--color-on-surface-variant);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .kpi-value {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-semibold);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .kpi-subtitle {
+      font-size: var(--font-size-xs);
+      color: var(--color-on-surface-variant);
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+    }
+    
+    .kpi-income {
+      border-left: 4px solid var(--color-income);
+    }
+    
+    .kpi-expense {
+      border-left: 4px solid var(--color-expense);
+    }
+    
+    .kpi-balance {
+      border-left: 4px solid var(--color-primary);
+    }
+    
+    .kpi-card-invoice {
+      border-left: 4px solid var(--color-card-invoice);
+    }
+    
+    /* Insights */
+    .insight-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .insight-icon {
+      font-size: 1.5rem;
+    }
+    
+    .insight-content {
+      flex: 1;
+    }
+    
+    .insight-title {
+      font-weight: var(--font-weight-medium);
+      margin-bottom: var(--spacing-2xs);
+    }
+    
+    .insight-danger {
+      background-color: rgba(255, 59, 48, 0.1);
+      border-left: 4px solid var(--color-error);
+    }
+    
+    .insight-warning {
+      background-color: rgba(255, 149, 0, 0.1);
+      border-left: 4px solid var(--color-warning);
+    }
+    
+    .insight-info {
+      background-color: rgba(0, 122, 255, 0.1);
+      border-left: 4px solid var(--color-info);
+    }
+    
+    .insight-success {
+      background-color: rgba(52, 199, 89, 0.1);
+      border-left: 4px solid var(--color-success);
+    }
+    
+    /* Checkbox personalizado */
+    .checkbox-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .checkbox {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .checkbox-label {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-outline);
+      background-color: var(--color-surface);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+    }
+    
+    .checkbox:checked + .checkbox-label {
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+    
+    .checkbox:checked + .checkbox-label:after {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 3px;
+      width: 6px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: var(--spacing-2xs) var(--spacing-xs);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .badge-success {
+      background-color: rgba(52, 199, 89, 0.1);
+      color: var(--color-success);
+    }
+    
+    .badge-warning {
+      background-color: rgba(255, 149, 0, 0.1);
+      color: var(--color-warning);
+    }
+    
+    .badge-danger {
+      background-color: rgba(255, 59, 48, 0.1);
+      color: var(--color-error);
+    }
+    
+    .badge-info {
+      background-color: rgba(0, 122, 255, 0.1);
+      color: var(--color-info);
+    }
+    
+    /* Modais */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity var(--transition-normal), visibility var(--transition-normal);
+      backdrop-filter: blur(4px);
+    }
+    
+    .modal-backdrop.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal {
+      width: 90%;
+      max-width: 500px;
+      background-color: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity var(--transition-normal), transform var(--transition-normal);
+    }
+    
+    .modal-backdrop.active .modal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md);
+      border-bottom: 1px solid var(--color-outline);
+    }
+    
+    .modal-title {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+    }
+    
+    .modal-close {
+      font-size: var(--font-size-xl);
+      color: var(--color-on-surface-variant);
+      cursor: pointer;
+    }
+    
+    .modal-body {
+      padding: var(--spacing-md);
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      border-top: 1px solid var(--color-outline);
+    }
+    
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: var(--spacing-md);
+      right: var(--spacing-md);
+      z-index: 2000;
+    }
+    
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      background-color: var(--color-surface);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      box-shadow: var(--shadow-md);
+      min-width: 300px;
+      max-width: 400px;
+      transform: translateX(120%);
+      transition: transform var(--transition-normal);
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast-icon {
+      font-size: 1.5rem;
+    }
+    
+    .toast-content {
+      flex: 1;
+    }
+    
+    .toast-close {
+      font-size: var(--font-size-lg);
+      color: var(--color-on-surface-variant);
+      cursor: pointer;
+    }
+    
+    .toast-success {
+      border-left: 4px solid var(--color-success);
+    }
+    
+    .toast-error {
+      border-left: 4px solid var(--color-error);
+    }
+    
+    .toast-warning {
+      border-left: 4px solid var(--color-warning);
+    }
+    
+    .toast-info {
+      border-left: 4px solid var(--color-info);
+    }
+    
+    /* Inputs */
+    .form-group {
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .form-label {
+      display: block;
+      font-size: var(--font-size-sm);
+      color: var(--color-on-surface-variant);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-outline);
+      background-color: var(--color-surface);
+      transition: border-color var(--transition-normal);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    
+    /* Radio buttons */
+    .radio-group {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      flex-wrap: wrap;
+    }
+    
+    .radio-wrapper {
+      position: relative;
+    }
+    
+    .radio {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .radio-label {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-outline);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+    }
+    
+    .radio:checked + .radio-label {
+      border-color: var(--color-primary);
+      background-color: rgba(0, 113, 227, 0.1);
+    }
+    
+    .radio-circle {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid var(--color-outline);
+      position: relative;
+    }
+    
+    .radio:checked + .radio-label .radio-circle:after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+    }
+    
+    /* Animações */
+    @keyframes pop {
+      0% {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      70% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .animate-pop {
+      animation: pop 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    /* Tema Toggle */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      background-color: var(--color-surface-variant);
+      transition: background-color var(--transition-normal);
+    }
+    
+    .theme-toggle .icon-sun,
+    .theme-toggle .icon-moon {
+      width: 20px;
+      height: 20px;
+      color: var(--color-on-surface-variant);
+    }
+    
+    /* Esconder o ícone não ativo */
+    [data-theme="light"] .theme-toggle .icon-moon {
+      display: none;
+    }
+    
+    [data-theme="dark"] .theme-toggle .icon-sun {
+      display: none;
+    }
+    
+    /* Componentes para categorias personalizadas */
+    .category-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: var(--spacing-md);
+      border: 1px solid var(--color-outline);
+      border-radius: var(--radius-md);
+    }
+    
+    .category-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-bottom: 1px solid var(--color-outline);
+    }
+    
+    .category-item:last-child {
+      border-bottom: none;
+    }
+    
+    .category-item-content {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+    
+    .category-item-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .category-item-actions {
+      display: flex;
+      gap: var(--spacing-xs);
+    }
+    
+    .add-category-form {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-top: var(--spacing-md);
+    }
+    
+    .add-category-form .form-control {
+      flex: 1;
+    }
+    
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+    
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 120px;
+      background-color: var(--color-on-surface);
+      color: var(--color-surface);
+      text-align: center;
+      border-radius: var(--radius-md);
+      padding: var(--spacing-xs);
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: var(--font-size-xs);
+    }
+    
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Estilos corrigidos para abas de categorias */
+    .nav-tabs {
+      display: flex;
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+      border-bottom: 1px solid var(--color-outline);
+    }
+    
+    .nav-item {
+      margin-bottom: -1px;
+    }
+    
+    .nav-link {
+      display: block;
+      padding: var(--spacing-sm) var(--spacing-md);
+      text-decoration: none;
+      color: var(--color-on-surface-variant);
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-normal);
+    }
+    
+    .nav-link:hover {
+      color: var(--color-primary);
+    }
+    
+    .nav-link.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .tab-content {
+      position: relative;
+    }
+    
+    .tab-pane {
+      display: none;
+    }
+    
+    .tab-pane.active {
+      display: block;
+    }
+    
+    .tab-pane.show {
+      opacity: 1;
+    }
+
+    /* Estilos para filtros e ordenação de transações */
+    .transaction-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .transaction-filters .select-wrapper {
+      flex: 1;
+      min-width: 150px;
+    }
+    
+    .transaction-sort-icon {
+      display: inline-block;
+      margin-left: var(--spacing-xs);
+      width: 14px;
+      height: 14px;
+    }
+    
+    th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    th.sortable:hover {
+      background-color: var(--color-surface-variant);
+    }
+    
+    /* Ajustes para responsividade da tela de categorias */
+    @media (max-width: 576px) {
+      .add-category-form {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+      
+      .nav-tabs {
+        flex-direction: column;
+        border-bottom: none;
+      }
+      
+      .nav-item {
+        margin-bottom: var(--spacing-xs);
+      }
+      
+      .nav-link {
+        border: 1px solid var(--color-outline);
+        border-radius: var(--radius-md);
+        text-align: center;
+      }
+      
+      .nav-link.active {
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+        border-color: var(--color-primary);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- SVG Sprite de ícones (HeroIcons) -->
+  <svg style="display: none;">
+    <!-- Ícones de navegação -->
+    <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+    </symbol>
+    <symbol id="icon-credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+    </symbol>
+    
+    <!-- Ícones de ações -->
+    <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </symbol>
+    <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </symbol>
+    <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </symbol>
+    <symbol id="icon-chevron-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </symbol>
+    
+    <!-- Ícones tema claro/escuro -->
+    <symbol id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+    </symbol>
+    
+    <!-- Alguns ícones para categorias padrão -->
+    <symbol id="icon-shopping" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+    </symbol>
+    <symbol id="icon-food" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </symbol>
+    <symbol id="icon-home-category" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </symbol>
+    <symbol id="icon-bill" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </symbol>
+    <symbol id="icon-default" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </symbol>
+    <symbol id="icon-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </symbol>
+    
+    <!-- Ícones para alertas e notificações -->
+    <symbol id="icon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </symbol>
+    <symbol id="icon-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </symbol>
+    
+    <!-- Ícones para ordenação -->
+    <symbol id="icon-sort-asc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </symbol>
+    <symbol id="icon-sort-desc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+    </symbol>
+  </svg>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-filters">
+        <div class="select-date-container">
+          <div class="select-wrapper">
+            <select id="yearSelect" class="select">
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025" selected>2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+              <option value="2028">2028</option>
+              <option value="2029">2029</option>
+              <option value="2030">2030</option>
+            </select>
+            <svg class="select-icon" width="16" height="16">
+              <use href="#icon-chevron-down"></use>
+            </svg>
+          </div>
+          
+          <div class="select-wrapper">
+            <select id="monthSelect" class="select">
+              <option value="0">Janeiro</option>
+              <option value="1">Fevereiro</option>
+              <option value="2">Março</option>
+              <option value="3">Abril</option>
+              <option value="4" selected>Maio</option>
+              <option value="5">Junho</option>
+              <option value="6">Julho</option>
+              <option value="7">Agosto</option>
+              <option value="8">Setembro</option>
+              <option value="9">Outubro</option>
+              <option value="10">Novembro</option>
+              <option value="11">Dezembro</option>
+            </select>
+            <svg class="select-icon" width="16" height="16">
+              <use href="#icon-chevron-down"></use>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button id="newIncomeBtn" class="btn btn-success">
+          Nova Receita
+        </button>
+        
+        <button id="newExpenseBtn" class="btn btn-danger">
+          Nova Despesa
+        </button>
+        
+        <button id="cardsBtn" class="btn btn-outline">
+          <svg width="16" height="16">
+            <use href="#icon-credit-card"></use>
+          </svg>
+          Cartões
+        </button>
+        
+        <button id="categoriesBtn" class="btn btn-outline">
+          <svg width="16" height="16">
+            <use href="#icon-settings"></use>
+          </svg>
+          Categorias
+        </button>
+        
+        <div id="themeToggle" class="theme-toggle" role="button" aria-label="Alternar tema">
+          <svg class="icon-sun" width="20" height="20">
+            <use href="#icon-sun"></use>
+          </svg>
+          <svg class="icon-moon" width="20" height="20">
+            <use href="#icon-moon"></use>
+          </svg>
+        </div>
+      </div>
+    </header>
+    
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-balance">
+        <div class="kpi-title">Saldo Atual</div>
+        <div class="kpi-value" id="balanceValue">R$ 0,00</div>
+        <div class="kpi-subtitle">
+          <svg width="16" height="16">
+            <use href="#icon-info"></use>
+          </svg>
+          <span>Receitas recebidas - Despesas pagas</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card kpi-income">
+        <div class="kpi-title">Receitas</div>
+        <div class="kpi-value" id="incomeValue">R$ 0,00</div>
+        <div class="kpi-subtitle">
+          <span id="incomeReceivedValue">R$ 0,00 recebidos</span> /
+          <span id="incomePendingValue">R$ 0,00 pendentes</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card kpi-expense">
+        <div class="kpi-title">Despesas</div>
+        <div class="kpi-value" id="expenseValue">R$ 0,00</div>
+        <div class="kpi-subtitle">
+          <span id="expensePaidValue">R$ 0,00 pagos</span> /
+          <span id="expensePendingValue">R$ 0,00 pendentes</span>
+        </div>
+      </div>
+      
+      <div class="kpi-card kpi-card-invoice">
+        <div class="kpi-title">Fatura Atual</div>
+        <div class="kpi-value" id="invoiceValue">R$ 0,00</div>
+        <div class="kpi-subtitle">
+          <svg width="16" height="16">
+            <use href="#icon-credit-card"></use>
+          </svg>
+          <span>Vencimento: <span id="invoiceDueDate">15/05/2025</span></span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Insights Banner -->
+    <div class="insights-banner" id="insightsBanner">
+      <!-- Insights serão inseridos aqui dinamicamente -->
+    </div>
+    
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+      <div class="chart-container">
+        <h3>Despesas por Categoria</h3>
+        <canvas id="catPie"></canvas>
+      </div>
+      
+      <div class="chart-container">
+        <h3>Limite do Cartão</h3>
+        <canvas id="cardArea"></canvas>
+      </div>
+    </div>
+    
+    <!-- Annual Bars Chart -->
+    <div class="chart-container">
+      <h3>Receitas x Despesas (12 meses)</h3>
+      <canvas id="annualBars"></canvas>
+    </div>
+    
+    <!-- Compromissos Longos -->
+    <div class="commitments">
+      <div class="commitments-header" id="commitmentsHeader">
+        <h3>Compromissos Longos</h3>
+        <svg width="20" height="20">
+          <use href="#icon-chevron-down"></use>
+        </svg>
+      </div>
+      
+      <div class="commitments-content" id="commitmentsContent">
+        <!-- Compromissos serão inseridos aqui dinamicamente -->
+      </div>
+    </div>
+    
+    <!-- Tabela de Transações -->
+    <div class="transactions">
+      <div class="transactions-header">
+        <h3>Transações</h3>
+      </div>
+      <div id="transaction-filters" class="transaction-filters">
+        <!-- Filtros serão inseridos aqui dinamicamente -->
+      </div>
+      <div class="transactions-table-wrapper">
+        <table class="transactions-table" id="transactionsTable">
+          <thead>
+            <tr>
+              <th></th>
+              <th class="sortable" data-sort="name">Nome <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="category">Categoria <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="date">Data <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="dueDate">Vencimento <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="amount">Valor <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="status">Status <span class="transaction-sort-icon"></span></th>
+              <th class="sortable" data-sort="paymentMethod">Pagamento <span class="transaction-sort-icon"></span></th>
+              <th>Pago?</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="transactionsTableBody">
+            <!-- Transações serão inseridas aqui dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!-- Modais -->
+  <!-- Modal de Nova Receita -->
+  <div class="modal-backdrop" id="incomeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Nova Receita</h2>
+        <span class="modal-close" id="closeIncomeModal">
+          <svg width="24" height="24">
+            <use href="#icon-x"></use>
+          </svg>
+        </span>
+      </div>
+      
+      <div class="modal-body">
+        <form id="incomeForm">
+          <div class="form-group">
+            <label class="form-label" for="incomeName">Nome</label>
+            <input type="text" class="form-control" id="incomeName" placeholder="Nome da receita">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="incomeAmount">Valor</label>
+            <input type="number" class="form-control" id="incomeAmount" placeholder="0,00" min="0" step="0.01">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="incomeCategory">Categoria</label>
+            <div class="select-wrapper">
+              <select class="select" id="incomeCategory">
+                <!-- Categorias serão carregadas dinamicamente -->
+              </select>
+              <svg class="select-icon" width="16" height="16">
+                <use href="#icon-chevron-down"></use>
+              </svg>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="incomeDate">Data de Lançamento</label>
+            <input type="date" class="form-control" id="incomeDate">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <div class="radio-group">
+              <div class="radio-wrapper">
+                <input type="radio" class="radio" id="incomeStatusReceived" name="incomeStatus" value="received" checked>
+                <label class="radio-label" for="incomeStatusReceived">
+                  <span class="radio-circle"></span>
+                  Recebido
+                </label>
+              </div>
+              
+              <div class="radio-wrapper">
+                <input type="radio" class="radio" id="incomeStatusPending" name="incomeStatus" value="pending">
+                <label class="radio-label" for="incomeStatusPending">
+                  <span class="radio-circle"></span>
+                  A Receber
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="incomePaymentMethod">Forma de Recebimento</label>
+            <div class="select-wrapper">
+              <select class="select" id="incomePaymentMethod">
+                <!-- Formas de pagamento serão carregadas dinamicamente -->
+              </select>
+              <svg class="select-icon" width="16" height="16">
+                <use href="#icon-chevron-down"></use>
+              </svg>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <div class="checkbox-wrapper">
+              <input type="checkbox" class="checkbox" id="incomeIsRecurrent">
+              <label class="checkbox-label" for="incomeIsRecurrent"></label>
+            </div>
+            <label class="form-label" for="incomeIsRecurrent" style="display: inline-block; margin-left: 8px;">Receita Recorrente</label>
+          </div>
+          
+          <div class="form-group" id="incomeRecurrenceGroup" style="display: none;">
+            <label class="form-label" for="incomeInstallments">Quantidade de Parcelas</label>
+            <input type="number" class="form-control" id="incomeInstallments" min="2" value="2">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="incomeNotes">Observação (opcional)</label>
+            <textarea class="form-control" id="incomeNotes" rows="3"></textarea>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="cancelIncomeBtn">Cancelar</button>
+        <button class="btn btn-success" id="saveIncomeBtn">Salvar Receita</button>
+      </div>
+    </div>
+  </div>
+  
+<!-- Modal de Nova Despesa -->
+  <div class="modal-backdrop" id="expenseModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Nova Despesa</h2>
+        <span class="modal-close" id="closeExpenseModal">
+          <svg width="24" height="24">
+            <use href="#icon-x"></use>
+          </svg>
+        </span>
+      </div>
+      
+      <div class="modal-body">
+        <form id="expenseForm">
+          <div class="form-group">
+            <label class="form-label" for="expenseName">Nome</label>
+            <input type="text" class="form-control" id="expenseName" placeholder="Nome da despesa">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="expenseAmount">Valor</label>
+            <input type="number" class="form-control" id="expenseAmount" placeholder="0,00" min="0" step="0.01">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="expenseCategory">Categoria</label>
+            <div class="select-wrapper">
+              <select class="select" id="expenseCategory">
+                <!-- Categorias serão carregadas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="expenseDate">Data de Lançamento</label>
+           <input type="date" class="form-control" id="expenseDate">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="expenseDueDate">Data de Vencimento</label>
+           <input type="date" class="form-control" id="expenseDueDate">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label">Status</label>
+           <div class="radio-group">
+             <div class="radio-wrapper">
+               <input type="radio" class="radio" id="expenseStatusPaid" name="expenseStatus" value="paid">
+               <label class="radio-label" for="expenseStatusPaid">
+                 <span class="radio-circle"></span>
+                 Pago
+               </label>
+             </div>
+             
+             <div class="radio-wrapper">
+               <input type="radio" class="radio" id="expenseStatusPending" name="expenseStatus" value="pending" checked>
+               <label class="radio-label" for="expenseStatusPending">
+                 <span class="radio-circle"></span>
+                 Pendente
+               </label>
+             </div>
+             
+             <div class="radio-wrapper">
+               <input type="radio" class="radio" id="expenseStatusScheduled" name="expenseStatus" value="scheduled">
+               <label class="radio-label" for="expenseStatusScheduled">
+                 <span class="radio-circle"></span>
+                 Agendado
+               </label>
+             </div>
+           </div>
+         </div>
+         
+         <div class="form-group" id="scheduledDateGroup" style="display: none;">
+           <label class="form-label" for="expenseScheduledDate">Data de Agendamento</label>
+           <input type="date" class="form-control" id="expenseScheduledDate">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="expensePaymentMethod">Forma de Pagamento</label>
+           <div class="select-wrapper">
+             <select class="select" id="expensePaymentMethod">
+               <!-- Formas de pagamento serão carregadas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group" id="creditCardGroup" style="display: none;">
+           <label class="form-label" for="expenseCreditCard">Cartão de Crédito</label>
+           <div class="select-wrapper">
+             <select class="select" id="expenseCreditCard">
+               <!-- Opções de cartões serão inseridas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group">
+           <div class="checkbox-wrapper">
+             <input type="checkbox" class="checkbox" id="expenseIsRecurrent">
+             <label class="checkbox-label" for="expenseIsRecurrent"></label>
+           </div>
+           <label class="form-label" for="expenseIsRecurrent" style="display: inline-block; margin-left: 8px;">Despesa Recorrente</label>
+         </div>
+         
+         <div class="form-group" id="expenseRecurrenceGroup" style="display: none;">
+           <label class="form-label" for="expenseInstallments">Quantidade de Parcelas</label>
+           <input type="number" class="form-control" id="expenseInstallments" min="2" value="2">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="expenseNotes">Observação (opcional)</label>
+           <textarea class="form-control" id="expenseNotes" rows="3"></textarea>
+         </div>
+       </form>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelExpenseBtn">Cancelar</button>
+       <button class="btn btn-danger" id="saveExpenseBtn">Salvar Despesa</button>
+     </div>
+   </div>
+ </div>
+
+<!-- Modal de Edição de Transação -->
+ <div class="modal-backdrop" id="editModal">
+   <div class="modal">
+     <div class="modal-header">
+       <h2 class="modal-title" id="editModalTitle">Editar Transação</h2>
+       <span class="modal-close" id="closeEditModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <form id="editForm">
+         <input type="hidden" id="editTransactionId">
+         <input type="hidden" id="editTransactionType">
+         
+         <div class="form-group">
+           <label class="form-label" for="editName">Nome</label>
+           <input type="text" class="form-control" id="editName">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editAmount">Valor</label>
+           <input type="number" class="form-control" id="editAmount" min="0" step="0.01">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editCategory">Categoria</label>
+           <div class="select-wrapper">
+             <select class="select" id="editCategory">
+               <!-- Opções de categorias serão inseridas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editDate">Data de Lançamento</label>
+           <input type="date" class="form-control" id="editDate">
+         </div>
+         
+         <div class="form-group" id="editDueDateGroup">
+           <label class="form-label" for="editDueDate">Data de Vencimento</label>
+           <input type="date" class="form-control" id="editDueDate">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label">Status</label>
+           <div class="radio-group" id="editStatusGroup">
+             <!-- Opções de status serão inseridas dinamicamente -->
+           </div>
+         </div>
+         
+         <div class="form-group" id="editScheduledDateGroup" style="display: none;">
+           <label class="form-label" for="editScheduledDate">Data de Agendamento</label>
+           <input type="date" class="form-control" id="editScheduledDate">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editPaymentMethod">Forma de Pagamento</label>
+           <div class="select-wrapper">
+             <select class="select" id="editPaymentMethod">
+               <!-- Opções de formas de pagamento serão inseridas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group" id="editCreditCardGroup" style="display: none;">
+           <label class="form-label" for="editCreditCard">Cartão de Crédito</label>
+           <div class="select-wrapper">
+             <select class="select" id="editCreditCard">
+               <!-- Opções de cartões serão inseridas dinamicamente -->
+             </select>
+             <svg class="select-icon" width="16" height="16">
+               <use href="#icon-chevron-down"></use>
+             </svg>
+           </div>
+         </div>
+         
+         <div class="form-group">
+           <div class="checkbox-wrapper">
+             <input type="checkbox" class="checkbox" id="editIsRecurrent">
+             <label class="checkbox-label" for="editIsRecurrent"></label>
+           </div>
+           <label class="form-label" for="editIsRecurrent" style="display: inline-block; margin-left: 8px;">Transação Recorrente</label>
+         </div>
+         
+         <div class="form-group" id="editRecurrenceGroup" style="display: none;">
+           <label class="form-label" for="editInstallments">Quantidade de Parcelas</label>
+           <input type="number" class="form-control" id="editInstallments" min="2" value="2">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editNotes">Observação (opcional)</label>
+           <textarea class="form-control" id="editNotes" rows="3"></textarea>
+         </div>
+       </form>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelEditBtn">Cancelar</button>
+       <button class="btn btn-primary" id="saveEditBtn">Salvar Alterações</button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Modal de Cartões -->
+ <div class="modal-backdrop" id="cardsListModal">
+   <div class="modal">
+     <div class="modal-header">
+       <h2 class="modal-title">Cartões</h2>
+       <span class="modal-close" id="closeCardsListModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <div id="cardsList">
+         <!-- Cards serão inseridos aqui dinamicamente -->
+       </div>
+       
+       <button class="btn btn-primary" id="newCardBtn" style="margin-top: var(--spacing-md);">
+         <svg width="16" height="16">
+           <use href="#icon-plus"></use>
+         </svg>
+         Novo Cartão
+       </button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Modal de Novo Cartão -->
+ <div class="modal-backdrop" id="newCardModal">
+   <div class="modal">
+     <div class="modal-header">
+       <h2 class="modal-title">Novo Cartão</h2>
+       <span class="modal-close" id="closeNewCardModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <form id="cardForm">
+         <div class="form-group">
+           <label class="form-label" for="cardName">Nome do Cartão</label>
+           <input type="text" class="form-control" id="cardName" placeholder="Ex: Nubank">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="cardLimit">Limite Total</label>
+           <input type="number" class="form-control" id="cardLimit" placeholder="0,00" min="0" step="0.01">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="cardClosingDay">Dia de Fechamento</label>
+           <input type="number" class="form-control" id="cardClosingDay" placeholder="1-31" min="1" max="31">
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="cardDueDay">Dia de Vencimento</label>
+           <input type="number" class="form-control" id="cardDueDay" placeholder="1-31" min="1" max="31">
+         </div>
+       </form>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelCardBtn">Cancelar</button>
+       <button class="btn btn-primary" id="saveCardBtn">Salvar Cartão</button>
+     </div>
+   </div>
+ </div>
+
+<!-- Modal de Fatura do Cartão -->
+ <div class="modal-backdrop" id="cardInvoiceModal">
+   <div class="modal" style="max-width: 700px;">
+     <div class="modal-header">
+       <h2 class="modal-title" id="cardInvoiceTitle">Fatura do Cartão</h2>
+       <span class="modal-close" id="closeCardInvoiceModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <div class="card" style="margin-bottom: var(--spacing-md);">
+         <div id="cardInvoiceDetails">
+           <!-- Detalhes da fatura serão inseridos aqui dinamicamente -->
+         </div>
+       </div>
+       
+       <h3>Despesas desta Fatura</h3>
+       <table class="transactions-table" id="cardInvoiceTable">
+         <thead>
+           <tr>
+             <th></th>
+             <th>Nome</th>
+             <th>Data</th>
+             <th>Valor</th>
+             <th>Pago?</th>
+           </tr>
+         </thead>
+         <tbody id="cardInvoiceTableBody">
+           <!-- Despesas da fatura serão inseridas aqui dinamicamente -->
+         </tbody>
+       </table>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="backToCardsBtn">Voltar</button>
+       <button class="btn btn-primary" id="payInvoiceBtn">Pagar Fatura</button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Modal de Confirmação de Exclusão -->
+ <div class="modal-backdrop" id="deleteConfirmModal">
+   <div class="modal" style="max-width: 400px;">
+     <div class="modal-header">
+       <h2 class="modal-title">
+         <svg width="24" height="24" style="vertical-align: middle; margin-right: 8px;">
+           <use href="#icon-alert"></use>
+         </svg>
+         Confirmar Exclusão
+       </h2>
+       <span class="modal-close" id="closeDeleteConfirmModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <p>Você deseja realmente excluir esta transação? Esta ação é irreversível.</p>
+       
+       <div id="recurrenceDeleteOptions" style="display: none; margin-top: var(--spacing-md);">
+         <p><strong>Esta é uma transação recorrente. O que deseja fazer?</strong></p>
+         
+         <div class="radio-group" style="flex-direction: column; gap: var(--spacing-sm);">
+           <div class="radio-wrapper">
+             <input type="radio" class="radio" id="deleteSingle" name="deleteOption" value="single" checked>
+             <label class="radio-label" for="deleteSingle">
+               <span class="radio-circle"></span>
+               Excluir apenas esta parcela
+             </label>
+           </div>
+           
+           <div class="radio-wrapper">
+             <input type="radio" class="radio" id="deleteAllFuture" name="deleteOption" value="future">
+             <label class="radio-label" for="deleteAllFuture">
+               <span class="radio-circle"></span>
+               Excluir todas as parcelas futuras
+             </label>
+           </div>
+         </div>
+       </div>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelDeleteBtn">Cancelar</button>
+       <button class="btn btn-danger" id="confirmDeleteBtn">Excluir</button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Modal de Confirmação de Pagamento de Fatura -->
+ <div class="modal-backdrop" id="payInvoiceConfirmModal">
+   <div class="modal" style="max-width: 400px;">
+     <div class="modal-header">
+       <h2 class="modal-title">
+         <svg width="24" height="24" style="vertical-align: middle; margin-right: 8px;">
+           <use href="#icon-credit-card"></use>
+         </svg>
+         Pagar Fatura do Cartão
+       </h2>
+       <span class="modal-close" id="closePayInvoiceConfirmModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <p>Confirmar pagamento de todas as despesas desta fatura?</p>
+       <p style="margin-top: var(--spacing-xs);">Total: <strong id="invoiceConfirmAmount">R$ 0,00</strong></p>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelPayInvoiceBtn">Cancelar</button>
+       <button class="btn btn-primary" id="confirmPayInvoiceBtn">Pagar</button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Modal de Categorias -->
+ <div class="modal-backdrop" id="categoriesModal">
+   <div class="modal" style="max-width: 600px;">
+     <div class="modal-header">
+       <h2 class="modal-title">Gerenciar Categorias</h2>
+       <span class="modal-close" id="closeCategoriesModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <ul class="nav-tabs" id="categoryTabs" role="tablist">
+         <li class="nav-item" style="margin-right: 20px;">
+           <a class="nav-link active" id="income-cat-tab" data-toggle="tab" href="#income-cat" role="tab">Categorias de Receita</a>
+         </li>
+         <li class="nav-item">
+           <a class="nav-link" id="expense-cat-tab" data-toggle="tab" href="#expense-cat" role="tab">Categorias de Despesa</a>
+         </li>
+         <li class="nav-item" style="margin-left: 20px;">
+           <a class="nav-link" id="payment-methods-tab" data-toggle="tab" href="#payment-methods" role="tab">Formas de Pagamento</a>
+         </li>
+       </ul>
+       
+       <div class="tab-content" id="categoryTabContent" style="margin-top: 20px;">
+         <!-- Categorias de Receita -->
+         <div class="tab-pane fade show active" id="income-cat" role="tabpanel">
+           <div class="category-list" id="incomeCategoriesList">
+             <!-- Categorias serão carregadas dinamicamente -->
+           </div>
+           
+           <div class="add-category-form">
+             <div class="custom-icon-input">
+               <div class="custom-icon-preview" id="newIncomeCategoryIconPreview">
+                 <svg width="24" height="24">
+                   <use href="#icon-money"></use>
+                 </svg>
+               </div>
+               <input type="text" class="form-control" id="newIncomeCategoryIconInput" placeholder="Emoji ou ícone">
+             </div>
+             <input type="text" class="form-control" id="newIncomeCategoryInput" placeholder="Nova categoria">
+             <button class="btn btn-primary" id="addIncomeCategoryBtn">Adicionar</button>
+           </div>
+         </div>
+         
+         <!-- Categorias de Despesa -->
+         <div class="tab-pane fade" id="expense-cat" role="tabpanel">
+           <div class="category-list" id="expenseCategoriesList">
+             <!-- Categorias serão carregadas dinamicamente -->
+           </div>
+           
+           <div class="add-category-form">
+             <div class="custom-icon-input">
+               <div class="custom-icon-preview" id="newExpenseCategoryIconPreview">
+                 <svg width="24" height="24">
+                   <use href="#icon-shopping"></use>
+                 </svg>
+               </div>
+               <input type="text" class="form-control" id="newExpenseCategoryIconInput" placeholder="Emoji ou ícone">
+             </div>
+             <input type="text" class="form-control" id="newExpenseCategoryInput" placeholder="Nova categoria">
+             <button class="btn btn-primary" id="addExpenseCategoryBtn">Adicionar</button>
+           </div>
+         </div>
+         
+         <!-- Formas de Pagamento -->
+         <div class="tab-pane fade" id="payment-methods" role="tabpanel">
+           <div class="category-list" id="paymentMethodsList">
+             <!-- Formas de pagamento serão carregadas dinamicamente -->
+           </div>
+           
+           <div class="add-category-form">
+             <div class="custom-icon-input">
+               <div class="custom-icon-preview" id="newPaymentMethodIconPreview">
+                 <svg width="24" height="24">
+                   <use href="#icon-money"></use>
+                 </svg>
+               </div>
+               <input type="text" class="form-control" id="newPaymentMethodIconInput" placeholder="Emoji ou ícone">
+             </div>
+             <input type="text" class="form-control" id="newPaymentMethodInput" placeholder="Nova forma de pagamento">
+             <button class="btn btn-primary" id="addPaymentMethodBtn">Adicionar</button>
+           </div>
+         </div>
+       </div>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="closeCategoriesBtn">Fechar</button>
+     </div>
+   </div>
+ </div>
+
+<!-- Modal de Edição de Categoria -->
+ <div class="modal-backdrop" id="editCategoryModal">
+   <div class="modal" style="max-width: 400px;">
+     <div class="modal-header">
+       <h2 class="modal-title" id="editCategoryTitle">Editar Categoria</h2>
+       <span class="modal-close" id="closeEditCategoryModal">
+         <svg width="24" height="24">
+           <use href="#icon-x"></use>
+         </svg>
+       </span>
+     </div>
+     
+     <div class="modal-body">
+       <form id="editCategoryForm">
+         <input type="hidden" id="editCategoryId">
+         <input type="hidden" id="editCategoryType">
+         
+         <div class="form-group">
+           <label class="form-label">Ícone</label>
+           <div class="custom-icon-input">
+             <div class="custom-icon-preview" id="editCategoryIconPreview">
+               <svg width="24" height="24">
+                 <use href="#icon-default"></use>
+               </svg>
+             </div>
+             <input type="text" class="form-control" id="editCategoryIconInput" placeholder="Emoji ou código unicode">
+           </div>
+         </div>
+         
+         <div class="form-group">
+           <label class="form-label" for="editCategoryName">Nome</label>
+           <input type="text" class="form-control" id="editCategoryName" placeholder="Nome da categoria">
+         </div>
+       </form>
+     </div>
+     
+     <div class="modal-footer">
+       <button class="btn btn-outline" id="cancelEditCategoryBtn">Cancelar</button>
+       <button class="btn btn-primary" id="saveEditCategoryBtn">Salvar</button>
+     </div>
+   </div>
+ </div>
+ 
+ <!-- Toast Container -->
+ <div class="toast-container" id="toastContainer">
+   <!-- Toasts serão inseridos aqui dinamicamente -->
+ </div>
+
+<script>
+ // Helpers DOM
+ const $ = selector => document.querySelector(selector);
+ const $$ = selector => Array.from(document.querySelectorAll(selector));
+ 
+ // Estado global da aplicação
+ const state = {
+   year: 2025,
+   month: 4, // Maio (0-indexed)
+   transactions: [],
+   cards: [],
+   filteredTransactions: [],
+   insights: [],
+   sortColumn: 'date', // Coluna padrão para ordenação
+   sortDirection: 'desc', // Direção padrão (decrescente para datas)
+   filters: {
+     category: '',
+     status: '',
+     paymentMethod: ''
+   },
+   categories: {
+     income: [
+       { id: 'salario', name: 'Salário', icon: '💰' },
+       { id: 'investimentos', name: 'Investimentos', icon: '📈' },
+       { id: 'freelance', name: 'Freelance', icon: '💻' },
+       { id: 'presente', name: 'Presente', icon: '🎁' },
+       { id: 'outros_income', name: 'Outros', icon: 'ℹ️' }
+     ],
+     expense: [
+       { id: 'alimentacao', name: 'Alimentação', icon: '🍔' },
+       { id: 'moradia', name: 'Moradia', icon: '🏠' },
+       { id: 'transporte', name: 'Transporte', icon: '🚗' },
+       { id: 'saude', name: 'Saúde', icon: '⚕️' },
+       { id: 'educacao', name: 'Educação', icon: '📚' },
+       { id: 'lazer', name: 'Lazer', icon: '🎮' },
+       { id: 'compras', name: 'Compras', icon: '🛍️' },
+       { id: 'contas', name: 'Contas e serviços', icon: '📝' },
+       { id: 'impostos', name: 'Impostos', icon: '💸' },
+       { id: 'outros_expense', name: 'Outros', icon: 'ℹ️' }
+     ]
+   },
+   paymentMethods: [
+     { id: 'dinheiro', name: 'Dinheiro', icon: '💵' },
+     { id: 'pix', name: 'Pix', icon: '⚡' },
+     { id: 'debito', name: 'Débito', icon: '💳' },
+     { id: 'debito_conta', name: 'Débito em Conta', icon: '🏦' },
+     { id: 'transferencia', name: 'Transferência Bancária', icon: '🔄' },
+     { id: 'boleto', name: 'Boleto', icon: '📄' },
+     { id: 'credito', name: 'Crédito', icon: '💳' }
+   ],
+   currentTransaction: null,
+   currentCard: null,
+   currentCategory: null,
+   themePreference: 'light'
+ };
+ 
+ // Formatadores
+ const formatCurrency = value => {
+   return new Intl.NumberFormat('pt-BR', {
+     style: 'currency',
+     currency: 'BRL'
+   }).format(value);
+ };
+
+ // Função auxiliar para parsing de datas locais
+ const parseLocalDateString = (dateInput) => {
+   if (dateInput instanceof Date && !isNaN(dateInput)) {
+     return dateInput;
+   }
+   if (typeof dateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)) {
+     const parts = dateInput.split('-');
+     return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+   }
+   return null;
+ };
+
+ const formatDate = (date, options = {}) => {
+   let dateObj;
+   if (!date) return '';
+   
+   if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+     dateObj = parseLocalDateString(date);
+   } else {
+     dateObj = date instanceof Date ? date : new Date(date);
+   }
+   
+   return dateObj.toLocaleDateString('pt-BR', options);
+ };
+
+ // Função corrigida para manipular datas sem problemas de fuso horário
+ const localDateToISOString = (date) => {
+   if (!date) return null;
+   const localDate = date instanceof Date ? date : new Date(date);
+   // Criar uma string de data no formato ISO, mas mantendo a data local
+   return localDate.getFullYear() + '-' + 
+          String(localDate.getMonth() + 1).padStart(2, '0') + '-' + 
+          String(localDate.getDate()).padStart(2, '0');
+ };
+
+ // Função de tema claro/escuro
+ const toggleTheme = () => {
+   const currentTheme = document.documentElement.getAttribute('data-theme');
+   const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+   
+   document.documentElement.setAttribute('data-theme', newTheme);
+   state.themePreference = newTheme;
+   
+   // Armazenar preferência em localStorage
+   localStorage.setItem('themePreference', newTheme);
+   
+   // Atualizar gráficos com as cores corretas
+   updateCharts();
+ };
+ 
+ // Verificar a preferência de tema do usuário
+ const initTheme = () => {
+   const savedTheme = localStorage.getItem('themePreference');
+   if (savedTheme) {
+     document.documentElement.setAttribute('data-theme', savedTheme);
+     state.themePreference = savedTheme;
+   } else {
+     // Verificar preferência do sistema
+     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+       document.documentElement.setAttribute('data-theme', 'dark');
+       state.themePreference = 'dark';
+     }
+   }
+   
+   // Listener para o botão de alternar tema
+   $('#themeToggle').addEventListener('click', toggleTheme);
+ };
+ 
+ // Configuração do Firebase
+ const firebaseConfig = {
+   apiKey: "AIzaSyDvL_nYWhv_8rPouejiWbDZtDCKHYOQyEY",
+   authDomain: "calculadora-da-familia.firebaseapp.com",
+   projectId: "calculadora-da-familia",
+   storageBucket: "calculadora-da-familia.appspot.com",
+   messagingSenderId: "69721783786",
+   appId: "1:69721783786:web:c4703b5c182e3681e8c693",
+   measurementId: "G-YM5TR661S6"
+ };
+ 
+ // Inicializar Firebase com tratamento de erro
+ let db;
+ try {
+   firebase.initializeApp(firebaseConfig);
+   db = firebase.firestore();
+   
+   // Configurar persistência offline para melhor experiência do usuário
+   db.enablePersistence({experimentalForceOwningTab: true})
+     .catch(err => {
+       if (err.code === 'failed-precondition') {
+         console.warn('Múltiplas abas abertas, persistência não suportada. Usando apenas modo online.');
+         // Continuar sem persistência
+       } else if (err.code === 'unimplemented') {
+         console.warn('O navegador não suporta persistência offline. Usando apenas modo online.');
+         // Continuar sem persistência
+       }
+     });
+     
+   console.log('Firebase inicializado com sucesso');
+ } catch (error) {
+   console.error('Erro ao inicializar Firebase:', error);
+   showToast('Erro de conexão com o Firebase. Tente recarregar a página.', 'error');
+   // Inicializar um banco de dados falso para evitar erros
+   db = {
+     collection: () => ({
+       get: () => Promise.resolve({ docs: [], empty: true }),
+       doc: () => ({ 
+         get: () => Promise.resolve({ exists: false, data: () => ({}) }),
+         set: () => Promise.resolve(),
+         update: () => Promise.resolve(),
+         delete: () => Promise.resolve()
+       }),
+       add: () => Promise.resolve({ id: 'temp-id' })
+     })
+   };
+ }
+ 
+ // IDs únicos
+ const generateId = () => {
+   return Date.now().toString(36) + Math.random().toString(36).substr(2);
+ };
+ 
+ // Toast notifications
+ const showToast = (message, type = 'success') => {
+   const toastContainer = $('#toastContainer');
+   if (!toastContainer) return; // Safety check
+   
+   const toast = document.createElement('div');
+   toast.className = `toast toast-${type}`;
+   
+   let iconName = '';
+   switch (type) {
+     case 'success':
+       iconName = 'icon-check';
+       break;
+     case 'error':
+       iconName = 'icon-x';
+       break;
+     case 'warning':
+       iconName = 'icon-alert';
+       break;
+     case 'info':
+       iconName = 'icon-info';
+       break;
+   }
+   
+   toast.innerHTML = `
+     <div class="toast-icon">
+       <svg width="24" height="24">
+         <use href="#${iconName}"></use>
+       </svg>
+     </div>
+     <div class="toast-content">${message}</div>
+     <span class="toast-close">
+       <svg width="16" height="16">
+         <use href="#icon-x"></use>
+       </svg>
+     </span>
+   `;
+   
+   toastContainer.appendChild(toast);
+   
+   // Animação
+   setTimeout(() => {
+     toast.classList.add('show');
+   }, 10);
+   
+   // Fechar toast ao clicar no X
+   toast.querySelector('.toast-close').addEventListener('click', () => {
+     toast.classList.remove('show');
+     setTimeout(() => {
+       if (toast.parentNode) {
+         toast.remove();
+       }
+     }, 300);
+   });
+   
+   // Auto fechar após 5 segundos
+   setTimeout(() => {
+     if (toast.parentNode) {
+       toast.classList.remove('show');
+       setTimeout(() => {
+         if (toast.parentNode) {
+           toast.remove();
+         }
+       }, 300);
+     }
+   }, 5000);
+ };
+ 
+ // Funções para manipulação de modais
+ const openModal = modalId => {
+   const modal = $(`#${modalId}`);
+   if (!modal) return; // Safety check
+   
+   modal.classList.add('active');
+   document.body.style.overflow = 'hidden';
+ };
+ 
+ const closeModal = modalId => {
+   const modal = $(`#${modalId}`);
+   if (!modal) return; // Safety check
+   
+   modal.classList.remove('active');
+   document.body.style.overflow = '';
+ };
+ 
+ const closeAllModals = () => {
+   $$('.modal-backdrop').forEach(modal => {
+     modal.classList.remove('active');
+   });
+   document.body.style.overflow = '';
+ };
+ 
+ // Manipulação de date inputs - CORRIGIDO
+ const setDateInputValue = (inputId, date) => {
+   const input = $(`#${inputId}`);
+   if (!input) return; // Safety check
+ 
+   // Garantir que estamos trabalhando com um objeto Date ou string ISO
+   let dateObj;
+   if (date instanceof Date) {
+     dateObj = date;
+   } else if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+     dateObj = parseLocalDateString(date);
+   } else {
+     return; // Não suportado
+   }
+
+   // Formato YYYY-MM-DD para inputs de data
+   const year = dateObj.getFullYear();
+   const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+   const day = String(dateObj.getDate()).padStart(2, '0');
+
+   input.value = `${year}-${month}-${day}`;
+ };
+ 
+ const getDateInputValue = inputId => {
+   const input = $(`#${inputId}`);
+   if (!input || !input.value) return null;
+ 
+   // Converter o valor do input diretamente para Date
+   // O input type="date" retorna YYYY-MM-DD
+   return parseLocalDateString(input.value);
+ };
+ 
+ // Função para atualizar as opções de anos até 2030
+ const updateYearOptions = () => {
+   const yearSelect = $('#yearSelect');
+   
+   if (yearSelect) {
+     yearSelect.innerHTML = '';
+     
+     for (let year = 2023; year <= 2030; year++) {
+       const option = document.createElement('option');
+       option.value = year;
+       option.textContent = year;
+       option.selected = year === state.year;
+       yearSelect.appendChild(option);
+     }
+   }
+ };
+ 
+ // Função para carregar categorias e métodos de pagamento
+ const loadCategoriesAndPaymentMethods = async () => {
+   try {
+     // Carregar categorias
+     const categoriesSnapshot = await db.collection('categories').get();
+     
+     if (!categoriesSnapshot.empty) {
+       // Limpar categorias padrão
+       state.categories.income = [];
+       state.categories.expense = [];
+       
+       categoriesSnapshot.docs.forEach(doc => {
+         const category = { id: doc.id, ...doc.data() };
+         if (category.type === 'income') {
+           state.categories.income.push(category);
+         } else if (category.type === 'expense') {
+           state.categories.expense.push(category);
+         }
+       });
+     } else {
+       // Se não houver categorias salvas, salvar as categorias padrão
+       const batch = db.batch();
+       
+       // Salvar categorias de receita
+       state.categories.income.forEach(category => {
+         const docRef = db.collection('categories').doc(category.id);
+         batch.set(docRef, { ...category, type: 'income' });
+       });
+       
+       // Salvar categorias de despesa
+       state.categories.expense.forEach(category => {
+         const docRef = db.collection('categories').doc(category.id);
+         batch.set(docRef, { ...category, type: 'expense' });
+       });
+       
+       await batch.commit();
+     }
+     
+     // Carregar métodos de pagamento
+     const paymentMethodsSnapshot = await db.collection('paymentMethods').get();
+     
+     if (!paymentMethodsSnapshot.empty) {
+       state.paymentMethods = [];
+       paymentMethodsSnapshot.docs.forEach(doc => {
+         state.paymentMethods.push({ id: doc.id, ...doc.data() });
+       });
+     } else {
+       // Se não houver métodos de pagamento salvos, salvar os padrão
+       const batch = db.batch();
+       
+       state.paymentMethods.forEach(method => {
+         const docRef = db.collection('paymentMethods').doc(method.id);
+         batch.set(docRef, method);
+       });
+       
+       await batch.commit();
+     }
+     
+     updateCategorySelects();
+     updatePaymentMethodSelects();
+     
+   } catch (error) {
+     console.error('Erro ao carregar categorias e métodos de pagamento:', error);
+     showToast('Erro ao carregar categorias. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Atualizar selects de categorias
+ const updateCategorySelects = () => {
+   // Selects de categorias de receita
+   const incomeSelects = [
+     $('#incomeCategory'),
+     $('#editCategory')
+   ];
+   
+   incomeSelects.forEach(select => {
+     if (select && select.id === 'editCategory' && select.dataset.type === 'expense') {
+       return; // Pular se for select de edição para despesa
+     }
+     
+     if (select) {
+       select.innerHTML = '';
+       
+       state.categories.income.forEach(category => {
+         const option = document.createElement('option');
+         option.value = category.id;
+         option.textContent = `${category.icon || ''} ${category.name}`;
+         select.appendChild(option);
+       });
+     }
+   });
+   
+   // Selects de categorias de despesa
+   const expenseSelects = [
+     $('#expenseCategory'),
+     $('#editCategory')
+   ];
+   
+   expenseSelects.forEach(select => {
+     if (select && select.id === 'editCategory' && select.dataset.type === 'income') {
+       return; // Pular se for select de edição para receita
+     }
+     
+     if (select) {
+       select.innerHTML = '';
+       
+       state.categories.expense.forEach(category => {
+         const option = document.createElement('option');
+         option.value = category.id;
+         option.textContent = `${category.icon || ''} ${category.name}`;
+         select.appendChild(option);
+       });
+     }
+   });
+ };
+ 
+ // Atualizar selects de formas de pagamento
+ const updatePaymentMethodSelects = () => {
+   const paymentMethodSelects = [
+     $('#incomePaymentMethod'),
+     $('#expensePaymentMethod'),
+     $('#editPaymentMethod')
+   ];
+   
+   paymentMethodSelects.forEach(select => {
+     if (select) {
+       select.innerHTML = '';
+       
+       state.paymentMethods.forEach(method => {
+         const option = document.createElement('option');
+         option.value = method.id;
+         option.textContent = `${method.icon || ''} ${method.name}`;
+         select.appendChild(option);
+       });
+     }
+   });
+ };
+ 
+ // Função para carregar cartões
+ const loadCards = async () => {
+   try {
+     const snapshot = await db.collection('cards').get();
+     
+     state.cards = [];
+     
+     if (!snapshot.empty) {
+       snapshot.docs.forEach(doc => {
+         const card = { id: doc.id, ...doc.data() };
+         // Calcular limite disponível
+         if (!card.availableLimit) {
+           card.availableLimit = card.limit;
+         }
+         // Inicializar fatura atual se não existir
+         if (!card.currentInvoice) {
+           card.currentInvoice = 0;
+         }
+         state.cards.push(card);
+       });
+     }
+     
+     // Atualizar UI
+     updateCardsList();
+     updateCreditCardSelects();
+     updateKPIs();
+     
+   } catch (error) {
+     console.error('Erro ao carregar cartões:', error);
+     showToast('Erro ao carregar cartões. Tente novamente.', 'error');
+   }
+ };
+
+ // Função para adicionar cartão
+ const addCard = async (cardData) => {
+   try {
+     // Criar objeto do cartão
+     const card = {
+       ...cardData,
+       availableLimit: cardData.limit,
+       currentInvoice: 0,
+       createdAt: new Date().toISOString()
+     };
+     
+     // Salvar no Firestore
+     const docRef = await db.collection('cards').add(card);
+     
+     // Atualizar o ID
+     card.id = docRef.id;
+     
+     // Adicionar ao estado local
+     state.cards.push(card);
+     
+     // Atualizar UI
+     updateCardsList();
+     updateCreditCardSelects();
+     
+     showToast('Cartão adicionado com sucesso!', 'success');
+     
+   } catch (error) {
+     console.error('Erro ao adicionar cartão:', error);
+     showToast('Erro ao adicionar cartão. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Função para atualizar cartão
+ const updateCard = async (cardId, updates) => {
+   try {
+     // Atualizar no Firestore
+     await db.collection('cards').doc(cardId).update(updates);
+     
+     // Atualizar no estado local
+     const index = state.cards.findIndex(c => c.id === cardId);
+     
+     if (index !== -1) {
+       state.cards[index] = { ...state.cards[index], ...updates };
+     }
+     
+     // Atualizar UI
+     updateCardsList();
+     updateCreditCardSelects();
+     
+     showToast('Cartão atualizado com sucesso!', 'success');
+     
+   } catch (error) {
+     console.error('Erro ao atualizar cartão:', error);
+     showToast('Erro ao atualizar cartão. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Função para excluir cartão
+ const deleteCard = async (cardId) => {
+   try {
+     // Verificar se há transações vinculadas
+     const transactionsWithCard = state.transactions.filter(t => 
+       t.type === 'expense' && 
+       t.paymentMethod === 'credito' && 
+       t.creditCardId === cardId
+     );
+     
+     if (transactionsWithCard.length > 0) {
+       if (!confirm(`Este cartão possui ${transactionsWithCard.length} transações vinculadas. Deseja excluir mesmo assim?`)) {
+         return;
+       }
+       
+       // Atualizar as transações para remover a referência ao cartão
+       const batch = db.batch();
+       
+       transactionsWithCard.forEach(transaction => {
+         const docRef = db.collection('transactions').doc(transaction.id);
+         batch.update(docRef, { 
+           paymentMethod: 'outros',
+           creditCardId: null,
+           creditCardName: null
+         });
+         
+         // Atualizar no estado local
+         const index = state.transactions.findIndex(t => t.id === transaction.id);
+         if (index !== -1) {
+           state.transactions[index].paymentMethod = 'outros';
+           state.transactions[index].creditCardId = null;
+           state.transactions[index].creditCardName = null;
+         }
+       });
+       
+       await batch.commit();
+     }
+     
+     // Excluir o cartão
+     await db.collection('cards').doc(cardId).delete();
+     
+     // Remover do estado local
+     state.cards = state.cards.filter(c => c.id !== cardId);
+     
+     // Atualizar UI
+     updateCardsList();
+     updateCreditCardSelects();
+     filterTransactionsByMonth();
+     updateKPIs();
+     
+     showToast('Cartão excluído com sucesso!', 'success');
+     
+   } catch (error) {
+     console.error('Erro ao excluir cartão:', error);
+     showToast('Erro ao excluir cartão. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Função para pagar fatura do cartão
+ const payCardInvoice = async (cardId) => {
+   try {
+     const card = state.cards.find(c => c.id === cardId);
+     
+     if (!card) {
+       showToast('Cartão não encontrado.', 'error');
+       return;
+     }
+     
+     // Encontrar todas as transações da fatura atual
+     const today = new Date();
+     let closingDate = new Date(today.getFullYear(), today.getMonth(), card.closingDay);
+     
+     // Se hoje é após o dia de fechamento, a data de fechamento será no próximo mês
+     if (today.getDate() > card.closingDay) {
+      closingDate.setMonth(closingDate.getMonth() + 1);
+     }
+
+     // Data de fechamento anterior
+     const previousClosing = new Date(closingDate);
+     previousClosing.setMonth(previousClosing.getMonth() - 1);
+     
+     // Buscar transações do período
+     const invoiceTransactions = state.transactions.filter(t => 
+       t.type === 'expense' && 
+       t.paymentMethod === 'credito' && 
+       t.creditCardId === card.id &&
+       parseLocalDateString(t.date) >= previousClosing &&
+       parseLocalDateString(t.date) < closingDate
+     );
+     
+     if (invoiceTransactions.length === 0) {
+       showToast('Não há despesas pendentes para esta fatura.', 'info');
+       closeModal('payInvoiceConfirmModal');
+       return;
+     }
+     
+     // Marcar todas as transações como pagas
+     const batch = db.batch();
+     
+     invoiceTransactions.forEach(transaction => {
+       const docRef = db.collection('transactions').doc(transaction.id);
+       batch.update(docRef, { status: 'paid' });
+       
+       // Atualizar no estado local
+       const index = state.transactions.findIndex(t => t.id === transaction.id);
+       if (index !== -1) {
+         state.transactions[index].status = 'paid';
+       }
+     });
+     
+     // Resetar a fatura atual do cartão
+     const cardRef = db.collection('cards').doc(cardId);
+     batch.update(cardRef, { 
+       currentInvoice: 0,
+       availableLimit: card.limit // Restaurar o limite disponível
+     });
+     
+     // Atualizar no estado local
+     const cardIndex = state.cards.findIndex(c => c.id === cardId);
+     if (cardIndex !== -1) {
+       state.cards[cardIndex].currentInvoice = 0;
+       state.cards[cardIndex].availableLimit = card.limit;
+     }
+     
+     await batch.commit();
+     
+     // Atualizar UI
+     updateCardsList();
+     updateTransactionsTable();
+     updateKPIs();
+     updateCharts();
+     
+     closeModal('payInvoiceConfirmModal');
+     showToast('Fatura paga com sucesso!', 'success');
+     
+   } catch (error) {
+     console.error('Erro ao pagar fatura:', error);
+     showToast('Erro ao pagar fatura. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Função para atualizar os selects de cartões de crédito
+ const updateCreditCardSelects = () => {
+   const cardSelects = [
+     $('#expenseCreditCard'),
+     $('#editCreditCard')
+   ];
+   
+   cardSelects.forEach(select => {
+     if (select) {
+       select.innerHTML = '';
+       
+       if (state.cards.length === 0) {
+         // Adicionar opção de placeholder se não houver cartões
+         const option = document.createElement('option');
+         option.value = '';
+         option.textContent = 'Nenhum cartão cadastrado';
+         option.disabled = true;
+         option.selected = true;
+         select.appendChild(option);
+       } else {
+         state.cards.forEach(card => {
+           const option = document.createElement('option');
+           option.value = card.id;
+           option.textContent = `${card.name} (Disp: ${formatCurrency(card.availableLimit)})`;
+           select.appendChild(option);
+         });
+       }
+     }
+   });
+ };
+ 
+ // Funções para transações
+ const loadTransactions = async () => {
+   try {
+     const snapshot = await db.collection('transactions').get();
+     
+     state.transactions = [];
+     
+     if (!snapshot.empty) {
+       snapshot.docs.forEach(doc => {
+         const transaction = { id: doc.id, ...doc.data() };
+         state.transactions.push(transaction);
+       });
+     }
+     
+     // Filtrar por mês atual
+     filterTransactionsByMonth();
+     
+     // Atualizar UI
+     updateTransactionsTable();
+     updateKPIs();
+     updateCharts();
+     renderCommitments();
+     generateInsights();
+     
+   } catch (error) {
+     console.error('Erro ao carregar transações:', error);
+     showToast('Erro ao carregar transações. Tente novamente.', 'error');
+   }
+ };
+ 
+ // Filtrar transações por mês/ano - CORRIGIDO
+ const filterTransactionsByMonth = () => {
+   state.filteredTransactions = state.transactions.filter(transaction => {
+     const date = parseLocalDateString(transaction.date);
+     return date && date.getMonth() === state.month && date.getFullYear() === state.year;
+   });
+   
+   // Ordenar por data (mais recentes primeiro)
+   state.filteredTransactions.sort((a, b) => {
+     const dateA = parseLocalDateString(a.date);
+     const dateB = parseLocalDateString(b.date);
+     return dateB - dateA;
+   });
+   
+   // Atualizar a UI
+   updateTransactionsTable();
+   updateKPIs();
+   updateCharts();
+ };
+
+ // Atualizar título do mês/ano
+ const updateMonthYearTitle = () => {
+   const monthNames = [
+     'Janeiro', 'Fevereiro', 'Março', 'Abril',
+     'Maio', 'Junho', 'Julho', 'Agosto',
+     'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+   ];
+   
+   // Se houver um elemento para o título
+   const titleElement = $('#monthYearTitle');
+   if (titleElement) {
+     titleElement.textContent = `${monthNames[state.month]} de ${state.year}`;
+   }
+ };
+ 
+ // Atualizar KPIs (indicadores chave)
+ const updateKPIs = () => {
+   // Cálculos para o mês atual filtrado
+   const totalIncome = state.filteredTransactions
+     .filter(t => t.type === 'income')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const totalExpense = state.filteredTransactions
+     .filter(t => t.type === 'expense')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const incomeReceived = state.filteredTransactions
+     .filter(t => t.type === 'income' && t.status === 'received')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const incomePending = state.filteredTransactions
+     .filter(t => t.type === 'income' && t.status !== 'received')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const expensePaid = state.filteredTransactions
+     .filter(t => t.type === 'expense' && t.status === 'paid')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const expensePending = state.filteredTransactions
+     .filter(t => t.type === 'expense' && t.status !== 'paid')
+     .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+   
+   const balance = incomeReceived - expensePaid;
+   
+   // Atualizar elementos da UI
+   if ($('#incomeValue')) $('#incomeValue').textContent = formatCurrency(totalIncome);
+   if ($('#expenseValue')) $('#expenseValue').textContent = formatCurrency(totalExpense);
+   if ($('#balanceValue')) $('#balanceValue').textContent = formatCurrency(balance);
+    
+   if ($('#incomeReceivedValue')) $('#incomeReceivedValue').textContent = `${formatCurrency(incomeReceived)} recebidos`;
+   if ($('#incomePendingValue')) $('#incomePendingValue').textContent = `${formatCurrency(incomePending)} pendentes`;
+    
+   if ($('#expensePaidValue')) $('#expensePaidValue').textContent = `${formatCurrency(expensePaid)} pagos`;
+   if ($('#expensePendingValue')) $('#expensePendingValue').textContent = `${formatCurrency(expensePending)} pendentes`;
+    
+   // Se houver cartões, mostrar informações da fatura atual
+   if (state.cards.length > 0) {
+     const today = new Date();
+     const currentMonth = today.getMonth();
+     const currentYear = today.getFullYear();
+     
+     // Calcular o total das faturas do mês atual
+     let currentMonthInvoice = 0;
+     
+     state.cards.forEach(card => {
+       // Cálculo da data de vencimento mais próxima
+       let dueDate = new Date(currentYear, currentMonth, card.dueDay);
+       
+       // Se hoje é após o dia de vencimento, a data de vencimento será no próximo mês
+       if (today.getDate() > card.dueDay) {
+         dueDate.setMonth(dueDate.getMonth() + 1);
+       }
+       
+       // Encontrar a data de fechamento anterior
+       let closingDate = new Date(dueDate);
+       closingDate.setDate(card.closingDay);
+       
+       // Ajustar se o fechamento for depois do vencimento
+       if (card.closingDay > card.dueDay) {
+         closingDate.setMonth(closingDate.getMonth() - 1);
+       }
+       
+       // Data de fechamento anterior
+       const previousClosing = new Date(closingDate);
+       previousClosing.setMonth(previousClosing.getMonth() - 1);
+       
+       // Calcular o total das despesas neste período para este cartão
+       const cardMonthInvoice = state.transactions
+         .filter(t => {
+           const tDate = parseLocalDateString(t.date);
+           return tDate && 
+                 t.type === 'expense' && 
+                 t.paymentMethod === 'credito' && 
+                 t.creditCardId === card.id &&
+                 t.status !== 'paid' &&
+                 tDate >= previousClosing &&
+                 tDate < closingDate;
+         })
+         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+       
+       currentMonthInvoice += cardMonthInvoice;
+     });
+     
+     if ($('#invoiceValue')) $('#invoiceValue').textContent = formatCurrency(currentMonthInvoice);
+     
+     // Usar o primeiro cartão para a data de vencimento (ou poderia ser o mais próximo)
+     const card = state.cards[0];
+     let dueDate = new Date(today.getFullYear(), today.getMonth(), card.dueDay);
+     
+     // Se hoje é após o dia de vencimento, a data de vencimento será no próximo mês
+     if (today.getDate() > card.dueDay) {
+       dueDate.setMonth(dueDate.getMonth() + 1);
+     }
+     
+     if ($('#invoiceDueDate')) $('#invoiceDueDate').textContent = formatDate(dueDate);
+   } else {
+     if ($('#invoiceValue')) $('#invoiceValue').textContent = formatCurrency(0);
+     if ($('#invoiceDueDate')) $('#invoiceDueDate').textContent = '--/--/----';
+   }
+ };
+
+// Atualizar a lista de cartões
+  const updateCardsList = () => {
+    const cardsList = $('#cardsList');
+    if (!cardsList) return;
+    
+    cardsList.innerHTML = '';
+    
+    if (state.cards.length === 0) {
+      cardsList.innerHTML = '<p style="text-align: center; padding: var(--spacing-md);">Nenhum cartão cadastrado.</p>';
+      return;
+    }
+    
+// Adicionar sumário de todos os cartões se houver mais de um
+if (state.cards.length > 1) {
+ const totalLimit = state.cards.reduce((sum, card) => sum + card.limit, 0);
+ const totalAvailable = state.cards.reduce((sum, card) => sum + card.availableLimit, 0);
+ const totalInvoice = state.cards.reduce((sum, card) => sum + (card.currentInvoice || 0), 0);
+ const limitPercentage = totalLimit > 0 ? ((totalLimit - totalAvailable) / totalLimit) * 100 : 0;
+ 
+ const summaryElement = document.createElement('div');
+ summaryElement.className = 'card';
+ summaryElement.style.marginBottom = 'var(--spacing-xl)';
+ summaryElement.style.backgroundColor = 'var(--color-surface-variant)';
+ summaryElement.style.borderLeft = '4px solid var(--color-primary)';
+ 
+ summaryElement.innerHTML = `
+   <h3 style="margin-bottom: var(--spacing-md);">Resumo de Todos os Cartões</h3>
+   
+   <div style="margin-bottom: var(--spacing-xs);">
+     <div style="display: flex; justify-content: space-between;">
+       <span>Limite Total:</span>
+       <strong>${formatCurrency(totalLimit)}</strong>
+     </div>
+     <div style="display: flex; justify-content: space-between;">
+       <span>Limite Disponível:</span>
+       <strong>${formatCurrency(totalAvailable)}</strong>
+     </div>
+     <div style="display: flex; justify-content: space-between; margin-top: var(--spacing-xs);">
+       <span>Fatura Total:</span>
+       <strong>${formatCurrency(totalInvoice)}</strong>
+     </div>
+   </div>
+   
+   <div class="commitment-progress" style="margin-top: var(--spacing-md);">
+     <div class="commitment-progress-bar" style="width: ${limitPercentage}%; background-color: ${limitPercentage > 70 ? 'var(--color-error)' : 'var(--color-primary)'}"></div>
+   </div>
+ `;
+ 
+ cardsList.appendChild(summaryElement);
+}
+
+state.cards.forEach(card => {
+const cardElement = document.createElement('div');
+cardElement.className = 'card';
+cardElement.style.marginBottom = 'var(--spacing-md)';
+
+// Calcular datas de fechamento e vencimento
+const today = new Date();
+let closingDate = new Date(today.getFullYear(), today.getMonth(), card.closingDay);
+
+// Se hoje é após o dia de fechamento, a data de fechamento será no próximo mês
+if (today.getDate() > card.closingDay) {
+  closingDate.setMonth(closingDate.getMonth() + 1);
+}
+
+let dueDate = new Date(today.getFullYear(), today.getMonth(), card.dueDay);
+
+// Se hoje é após o dia de vencimento, a data de vencimento será no próximo mês
+if (today.getDate() > card.dueDay) {
+  dueDate.setMonth(dueDate.getMonth() + 1);
+}
+
+// Calcular a porcentagem do limite utilizado
+const limitPercentage = card.limit > 0 ? ((card.limit - card.availableLimit) / card.limit) * 100 : 0;
+
+cardElement.innerHTML = `
+  <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+    <h3>${card.name}</h3>
+    <div style="display: flex; gap: var(--spacing-xs);">
+      <button class="btn btn-icon btn-outline edit-card-btn" data-id="${card.id}">
+        <svg width="16" height="16">
+          <use href="#icon-edit"></use>
+        </svg>
+      </button>
+      <button class="btn btn-icon btn-outline delete-card-btn" data-id="${card.id}">
+        <svg width="16" height="16">
+          <use href="#icon-trash"></use>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  <div style="margin-bottom: var(--spacing-xs);">
+    <div style="display: flex; justify-content: space-between;">
+      <span>Limite Total:</span>
+      <strong>${formatCurrency(card.limit)}</strong>
+    </div>
+    <div style="display: flex; justify-content: space-between;">
+      <span>Limite Disponível:</span>
+      <strong>${formatCurrency(card.availableLimit)}</strong>
+    </div>
+  </div>
+  
+  <div class="commitment-progress" style="margin-bottom: var(--spacing-md);">
+    <div class="commitment-progress-bar" style="width: ${limitPercentage}%; background-color: ${limitPercentage > 70 ? 'var(--color-error)' : 'var(--color-primary)'}"></div>
+  </div>
+  
+  <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+    <div>
+      <small>Fechamento:</small>
+      <div>${card.closingDay} (${formatDate(closingDate)})</div>
+    </div>
+    <div>
+      <small>Vencimento:</small>
+      <div>${card.dueDay} (${formatDate(dueDate)})</div>
+    </div>
+  </div>
+  
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <small>Fatura Atual:</small>
+      <div>${formatCurrency(card.currentInvoice || 0)}</div>
+    </div>
+    <button class="btn btn-primary view-invoice-btn" data-id="${card.id}">Ver Fatura</button>
+  </div>
+`;
+
+cardsList.appendChild(cardElement);
+});
+
+// Adicionar event listeners
+$$('.edit-card-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  const card = state.cards.find(c => c.id === id);
+  
+  if (card) {
+    openEditCardModal(card);
+  }
+});
+});
+
+$$('.delete-card-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  deleteCard(id);
+});
+});
+
+$$('.view-invoice-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  openCardInvoice(id);
+});
+});
+};
+
+// Abrir o modal de fatura do cartão
+const openCardInvoice = cardId => {
+const card = state.cards.find(c => c.id === cardId);
+if (!card) return;
+
+state.currentCard = card;
+
+// Calcular período da fatura
+const today = new Date();
+let closingDate = new Date(today.getFullYear(), today.getMonth(), card.closingDay);
+
+// Se hoje é após o dia de fechamento, a data de fechamento será no próximo mês
+if (today.getDate() > card.closingDay) {
+closingDate.setMonth(closingDate.getMonth() + 1);
+}
+
+// Data de fechamento anterior
+const previousClosing = new Date(closingDate);
+previousClosing.setMonth(previousClosing.getMonth() - 1);
+
+// Data de vencimento
+let dueDate = new Date(closingDate);
+dueDate.setDate(card.dueDay);
+
+// Título do modal
+$('#cardInvoiceTitle').textContent = `Fatura do Cartão - ${card.name}`;
+
+// Detalhes da fatura
+$('#cardInvoiceDetails').innerHTML = `
+<div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+  <div>
+    <strong>Período:</strong> ${formatDate(previousClosing)} - ${formatDate(closingDate)}
+  </div>
+  <div>
+    <strong>Vencimento:</strong> ${formatDate(dueDate)}
+  </div>
+</div>
+<div style="display: flex; justify-content: space-between;">
+  <div>
+    <strong>Limite Total:</strong> ${formatCurrency(card.limit)}
+  </div>
+  <div>
+    <strong>Limite Disponível:</strong> ${formatCurrency(card.availableLimit)}
+  </div>
+</div>
+<div style="margin-top: var(--spacing-xs);">
+  <strong>Valor da Fatura:</strong> ${formatCurrency(card.currentInvoice || 0)}
+</div>
+`;
+
+// Buscar transações do período
+const invoiceTransactions = state.transactions.filter(t => 
+t.type === 'expense' && 
+t.paymentMethod === 'credito' && 
+t.creditCardId === card.id &&
+parseLocalDateString(t.date) >= previousClosing &&
+parseLocalDateString(t.date) < closingDate
+);
+
+// Ordenar por data
+invoiceTransactions.sort((a, b) => {
+const dateA = parseLocalDateString(a.date);
+const dateB = parseLocalDateString(b.date);
+return dateB - dateA;
+});
+
+// Renderizar tabela
+const tableBody = $('#cardInvoiceTableBody');
+tableBody.innerHTML = '';
+
+if (invoiceTransactions.length === 0) {
+tableBody.innerHTML = `
+  <tr>
+    <td colspan="5" style="text-align: center; padding: var(--spacing-xl);">
+      Nenhuma despesa para esta fatura.
+    </td>
+  </tr>
+`;
+} else {
+invoiceTransactions.forEach(transaction => {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>
+      <div class="transaction-icon" style="background-color: rgba(255, 59, 48, 0.1); color: var(--color-expense);">
+        ${transaction.categoryIcon || '📦'}
+      </div>
+    </td>
+    <td>${transaction.name}</td>
+    <td>${formatDate(transaction.date)}</td>
+    <td>${formatCurrency(transaction.amount)}</td>
+    <td>
+      <div class="checkbox-wrapper">
+        <input type="checkbox" class="checkbox invoice-paid-checkbox" id="invoice-paid-${transaction.id}" 
+              ${transaction.status === 'paid' ? 'checked' : ''}
+              data-id="${transaction.id}">
+        <label class="checkbox-label" for="invoice-paid-${transaction.id}"></label>
+      </div>
+    </td>
+  `;
+  
+  tableBody.appendChild(row);
+});
+
+// Adicionar event listeners para os checkboxes de pagamento
+$$('.invoice-paid-checkbox').forEach(checkbox => {
+  checkbox.addEventListener('change', e => {
+    const id = e.target.dataset.id;
+    const isChecked = e.target.checked;
+    
+    updateTransaction(id, { status: isChecked ? 'paid' : 'pending' });
+  });
+});
+}
+
+// Configurar o botão de pagar fatura
+$('#invoiceConfirmAmount').textContent = formatCurrency(card.currentInvoice || 0);
+
+// Exibir o modal
+closeModal('cardsListModal');
+openModal('cardInvoiceModal');
+};
+
+// Funções para gráficos
+let pieChart = null;
+let barChart = null;
+let areaChart = null;
+
+const createCharts = () => {
+// Configurações de cores baseadas no tema atual
+const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+
+const textColor = isDarkTheme ? '#f5f5f7' : '#1d1d1f';
+const gridColor = isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+// Cores para categorias (compatíveis com tema claro e escuro)
+const categoryColors = [
+'#0071e3', // azul
+'#34c759', // verde
+'#ff9500', // laranja
+'#ff3b30', // vermelho
+'#af52de', // roxo
+'#5e5ce6', // azul índigo
+'#ff2d55', // rosa
+'#ff9f0a', // amarelo
+'#64d2ff', // azul claro
+'#30b0c7', // azul esverdeado
+];
+
+// Configurações comuns para todos os gráficos
+Chart.defaults.color = textColor;
+Chart.defaults.borderColor = gridColor;
+Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+try {
+// Gráfico de Pizza - Despesas por Categoria
+const pieCtx = document.getElementById('catPie');
+if (pieCtx) {
+  pieChart = new Chart(pieCtx.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: [],
+      datasets: [{
+        data: [],
+        backgroundColor: categoryColors,
+        borderColor: isDarkTheme ? '#000000' : '#ffffff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            usePointStyle: true,
+            pointStyle: 'circle'
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.parsed;
+              const total = context.dataset.data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${formatCurrency(value)} (${percentage}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Gráfico de Barras - Receitas x Despesas (12 meses)
+const barCtx = document.getElementById('annualBars');
+if (barCtx) {
+  barChart = new Chart(barCtx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Receitas',
+          data: [],
+          backgroundColor: 'rgba(52, 199, 89, 0.7)',
+          borderColor: 'rgba(52, 199, 89, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Despesas',
+          data: [],
+          backgroundColor: 'rgba(255, 59, 48, 0.7)',
+          borderColor: 'rgba(255, 59, 48, 1)',
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return formatCurrency(value);
+            }
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Gráfico de Área - Limite do Cartão
+const areaCtx = document.getElementById('cardArea');
+if (areaCtx) {
+  areaChart = new Chart(areaCtx.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: 'Fatura',
+          data: [],
+          fill: true,
+          backgroundColor: 'rgba(255, 59, 48, 0.2)',
+          borderColor: 'rgba(255, 59, 48, 0.8)',
+          borderWidth: 2,
+          tension: 0.4
+        },
+        {
+          label: 'Limite Total',
+          data: [],
+          fill: false,
+          borderColor: 'rgba(0, 113, 227, 0.8)',
+          borderWidth: 2,
+          borderDash: [5, 5],
+          pointRadius: 0
+        },
+        {
+          label: 'Limite Disponível',
+          data: [],
+          fill: false,
+          borderColor: 'rgba(52, 199, 89, 0.8)',
+          borderWidth: 2,
+          pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: {
+            display: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return formatCurrency(value);
+            }
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+} catch (error) {
+console.error('Erro ao criar gráficos:', error);
+}
+};
+
+// Atualizar os gráficos com dados recentes
+const updateCharts = () => {
+try {
+// Se os gráficos ainda não foram criados, criar agora
+if (!pieChart || !barChart || !areaChart) {
+  createCharts();
+}
+
+if (!pieChart || !barChart || !areaChart) {
+  console.error('Não foi possível inicializar os gráficos');
+  return;
+}
+
+// Atualizar cores se o tema mudou
+const isDarkTheme = document.documentElement.getAttribute('data-theme') === 'dark';
+const textColor = isDarkTheme ? '#f5f5f7' : '#1d1d1f';
+const gridColor = isDarkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+Chart.defaults.color = textColor;
+Chart.defaults.borderColor = gridColor;
+
+// 1. Atualizar gráfico de pizza - Despesas por categoria
+const categoryTotals = state.filteredTransactions
+  .filter(t => t.type === 'expense')
+  .reduce((acc, t) => {
+    const categoryName = t.categoryName || t.category;
+    if (!acc[categoryName]) {
+      acc[categoryName] = 0;
+    }
+    acc[categoryName] += parseFloat(t.amount);
+    return acc;
+  }, {});
+
+// Converter para arrays para o gráfico
+const categories = Object.keys(categoryTotals);
+const categoryValues = categories.map(c => categoryTotals[c]);
+
+// Atualizar dados do gráfico de pizza
+pieChart.data.labels = categories;
+pieChart.data.datasets[0].data = categoryValues;
+pieChart.update();
+
+// 2. Atualizar gráfico de barras - Receitas x Despesas (12 meses)
+const months = [];
+const incomeData = [];
+const expenseData = [];
+
+// Obter os últimos 12 meses
+const today = new Date();
+for (let i = 11; i >= 0; i--) {
+  const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+  const monthName = date.toLocaleString('pt-BR', { month: 'short' });
+  const year = date.getFullYear();
+  const monthYear = `${monthName}/${year.toString().substr(2, 2)}`;
+  
+  months.push(monthYear);
+  
+  // Filtrar transações para este mês
+  const monthTransactions = state.transactions.filter(t => {
+    const tDate = parseLocalDateString(t.date);
+    return tDate && tDate.getMonth() === date.getMonth() && tDate.getFullYear() === date.getFullYear();
+  });
+  
+  // Calcular totais
+  const monthlyIncome = monthTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  
+  const monthlyExpense = monthTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+  
+  incomeData.push(monthlyIncome);
+  expenseData.push(monthlyExpense);
+}
+
+// Atualizar dados do gráfico de barras
+barChart.data.labels = months;
+barChart.data.datasets[0].data = incomeData;
+barChart.data.datasets[1].data = expenseData;
+barChart.update();
+
+// 3. Atualizar gráfico de área - Limite do Cartão
+// Se não houver cartões, mostrar mensagem
+if (state.cards.length === 0) {
+  areaChart.data.labels = ['Nenhum cartão cadastrado'];
+  areaChart.data.datasets[0].data = [0];
+  areaChart.data.datasets[1].data = [0];
+  areaChart.data.datasets[2].data = [0];
+  areaChart.update();
+  return;
+}
+
+// Combinar dados de todos os cartões
+const combinedInvoice = {};
+const combinedLimit = state.cards.reduce((sum, card) => sum + card.limit, 0);
+const combinedAvailable = state.cards.reduce((sum, card) => sum + card.availableLimit, 0);
+
+// Obter os dias do mês atual
+const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+const daysLabels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+// Calcular a fatura acumulada para cada dia, somando todos os cartões
+daysLabels.forEach(day => {
+  const dayDate = new Date(today.getFullYear(), today.getMonth(), day);
+  combinedInvoice[day] = 0;
+  
+  // Para cada cartão, adicionar suas transações ao dia correspondente
+  state.cards.forEach(card => {
+    const cardInvoiceForDay = state.transactions
+      .filter(t => {
+        const tDate = parseLocalDateString(t.date);
+        return tDate && t.type === 'expense' && 
+              t.paymentMethod === 'credito' && 
+              t.creditCardId === card.id &&
+              tDate.getDate() <= day &&
+              tDate.getMonth() === today.getMonth() &&
+              tDate.getFullYear() === today.getFullYear();
+      })
+      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    
+    combinedInvoice[day] += cardInvoiceForDay;
+  });
+});
+
+// Linhas constantes para os limites
+const limitTotalLine = daysLabels.map(() => combinedLimit);
+const limitAvailableLine = daysLabels.map(() => combinedAvailable);
+
+// Atualizar dados do gráfico de área
+areaChart.data.labels = daysLabels;
+areaChart.data.datasets[0].data = daysLabels.map(day => combinedInvoice[day]);
+areaChart.data.datasets[1].data = limitTotalLine;
+areaChart.data.datasets[2].data = limitAvailableLine;
+areaChart.update();
+} catch (error) {
+console.error('Erro ao atualizar gráficos:', error);
+}
+};
+
+// Função para toggle de compromissos
+const toggleCommitments = () => {
+const content = $('#commitmentsContent');
+const header = $('#commitmentsHeader');
+
+if (!content || !header) return;
+
+if (content.style.maxHeight) {
+content.style.maxHeight = null;
+header.querySelector('svg').innerHTML = '<use href="#icon-chevron-down"></use>';
+} else {
+content.style.maxHeight = content.scrollHeight + 'px';
+header.querySelector('svg').innerHTML = '<use href="#icon-chevron-up"></use>';
+}
+};
+
+// Gerar insights para o usuário
+const generateInsights = () => {
+state.insights = [];
+
+const today = new Date();
+
+// Verificar transações vencidas e não pagas
+const overdueTransactions = state.transactions.filter(t => 
+t.type === 'expense' && 
+t.status !== 'paid' && 
+t.dueDate && parseLocalDateString(t.dueDate) < today
+);
+
+if (overdueTransactions.length > 0) {
+state.insights.push({
+  id: 'overdue',
+  level: 'danger',
+  icon: 'icon-alert',
+  message: `Você tem ${overdueTransactions.length} contas vencidas.`,
+  actionText: 'Ver Detalhes',
+  action: () => {
+    // Aqui poderia filtrar para mostrar apenas as contas vencidas
+    // Por enquanto, apenas alerta o usuário
+    alert(`Você tem ${overdueTransactions.length} contas vencidas. Verifique a tabela de transações.`);
+  }
+});
+}
+
+// Verificar transações a vencer nos próximos 5 dias
+const nextDueDate = new Date(today);
+nextDueDate.setDate(today.getDate() + 5);
+
+const upcomingTransactions = state.transactions.filter(t => 
+t.type === 'expense' && 
+t.status !== 'paid' && 
+t.dueDate && parseLocalDateString(t.dueDate) > today && 
+parseLocalDateString(t.dueDate) <= nextDueDate
+);
+
+if (upcomingTransactions.length > 0) {
+state.insights.push({
+  id: 'upcoming',
+  level: 'warning',
+  icon: 'icon-calendar',
+  message: `Você tem ${upcomingTransactions.length} contas a vencer nos próximos 5 dias.`,
+  actionText: 'Ver Detalhes',
+  action: () => {
+    alert(`Você tem ${upcomingTransactions.length} contas a vencer nos próximos 5 dias. Verifique a tabela de transações.`);
+  }
+});
+}
+
+// Verificar se há cartão com limite quase atingido
+const cardsWithLowLimit = state.cards.filter(card => 
+card.availableLimit < (card.limit * 0.2)
+);
+
+if (cardsWithLowLimit.length > 0) {
+state.insights.push({
+  id: 'low-limit',
+  level: 'warning',
+  icon: 'icon-credit-card',
+  message: `Você está com limite baixo no cartão ${cardsWithLowLimit[0].name}.`,
+  actionText: 'Ver Cartão',
+  action: () => {
+    openCardInvoice(cardsWithLowLimit[0].id);
+  }
+});
+}
+
+// Mostrar insights na UI
+renderInsights();
+};
+
+// Renderizar insights na UI
+const renderInsights = () => {
+const container = $('#insightsBanner');
+if (!container) return;
+
+container.innerHTML = '';
+
+if (state.insights.length === 0) {
+return;
+}
+
+state.insights.forEach(insight => {
+const insightElement = document.createElement('div');
+insightElement.className = `insight-banner insight-${insight.level}`;
+
+insightElement.innerHTML = `
+  <div class="insight-icon">
+    <svg width="24" height="24">
+      <use href="#${insight.icon}"></use>
+    </svg>
+  </div>
+  <div class="insight-content">
+    <div class="insight-title">${insight.message}</div>
+  </div>
+  <button class="btn btn-outline insight-action" data-id="${insight.id}">
+    ${insight.actionText}
+  </button>
+`;
+
+container.appendChild(insightElement);
+});
+
+// Adicionar event listeners
+$$('.insight-action').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  const insight = state.insights.find(i => i.id === id);
+  
+  if (insight && insight.action) {
+    insight.action();
+  }
+});
+});
+};
+
+// Renderizar compromissos de longo prazo
+const renderCommitments = () => {
+const content = $('#commitmentsContent');
+if (!content) return;
+
+content.innerHTML = '';
+
+// Filtrar transações recorrentes
+const recurrentTransactions = state.transactions.filter(t => 
+t.isRecurrent && 
+t.installments && 
+t.installmentNumber && 
+t.installments > t.installmentNumber
+);
+
+if (recurrentTransactions.length === 0) {
+content.innerHTML = '<p style="text-align: center; padding: var(--spacing-md);">Nenhum compromisso de longo prazo.</p>';
+return;
+}
+
+// Agrupar por ID de recorrência
+const groupedByRecurrence = recurrentTransactions.reduce((acc, t) => {
+const key = t.recurrenceId || t.id;
+
+if (!acc[key]) {
+  acc[key] = {
+    id: key,
+    name: t.name,
+    category: t.category,
+    categoryName: t.categoryName,
+    categoryIcon: t.categoryIcon,
+    amount: parseFloat(t.amount),
+    installments: t.installments,
+    currentInstallment: Math.min(...recurrentTransactions
+      .filter(rt => (rt.recurrenceId || rt.id) === key)
+      .map(rt => rt.installmentNumber)),
+    type: t.type
+  };
+}
+
+return acc;
+}, {});
+
+// Converter para array e ordenar por progresso
+const commitments = Object.values(groupedByRecurrence)
+.sort((a, b) => (a.currentInstallment / a.installments) - (b.currentInstallment / b.installments));
+
+// Renderizar cada compromisso
+commitments.forEach(commitment => {
+const progress = (commitment.currentInstallment / commitment.installments) * 100;
+const color = commitment.type === 'income' ? 'var(--color-income)' : 'var(--color-expense)';
+
+const commitmentElement = document.createElement('div');
+commitmentElement.className = 'commitment-item';
+
+commitmentElement.innerHTML = `
+  <div class="transaction-icon" style="background-color: ${commitment.type === 'income' ? 'rgba(52, 199, 89, 0.1)' : 'rgba(255, 59, 48, 0.1)'}; color: ${color};">
+    ${commitment.categoryIcon || (commitment.type === 'income' ? '💰' : '📦')}
+  </div>
+  <div style="flex: 1;">
+    <div style="display: flex; justify-content: space-between;">
+      <div>${commitment.name}</div>
+      <div>${formatCurrency(commitment.amount)}</div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: var(--font-size-xs); color: var(--color-on-surface-variant);">
+      <div>${commitment.categoryName || commitment.category}</div>
+      <div>${commitment.currentInstallment}/${commitment.installments}</div>
+    </div>
+    <div class="commitment-progress" style="margin-top: var(--spacing-xs);">
+      <div class="commitment-progress-bar" style="width: ${progress}%; background-color: ${color};"></div>
+    </div>
+  </div>
+`;
+
+content.appendChild(commitmentElement);
+});
+};
+
+// Função para criar filtros de transações
+const createTransactionFilters = () => {
+const filtersContainer = $('#transaction-filters');
+if (!filtersContainer) return;
+
+// Limpar filtros existentes
+filtersContainer.innerHTML = '';
+
+// Filtro de categoria
+const categorySelect = document.createElement('div');
+categorySelect.className = 'select-wrapper';
+categorySelect.innerHTML = `
+<select id="filter-category" class="select">
+  <option value="">Todas as categorias</option>
+  <optgroup label="Receitas">
+    ${state.categories.income.map(cat => `<option value="${cat.id}">${cat.icon || ''} ${cat.name}</option>`).join('')}
+  </optgroup>
+  <optgroup label="Despesas">
+    ${state.categories.expense.map(cat => `<option value="${cat.id}">${cat.icon || ''} ${cat.name}</option>`).join('')}
+  </optgroup>
+</select>
+<svg class="select-icon" width="16" height="16">
+  <use href="#icon-chevron-down"></use>
+</svg>
+`;
+
+// Filtro de status
+const statusSelect = document.createElement('div');
+statusSelect.className = 'select-wrapper';
+statusSelect.innerHTML = `
+<select id="filter-status" class="select">
+  <option value="">Todos os status</option>
+  <option value="paid">Pagos</option>
+  <option value="pending">Pendentes</option>
+  <option value="scheduled">Agendados</option>
+  <option value="received">Recebidos</option>
+</select>
+<svg class="select-icon" width="16" height="16">
+  <use href="#icon-chevron-down"></use>
+</svg>
+`;
+
+// Filtro de forma de pagamento
+const paymentMethodSelect = document.createElement('div');
+paymentMethodSelect.className = 'select-wrapper';
+paymentMethodSelect.innerHTML = `
+<select id="filter-payment-method" class="select">
+  <option value="">Todas as formas de pagamento</option>
+  ${state.paymentMethods.map(method => `<option value="${method.id}">${method.icon || ''} ${method.name}</option>`).join('')}
+</select>
+<svg class="select-icon" width="16" height="16">
+  <use href="#icon-chevron-down"></use>
+</svg>
+`;
+
+// Adicionar filtros ao container
+filtersContainer.appendChild(categorySelect);
+filtersContainer.appendChild(statusSelect);
+filtersContainer.appendChild(paymentMethodSelect);
+
+// Atualizar ao mudar os filtros
+$('#filter-category').addEventListener('change', e => {
+state.filters.category = e.target.value;
+updateTransactionsTable();
+});
+
+$('#filter-status').addEventListener('change', e => {
+state.filters.status = e.target.value;
+updateTransactionsTable();
+});
+
+$('#filter-payment-method').addEventListener('change', e => {
+state.filters.paymentMethod = e.target.value;
+updateTransactionsTable();
+});
+
+// Adicionar ordenação aos cabeçalhos da tabela
+const headers = $$('.sortable');
+headers.forEach(header => {
+const column = header.dataset.sort;
+const icon = header.querySelector('.transaction-sort-icon');
+
+// Mostrar ícone de ordenação na coluna selecionada por padrão
+if (column === state.sortColumn) {
+  icon.innerHTML = `<svg width="14" height="14"><use href="#icon-sort-${state.sortDirection === 'asc' ? 'asc' : 'desc'}"></use></svg>`;
+}
+
+header.addEventListener('click', () => {
+  // Se já está selecionada, inverter a direção
+  if (column === state.sortColumn) {
+    state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    state.sortColumn = column;
+    state.sortDirection = 'asc';
+  }
+  
+  // Atualizar ícones
+  $$('.transaction-sort-icon').forEach(icon => {
+    icon.innerHTML = '';
+  });
+  
+  // Mostrar ícone na coluna selecionada
+  icon.innerHTML = `<svg width="14" height="14"><use href="#icon-sort-${state.sortDirection === 'asc' ? 'asc' : 'desc'}"></use></svg>`;
+  
+  // Atualizar a tabela
+  updateTransactionsTable();
+});
+});
+};
+
+// Atualizar a tabela de transações
+const updateTransactionsTable = () => {
+const tableBody = $('#transactionsTableBody');
+if (!tableBody) return;
+
+// Criar filtros se ainda não existirem
+if (!$('#filter-category')) {
+createTransactionFilters();
+}
+
+tableBody.innerHTML = '';
+
+// Aplicar filtros
+let transactions = [...state.filteredTransactions];
+
+if (state.filters.category) {
+transactions = transactions.filter(t => t.category === state.filters.category);
+}
+
+if (state.filters.status) {
+transactions = transactions.filter(t => t.status === state.filters.status);
+}
+
+if (state.filters.paymentMethod) {
+transactions = transactions.filter(t => t.paymentMethod === state.filters.paymentMethod);
+}
+
+// Ordenar transações
+transactions.sort((a, b) => {
+let valueA, valueB;
+
+// Determinar os valores a comparar com base na coluna
+switch(state.sortColumn) {
+  case 'name':
+    valueA = a.name.toLowerCase();
+    valueB = b.name.toLowerCase();
+    break;
+  case 'category':
+    valueA = (a.categoryName || a.category || '').toLowerCase();
+    valueB = (b.categoryName || b.category || '').toLowerCase();
+    break;
+  case 'date':
+    valueA = parseLocalDateString(a.date);
+    valueB = parseLocalDateString(b.date);
+    break;
+  case 'dueDate':
+    // Se não houver data de vencimento, usar uma data muito antiga ou muito recente
+    valueA = a.dueDate ? parseLocalDateString(a.dueDate) : new Date(0);
+    valueB = b.dueDate ? parseLocalDateString(b.dueDate) : new Date(0);
+    break;
+  case 'amount':
+    valueA = parseFloat(a.amount);
+    valueB = parseFloat(b.amount);
+    break;
+  case 'status':
+    valueA = a.status;
+    valueB = b.status;
+    break;
+  case 'paymentMethod':
+    valueA = (a.paymentMethodName || a.paymentMethod || '').toLowerCase();
+    valueB = (b.paymentMethodName || b.paymentMethod || '').toLowerCase();
+    break;
+  default:
+    valueA = parseLocalDateString(a.date);
+    valueB = parseLocalDateString(b.date);
+}
+
+// Comparar os valores
+let comparison = 0;
+if (valueA < valueB) {
+  comparison = -1;
+} else if (valueA > valueB) {
+  comparison = 1;
+}
+
+// Inverter se a direção for descendente
+return state.sortDirection === 'desc' ? -comparison : comparison;
+});
+
+if (transactions.length === 0) {
+const emptyRow = document.createElement('tr');
+emptyRow.innerHTML = `
+  <td colspan="10" style="text-align: center; padding: var(--spacing-xl);">
+    Nenhuma transação para este período ou filtro.
+  </td>
+`;
+tableBody.appendChild(emptyRow);
+return;
+}
+
+transactions.forEach(transaction => {
+const row = document.createElement('tr');
+
+// Determinar cor do ícone
+const iconBgColor = transaction.type === 'income' 
+  ? 'rgba(52, 199, 89, 0.1)'
+  : 'rgba(255, 59, 48, 0.1)';
+
+const iconColor = transaction.type === 'income'
+  ? 'var(--color-income)'
+  : 'var(--color-expense)';
+
+// Obter nome da categoria
+const categoryName = transaction.categoryName || transaction.category || '-';
+
+// Formatar status
+let statusText = '';
+let statusClass = '';
+
+if (transaction.type === 'income') {
+  if (transaction.status === 'received') {
+    statusText = 'Recebido';
+    statusClass = 'badge-success';
+  } else {
+    statusText = 'A Receber';
+    statusClass = 'badge-warning';
+  }
+} else {
+  if (transaction.status === 'paid') {
+    statusText = 'Pago';
+    statusClass = 'badge-success';
+  } else if (transaction.status === 'scheduled') {
+    statusText = 'Agendado';
+    statusClass = 'badge-info';
+  } else {
+    statusText = 'Pendente';
+    statusClass = 'badge-warning';
+  }
+}
+
+// Instalamentos, se aplicável
+let installmentText = '';
+if (transaction.isRecurrent && transaction.installments > 1) {
+  installmentText = ` (${transaction.installmentNumber || 1}/${transaction.installments})`;
+}
+
+row.innerHTML = `
+  <td>
+    <div class="transaction-icon" style="background-color: ${iconBgColor}; color: ${iconColor};">
+      ${transaction.categoryIcon || (transaction.type === 'income' ? '💰' : '📦')}
+    </div>
+  </td>
+  <td>${transaction.name}${installmentText}</td>
+  <td>${categoryName}</td>
+  <td>${formatDate(transaction.date)}</td>
+  <td>${transaction.dueDate ? formatDate(transaction.dueDate) : '-'}</td>
+  <td>${formatCurrency(transaction.amount)}</td>
+  <td><span class="badge ${statusClass}">${statusText}</span></td>
+  <td>${transaction.paymentMethodName || transaction.paymentMethod || '-'}</td>
+  <td>
+    <div class="checkbox-wrapper">
+      <input type="checkbox" class="checkbox transaction-paid-checkbox" id="paid-${transaction.id}" 
+            ${transaction.status === (transaction.type === 'income' ? 'received' : 'paid') ? 'checked' : ''}
+            data-id="${transaction.id}"
+            data-type="${transaction.type}">
+      <label class="checkbox-label" for="paid-${transaction.id}"></label>
+    </div>
+  </td>
+  <td class="actions-cell">
+    <button class="btn btn-icon btn-outline edit-transaction-btn" data-id="${transaction.id}">
+      <svg width="16" height="16">
+        <use href="#icon-edit"></use>
+      </svg>
+    </button>
+    <button class="btn btn-icon btn-outline delete-transaction-btn" data-id="${transaction.id}">
+      <svg width="16" height="16">
+        <use href="#icon-trash"></use>
+      </svg>
+    </button>
+  </td>
+`;
+
+tableBody.appendChild(row);
+});
+
+// Adicionar event listeners
+$$('.transaction-paid-checkbox').forEach(checkbox => {
+checkbox.addEventListener('change', e => {
+  const id = e.target.dataset.id;
+  const type = e.target.dataset.type;
+  const isChecked = e.target.checked;
+  
+  const status = isChecked 
+    ? (type === 'income' ? 'received' : 'paid')
+    : (type === 'income' ? 'pending' : 'pending');
+  
+  updateTransactionStatus(id, status);
+});
+});
+
+$$('.edit-transaction-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  const transaction = state.transactions.find(t => t.id === id);
+  
+  if (transaction) {
+    openEditTransactionModal(transaction);
+  }
+});
+});
+
+$$('.delete-transaction-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  const transaction = state.transactions.find(t => t.id === id);
+  
+  if (transaction) {
+    openDeleteConfirmModal(transaction);
+  }
+});
+});
+};
+
+// Adicionar transação - CORRIGIDO PARA USAR DATAS LOCAIS
+const addTransaction = async (transactionData) => {
+try {
+// Processar dados adicionais
+const now = new Date();
+
+// Obter nome da categoria
+const category = transactionData.type === 'income'
+  ? state.categories.income.find(c => c.id === transactionData.category)
+  : state.categories.expense.find(c => c.id === transactionData.category);
+
+// Obter forma de pagamento
+const paymentMethod = state.paymentMethods.find(m => m.id === transactionData.paymentMethod);
+
+// Processar cartão de crédito, se aplicável
+let creditCardData = {};
+if (transactionData.paymentMethod === 'credito' && transactionData.creditCardId) {
+  const card = state.cards.find(c => c.id === transactionData.creditCardId);
+  
+  if (card) {
+    creditCardData = {
+      creditCardId: card.id,
+      creditCardName: card.name
+    };
+    
+    // Atualizar limite disponível e fatura do cartão
+    const amount = parseFloat(transactionData.amount);
+    
+    if (!isNaN(amount) && amount > 0) {
+      const cardUpdate = {
+        availableLimit: Math.max(0, card.availableLimit - amount),
+        currentInvoice: (card.currentInvoice || 0) + amount
+      };
+      
+      await db.collection('cards').doc(card.id).update(cardUpdate);
+      
+      // Atualizar no estado local
+      const cardIndex = state.cards.findIndex(c => c.id === card.id);
+      if (cardIndex !== -1) {
+        state.cards[cardIndex] = { ...state.cards[cardIndex], ...cardUpdate };
+      }
+    }
+  }
+}
+
+// Processar transação recorrente
+let recurrenceData = {};
+if (transactionData.isRecurrent && transactionData.installments > 1) {
+ const recurrenceId = generateId();
+ 
+ // Calcular o valor de cada parcela
+ const originalAmount = parseFloat(transactionData.amount);
+ const installmentAmount = parseFloat((originalAmount / transactionData.installments).toFixed(2));
+ 
+ // Criação da primeira parcela
+ recurrenceData = {
+   isRecurrent: true,
+   recurrenceId,
+   installments: transactionData.installments,
+   installmentNumber: 1
+ };
+ 
+ // Criar parcelas futuras
+ const batch = db.batch();
+ const futureParcels = []; // Array para armazenar parcelas futuras
+ 
+ // Data de base para parcelas
+ const baseDate = transactionData.date; // Já é um objeto Date
+ let dueDate = transactionData.dueDate ? transactionData.dueDate : null; // Já é um objeto Date ou null
+ 
+ // Data de base para as próximas parcelas
+ for (let i = 1; i < transactionData.installments; i++) {
+   // Avançar para o próximo mês
+   const nextDate = new Date(baseDate);
+   nextDate.setMonth(nextDate.getMonth() + i);
+   
+   // Avançar data de vencimento, se houver
+   let nextDueDate = null;
+   if (dueDate) {
+     nextDueDate = new Date(dueDate);
+     nextDueDate.setMonth(nextDueDate.getMonth() + i);
+   }
+   
+   // Clonamos as propriedades necessárias do objeto original, mas substituímos o amount
+   const installmentData = {
+     name: transactionData.name,
+     category: transactionData.category,
+     paymentMethod: transactionData.paymentMethod,
+     notes: transactionData.notes,
+     type: transactionData.type,
+     
+     // Definir o valor dividido
+     amount: installmentAmount,
+     
+     // Propriedades adicionais
+     ...creditCardData,
+     categoryName: category ? category.name : null,
+     categoryIcon: category ? category.icon : null,
+     paymentMethodName: paymentMethod ? paymentMethod.name : null,
+     paymentMethodIcon: paymentMethod ? paymentMethod.icon : null,
+     createdAt: now.toISOString(),
+     isRecurrent: true,
+     recurrenceId,
+     installments: transactionData.installments,
+     installmentNumber: i + 1,
+     date: localDateToISOString(nextDate),
+     dueDate: nextDueDate ? localDateToISOString(nextDueDate) : null
+   };
+   
+   // Status
+   if (transactionData.type === 'income') {
+     installmentData.status = 'pending'; // Parcelas futuras de receita ficam como pendentes
+   } else {
+     installmentData.status = 'pending'; // Parcelas futuras de despesa ficam como pendentes
+     if (transactionData.scheduledDate) {
+       const nextScheduledDate = new Date(transactionData.scheduledDate);
+       nextScheduledDate.setMonth(nextScheduledDate.getMonth() + i);
+       installmentData.scheduledDate = localDateToISOString(nextScheduledDate);
+       installmentData.status = 'scheduled';
+     }
+   }
+   
+   // Remover ID, pois será gerado pelo Firestore
+   delete installmentData.id;
+   
+   // Adicionar à batch
+   const docRef = db.collection('transactions').doc();
+   batch.set(docRef, installmentData);
+   
+   // Armazenar para adicionar ao estado local posteriormente
+   futureParcels.push({...installmentData, id: docRef.id});
+ }
+ 
+ // Executar batch
+ await batch.commit();
+ 
+ // Adicionar parcelas futuras ao estado local
+ state.transactions.push(...futureParcels);
+ 
+ // Modificar o valor original para usar na criação da primeira parcela
+ transactionData.amount = installmentAmount;
+}
+
+// Criar objeto final da transação (primeira parcela)
+const transaction = {
+ ...transactionData, // Já contém amount atualizado se for recorrente
+ ...creditCardData,
+ ...recurrenceData,
+ categoryName: category ? category.name : null,
+ categoryIcon: category ? category.icon : null,
+ paymentMethodName: paymentMethod ? paymentMethod.name : null,
+ paymentMethodIcon: paymentMethod ? paymentMethod.icon : null,
+ createdAt: localDateToISOString(now),
+ date: localDateToISOString(transactionData.date),
+ dueDate: transactionData.dueDate ? localDateToISOString(transactionData.dueDate) : null,
+ scheduledDate: transactionData.scheduledDate ? localDateToISOString(transactionData.scheduledDate) : null
+};
+
+// Salvar no Firestore
+const docRef = await db.collection('transactions').add(transaction);
+
+// Atualizar o ID
+transaction.id = docRef.id;
+
+// Adicionar ao estado local
+state.transactions.push(transaction);
+
+// Atualizar UI
+filterTransactionsByMonth();
+updateKPIs();
+updateCharts();
+renderCommitments();
+generateInsights();
+
+showToast(`${transaction.type === 'income' ? 'Receita' : 'Despesa'} adicionada com sucesso!`, 'success');
+
+} catch (error) {
+console.error('Erro ao adicionar transação:', error);
+showToast('Erro ao adicionar transação. Tente novamente.', 'error');
+}
+};
+
+// Atualizar transação
+const updateTransaction = async (transactionId, updates) => {
+try {
+const transaction = state.transactions.find(t => t.id === transactionId);
+
+if (!transaction) {
+  showToast('Transação não encontrada.', 'error');
+  return;
+}
+
+// Processar dados adicionais
+const additionalUpdates = {};
+
+// Atualizar nome da categoria, se alterada
+if (updates.category && updates.category !== transaction.category) {
+  const category = transaction.type === 'income'
+    ? state.categories.income.find(c => c.id === updates.category)
+    : state.categories.expense.find(c => c.id === updates.category);
+  
+  if (category) {
+    additionalUpdates.categoryName = category.name;
+    additionalUpdates.categoryIcon = category.icon;
+  }
+}
+
+// Atualizar forma de pagamento, se alterada
+if (updates.paymentMethod && updates.paymentMethod !== transaction.paymentMethod) {
+  const paymentMethod = state.paymentMethods.find(m => m.id === updates.paymentMethod);
+  
+  if (paymentMethod) {
+    additionalUpdates.paymentMethodName = paymentMethod.name;
+    additionalUpdates.paymentMethodIcon = paymentMethod.icon;
+  }
+  
+  // Limpar dados do cartão, se não for mais cartão de crédito
+  if (updates.paymentMethod !== 'credito' && transaction.creditCardId) {
+    additionalUpdates.creditCardId = null;
+    additionalUpdates.creditCardName = null;
+    
+    // Restaurar limite do cartão, se for despesa
+    if (transaction.type === 'expense') {
+      const card = state.cards.find(c => c.id === transaction.creditCardId);
+      
+      if (card) {
+        const amount = parseFloat(transaction.amount);
+        
+        if (!isNaN(amount) && amount > 0) {
+          const cardUpdate = {
+            availableLimit: Math.min(card.limit, card.availableLimit + amount),
+            currentInvoice: Math.max(0, (card.currentInvoice || 0) - amount)
+          };
+          
+          await db.collection('cards').doc(card.id).update(cardUpdate);
+          
+          // Atualizar no estado local
+          const cardIndex = state.cards.findIndex(c => c.id === card.id);
+          if (cardIndex !== -1) {
+            state.cards[cardIndex] = { ...state.cards[cardIndex], ...cardUpdate };
+          }
+        }
+      }
+    }
+  }
+}
+
+// Processar cartão de crédito, se aplicável
+if (updates.paymentMethod === 'credito' && updates.creditCardId) {
+  // Se mudou de cartão, atualizar ambos os cartões
+  if (transaction.creditCardId && transaction.creditCardId !== updates.creditCardId) {
+    // Restaurar limite do cartão antigo
+    const oldCard = state.cards.find(c => c.id === transaction.creditCardId);
+    
+    if (oldCard) {
+      const amount = parseFloat(transaction.amount);
+      
+      if (!isNaN(amount) && amount > 0) {
+        const oldCardUpdate = {
+          availableLimit: Math.min(oldCard.limit, oldCard.availableLimit + amount),
+          currentInvoice: Math.max(0, (oldCard.currentInvoice || 0) - amount)
+        };
+        
+        await db.collection('cards').doc(oldCard.id).update(oldCardUpdate);
+        
+        // Atualizar no estado local
+        const oldCardIndex = state.cards.findIndex(c => c.id === oldCard.id);
+        if (oldCardIndex !== -1) {
+          state.cards[oldCardIndex] = { ...state.cards[oldCardIndex], ...oldCardUpdate };
+        }
+      }
+    }
+  }
+  
+  // Atualizar o novo cartão
+  const newCard = state.cards.find(c => c.id === updates.creditCardId);
+  
+  if (newCard) {
+    additionalUpdates.creditCardId = newCard.id;
+    additionalUpdates.creditCardName = newCard.name;
+    
+    // Se for alteração de valor, ajustar o limite do cartão
+    if (updates.amount && parseFloat(updates.amount) !== parseFloat(transaction.amount)) {
+      const oldAmount = parseFloat(transaction.amount);
+      const newAmount = parseFloat(updates.amount);
+      const difference = newAmount - oldAmount;
+      
+      if (!isNaN(difference) && difference !== 0) {
+        const cardUpdate = {
+          availableLimit: Math.max(0, newCard.availableLimit - difference),
+          currentInvoice: Math.max(0, (newCard.currentInvoice || 0) + difference)
+        };
+        
+        await db.collection('cards').doc(newCard.id).update(cardUpdate);
+        
+        // Atualizar no estado local
+        const newCardIndex = state.cards.findIndex(c => c.id === newCard.id);
+        if (newCardIndex !== -1) {
+          state.cards[newCardIndex] = { ...state.cards[newCardIndex], ...cardUpdate };
+        }
+      }
+    } else if (!transaction.creditCardId || transaction.creditCardId !== newCard.id) {
+      // Se apenas trocou de cartão, atualizar o limite do novo
+      const amount = parseFloat(updates.amount || transaction.amount);
+      
+      if (!isNaN(amount) && amount > 0) {
+        const cardUpdate = {
+          availableLimit: Math.max(0, newCard.availableLimit - amount),
+          currentInvoice: (newCard.currentInvoice || 0) + amount
+        };
+        
+        await db.collection('cards').doc(newCard.id).update(cardUpdate);
+        
+        // Atualizar no estado local
+        const newCardIndex = state.cards.findIndex(c => c.id === newCard.id);
+        if (newCardIndex !== -1) {
+          state.cards[newCardIndex] = { ...state.cards[newCardIndex], ...cardUpdate };
+        }
+      }
+    }
+  }
+}
+
+// Converter datas para formato ISO se necessário
+if (updates.date) {
+  updates.date = localDateToISOString(updates.date);
+}
+if (updates.dueDate) {
+  updates.dueDate = localDateToISOString(updates.dueDate);
+}
+if (updates.scheduledDate) {
+  updates.scheduledDate = localDateToISOString(updates.scheduledDate);
+}
+
+// Aplicar atualizações
+const updatedTransaction = {
+  ...transaction,
+  ...updates,
+  ...additionalUpdates
+};
+
+// Salvar no Firestore
+await db.collection('transactions').doc(transactionId).update({
+  ...updates,
+  ...additionalUpdates
+});
+
+// Atualizar no estado local
+const index = state.transactions.findIndex(t => t.id === transactionId);
+if (index !== -1) {
+  state.transactions[index] = updatedTransaction;
+}
+
+// Atualizar UI
+filterTransactionsByMonth();
+updateKPIs();
+updateCharts();
+renderCommitments();
+generateInsights();
+
+return true;
+
+} catch (error) {
+console.error('Erro ao atualizar transação:', error);
+showToast('Erro ao atualizar transação. Tente novamente.', 'error');
+return false;
+}
+};
+
+// Atualizar status da transação (pago/recebido)
+const updateTransactionStatus = async (transactionId, status) => {
+try {
+await updateTransaction(transactionId, { status });
+
+showToast(`Status atualizado com sucesso!`, 'success');
+
+} catch (error) {
+console.error('Erro ao atualizar status:', error);
+showToast('Erro ao atualizar status. Tente novamente.', 'error');
+}
+};
+
+// Excluir transação
+const deleteTransaction = async (transactionId, deleteRecurrence = false) => {
+try {
+const transaction = state.transactions.find(t => t.id === transactionId);
+
+if (!transaction) {
+  showToast('Transação não encontrada.', 'error');
+  return;
+}
+
+// Se for transação recorrente, verificar se devemos excluir todas as parcelas futuras
+if (deleteRecurrence && transaction.isRecurrent && transaction.recurrenceId) {
+  // Buscar todas as parcelas futuras (número maior que a atual)
+  const futureParcels = state.transactions.filter(t => 
+    t.recurrenceId === transaction.recurrenceId && 
+    t.installmentNumber > transaction.installmentNumber
+  );
+  
+  if (futureParcels.length > 0) {
+    // Excluir parcelas futuras
+    const batch = db.batch();
+    
+    futureParcels.forEach(parcel => {
+      const docRef = db.collection('transactions').doc(parcel.id);
+      batch.delete(docRef);
+    });
+    
+    await batch.commit();
+    
+    // Remover do estado local
+    state.transactions = state.transactions.filter(t => 
+      !(t.recurrenceId === transaction.recurrenceId && t.installmentNumber > transaction.installmentNumber)
+    );
+  }
+}
+
+// Se for despesa no cartão, restaurar limite
+if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId) {
+  const card = state.cards.find(c => c.id === transaction.creditCardId);
+  
+  if (card) {
+    const amount = parseFloat(transaction.amount);
+    
+    if (!isNaN(amount) && amount > 0) {
+      const cardUpdate = {
+        availableLimit: Math.min(card.limit, card.availableLimit + amount),
+        currentInvoice: Math.max(0, (card.currentInvoice || 0) - amount)
+      };
+      
+      await db.collection('cards').doc(card.id).update(cardUpdate);
+      
+      // Atualizar no estado local
+      const cardIndex = state.cards.findIndex(c => c.id === card.id);
+      if (cardIndex !== -1) {
+        state.cards[cardIndex] = { ...state.cards[cardIndex], ...cardUpdate };
+      }
+    }
+  }
+}
+
+// Excluir a transação
+await db.collection('transactions').doc(transactionId).delete();
+
+// Remover do estado local
+state.transactions = state.transactions.filter(t => t.id !== transactionId);
+
+// Atualizar UI
+filterTransactionsByMonth();
+updateKPIs();
+updateCharts();
+renderCommitments();
+generateInsights();
+
+showToast('Transação excluída com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao excluir transação:', error);
+showToast('Erro ao excluir transação. Tente novamente.', 'error');
+}
+};
+
+// Funções para gerenciar categorias e métodos de pagamento
+const addCategory = async (categoryData) => {
+try {
+const { type, name, icon } = categoryData;
+
+// Verificar se já existe
+const existingCategory = type === 'income'
+  ? state.categories.income.find(c => c.name.toLowerCase() === name.toLowerCase())
+  : state.categories.expense.find(c => c.name.toLowerCase() === name.toLowerCase());
+
+if (existingCategory) {
+  showToast(`Categoria ${name} já existe.`, 'warning');
+  return;
+}
+
+// Criar nova categoria
+const category = {
+  id: generateId(),
+  name,
+  icon: icon || (type === 'income' ? '💰' : '📦'),
+  type
+};
+
+// Salvar no Firestore
+await db.collection('categories').doc(category.id).set(category);
+
+// Adicionar ao estado local
+if (type === 'income') {
+  state.categories.income.push(category);
+} else {
+  state.categories.expense.push(category);
+}
+
+// Atualizar UI
+updateCategorySelects();
+renderCategoriesList();
+
+showToast('Categoria adicionada com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao adicionar categoria:', error);
+showToast('Erro ao adicionar categoria. Tente novamente.', 'error');
+}
+};
+
+const updateCategory = async (categoryId, updates) => {
+try {
+// Buscar categoria
+let category = null;
+let type = null;
+
+const incomeIndex = state.categories.income.findIndex(c => c.id === categoryId);
+const expenseIndex = state.categories.expense.findIndex(c => c.id === categoryId);
+
+if (incomeIndex !== -1) {
+  category = state.categories.income[incomeIndex];
+  type = 'income';
+} else if (expenseIndex !== -1) {
+  category = state.categories.expense[expenseIndex];
+  type = 'expense';
+}
+
+if (!category) {
+  showToast('Categoria não encontrada.', 'error');
+  return;
+}
+
+// Atualizar no Firestore
+await db.collection('categories').doc(categoryId).update(updates);
+
+// Atualizar no estado local
+const updatedCategory = { ...category, ...updates };
+
+if (type === 'income') {
+  state.categories.income[incomeIndex] = updatedCategory;
+} else {
+  state.categories.expense[expenseIndex] = updatedCategory;
+}
+
+// Atualizar transações com esta categoria
+const batch = db.batch();
+const transactionsToUpdate = state.transactions.filter(t => t.category === categoryId);
+
+if (transactionsToUpdate.length > 0) {
+  transactionsToUpdate.forEach(transaction => {
+    const docRef = db.collection('transactions').doc(transaction.id);
+    batch.update(docRef, {
+      categoryName: updatedCategory.name,
+      categoryIcon: updatedCategory.icon
+    });
+    
+    // Atualizar no estado local
+    const index = state.transactions.findIndex(t => t.id === transaction.id);
+    if (index !== -1) {
+      state.transactions[index].categoryName = updatedCategory.name;
+      state.transactions[index].categoryIcon = updatedCategory.icon;
+    }
+  });
+  
+  await batch.commit();
+}
+
+// Atualizar UI
+updateCategorySelects();
+renderCategoriesList();
+updateTransactionsTable();
+
+showToast('Categoria atualizada com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao atualizar categoria:', error);
+showToast('Erro ao atualizar categoria. Tente novamente.', 'error');
+}
+};
+
+const deleteCategory = async (categoryId) => {
+try {
+// Buscar categoria
+let category = null;
+let type = null;
+let index = -1;
+
+const incomeIndex = state.categories.income.findIndex(c => c.id === categoryId);
+const expenseIndex = state.categories.expense.findIndex(c => c.id === categoryId);
+
+if (incomeIndex !== -1) {
+  category = state.categories.income[incomeIndex];
+  type = 'income';
+  index = incomeIndex;
+} else if (expenseIndex !== -1) {
+  category = state.categories.expense[expenseIndex];
+  type = 'expense';
+  index = expenseIndex;
+}
+
+if (!category) {
+  showToast('Categoria não encontrada.', 'error');
+  return;
+}
+
+// Verificar se há transações com esta categoria
+const transactionsWithCategory = state.transactions.filter(t => t.category === categoryId);
+
+if (transactionsWithCategory.length > 0) {
+  if (!confirm(`Esta categoria possui ${transactionsWithCategory.length} transações vinculadas. Deseja excluir mesmo assim? As transações serão movidas para "Outros".`)) {
+    return;
+  }
+  
+  // Mover transações para categoria "Outros"
+  const otherCategoryId = type === 'income' ? 'outros_income' : 'outros_expense';
+  const otherCategory = type === 'income'
+    ? state.categories.income.find(c => c.id === otherCategoryId)
+    : state.categories.expense.find(c => c.id === otherCategoryId);
+  
+  if (!otherCategory) {
+    showToast('Categoria "Outros" não encontrada.', 'error');
+    return;
+  }
+  
+  const batch = db.batch();
+  
+  transactionsWithCategory.forEach(transaction => {
+    const docRef = db.collection('transactions').doc(transaction.id);
+    batch.update(docRef, {
+      category: otherCategoryId,
+      categoryName: otherCategory.name,
+      categoryIcon: otherCategory.icon
+    });
+    
+    // Atualizar no estado local
+    const transactionIndex = state.transactions.findIndex(t => t.id === transaction.id);
+    if (transactionIndex !== -1) {
+      state.transactions[transactionIndex].category = otherCategoryId;
+      state.transactions[transactionIndex].categoryName = otherCategory.name;
+      state.transactions[transactionIndex].categoryIcon = otherCategory.icon;
+    }
+  });
+  
+  await batch.commit();
+}
+
+// Excluir categoria
+await db.collection('categories').doc(categoryId).delete();
+
+// Remover do estado local
+if (type === 'income') {
+  state.categories.income.splice(index, 1);
+} else {
+  state.categories.expense.splice(index, 1);
+}
+
+// Atualizar UI
+updateCategorySelects();
+renderCategoriesList();
+updateTransactionsTable();
+
+showToast('Categoria excluída com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao excluir categoria:', error);
+showToast('Erro ao excluir categoria. Tente novamente.', 'error');
+}
+};
+
+// Funções para gerenciar métodos de pagamento
+const addPaymentMethod = async (methodData) => {
+try {
+const { name, icon } = methodData;
+
+// Verificar se já existe
+const existingMethod = state.paymentMethods.find(m => m.name.toLowerCase() === name.toLowerCase());
+
+if (existingMethod) {
+  showToast(`Forma de pagamento ${name} já existe.`, 'warning');
+  return;
+}
+
+// Criar novo método
+const method = {
+  id: generateId(),
+  name,
+  icon: icon || '💵'
+};
+
+// Salvar no Firestore
+await db.collection('paymentMethods').doc(method.id).set(method);
+
+// Adicionar ao estado local
+state.paymentMethods.push(method);
+
+// Atualizar UI
+updatePaymentMethodSelects();
+renderPaymentMethodsList();
+
+showToast('Forma de pagamento adicionada com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao adicionar forma de pagamento:', error);
+showToast('Erro ao adicionar forma de pagamento. Tente novamente.', 'error');
+}
+};
+
+const updatePaymentMethod = async (methodId, updates) => {
+try {
+// Buscar método
+const index = state.paymentMethods.findIndex(m => m.id === methodId);
+
+if (index === -1) {
+  showToast('Forma de pagamento não encontrada.', 'error');
+  return;
+}
+
+const method = state.paymentMethods[index];
+
+// Atualizar no Firestore
+await db.collection('paymentMethods').doc(methodId).update(updates);
+
+// Atualizar no estado local
+const updatedMethod = { ...method, ...updates };
+state.paymentMethods[index] = updatedMethod;
+
+// Atualizar transações com este método
+const batch = db.batch();
+const transactionsToUpdate = state.transactions.filter(t => t.paymentMethod === methodId);
+
+if (transactionsToUpdate.length > 0) {
+  transactionsToUpdate.forEach(transaction => {
+    const docRef = db.collection('transactions').doc(transaction.id);
+    batch.update(docRef, {
+      paymentMethodName: updatedMethod.name,
+      paymentMethodIcon: updatedMethod.icon
+    });
+    
+    // Atualizar no estado local
+    const transactionIndex = state.transactions.findIndex(t => t.id === transaction.id);
+    if (transactionIndex !== -1) {
+      state.transactions[transactionIndex].paymentMethodName = updatedMethod.name;
+      state.transactions[transactionIndex].paymentMethodIcon = updatedMethod.icon;
+    }
+  });
+  
+  await batch.commit();
+}
+
+// Atualizar UI
+updatePaymentMethodSelects();
+renderPaymentMethodsList();
+updateTransactionsTable();
+
+showToast('Forma de pagamento atualizada com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao atualizar forma de pagamento:', error);
+showToast('Erro ao atualizar forma de pagamento. Tente novamente.', 'error');
+}
+};
+
+const deletePaymentMethod = async (methodId) => {
+try {
+// Buscar método
+const index = state.paymentMethods.findIndex(m => m.id === methodId);
+
+if (index === -1) {
+  showToast('Forma de pagamento não encontrada.', 'error');
+  return;
+}
+
+// Verificar se há transações com este método
+const transactionsWithMethod = state.transactions.filter(t => t.paymentMethod === methodId);
+
+if (transactionsWithMethod.length > 0) {
+  if (!confirm(`Esta forma de pagamento possui ${transactionsWithMethod.length} transações vinculadas. Deseja excluir mesmo assim? As transações serão movidas para "Outros".`)) {
+    return;
+  }
+  
+  // Mover transações para outro método
+  const otherMethodId = 'dinheiro';
+  const otherMethod = state.paymentMethods.find(m => m.id === otherMethodId);
+  
+  if (!otherMethod) {
+    showToast('Forma de pagamento "Dinheiro" não encontrada.', 'error');
+    return;
+  }
+  
+  const batch = db.batch();
+  
+  transactionsWithMethod.forEach(transaction => {
+    const docRef = db.collection('transactions').doc(transaction.id);
+    batch.update(docRef, {
+      paymentMethod: otherMethodId,
+      paymentMethodName: otherMethod.name,
+      paymentMethodIcon: otherMethod.icon
+    });
+    
+    // Atualizar no estado local
+    const transactionIndex = state.transactions.findIndex(t => t.id === transaction.id);
+    if (transactionIndex !== -1) {
+      state.transactions[transactionIndex].paymentMethod = otherMethodId;
+      state.transactions[transactionIndex].paymentMethodName = otherMethod.name;
+      state.transactions[transactionIndex].paymentMethodIcon = otherMethod.icon;
+    }
+  });
+  
+  await batch.commit();
+}
+
+// Excluir método
+await db.collection('paymentMethods').doc(methodId).delete();
+
+// Remover do estado local
+state.paymentMethods.splice(index, 1);
+
+// Atualizar UI
+updatePaymentMethodSelects();
+renderPaymentMethodsList();
+updateTransactionsTable();
+
+showToast('Forma de pagamento excluída com sucesso!', 'success');
+
+} catch (error) {
+console.error('Erro ao excluir forma de pagamento:', error);
+showToast('Erro ao excluir forma de pagamento. Tente novamente.', 'error');
+}
+};
+
+// Renderizar listas de categorias e métodos de pagamento
+const renderCategoriesList = () => {
+// Renderizar categorias de receita
+const incomeList = $('#incomeCategoriesList');
+if (incomeList) {
+incomeList.innerHTML = '';
+
+state.categories.income.forEach(category => {
+  const item = document.createElement('div');
+  item.className = 'category-item';
+  
+  item.innerHTML = `
+    <div class="category-item-content">
+      <div class="category-item-icon">${category.icon || '💰'}</div>
+      <div>${category.name}</div>
+    </div>
+    <div class="category-item-actions">
+      <button class="btn btn-icon btn-outline edit-category-btn" data-id="${category.id}" data-type="income">
+        <svg width="16" height="16">
+          <use href="#icon-edit"></use>
+        </svg>
+      </button>
+      <button class="btn btn-icon btn-outline delete-category-btn" data-id="${category.id}" data-type="income">
+        <svg width="16" height="16">
+          <use href="#icon-trash"></use>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  incomeList.appendChild(item);
+});
+
+// Adicionar event listeners
+$$('.edit-category-btn[data-type="income"]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.currentTarget.dataset.id;
+    const category = state.categories.income.find(c => c.id === id);
+    
+    if (category) {
+      openEditCategoryModal(category, 'income');
+    }
+  });
+});
+
+$$('.delete-category-btn[data-type="income"]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.currentTarget.dataset.id;
+    deleteCategory(id);
+  });
+});
+}
+
+// Renderizar categorias de despesa
+const expenseList = $('#expenseCategoriesList');
+if (expenseList) {
+expenseList.innerHTML = '';
+
+state.categories.expense.forEach(category => {
+  const item = document.createElement('div');
+  item.className = 'category-item';
+
+  item.innerHTML = `
+    <div class="category-item-content">
+      <div class="category-item-icon">${category.icon || '📦'}</div>
+      <div>${category.name}</div>
+    </div>
+    <div class="category-item-actions">
+      <button class="btn btn-icon btn-outline edit-category-btn" data-id="${category.id}" data-type="expense">
+        <svg width="16" height="16">
+          <use href="#icon-edit"></use>
+        </svg>
+      </button>
+      <button class="btn btn-icon btn-outline delete-category-btn" data-id="${category.id}" data-type="expense">
+        <svg width="16" height="16">
+          <use href="#icon-trash"></use>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  expenseList.appendChild(item);
+});
+
+// Adicionar event listeners
+$$('.edit-category-btn[data-type="expense"]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.currentTarget.dataset.id;
+    const category = state.categories.expense.find(c => c.id === id);
+    
+    if (category) {
+      openEditCategoryModal(category, 'expense');
+    }
+  });
+});
+
+$$('.delete-category-btn[data-type="expense"]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.currentTarget.dataset.id;
+    deleteCategory(id);
+  });
+});
+}
+};
+
+const renderPaymentMethodsList = () => {
+const methodsList = $('#paymentMethodsList');
+if (!methodsList) return;
+
+methodsList.innerHTML = '';
+
+state.paymentMethods.forEach(method => {
+const item = document.createElement('div');
+item.className = 'category-item';
+
+item.innerHTML = `
+  <div class="category-item-content">
+    <div class="category-item-icon">${method.icon || '💵'}</div>
+    <div>${method.name}</div>
+  </div>
+  <div class="category-item-actions">
+    <button class="btn btn-icon btn-outline edit-payment-method-btn" data-id="${method.id}">
+      <svg width="16" height="16">
+        <use href="#icon-edit"></use>
+      </svg>
+    </button>
+    <button class="btn btn-icon btn-outline delete-payment-method-btn" data-id="${method.id}">
+      <svg width="16" height="16">
+        <use href="#icon-trash"></use>
+      </svg>
+    </button>
+  </div>
+`;
+
+methodsList.appendChild(item);
+});
+
+// Adicionar event listeners
+$$('.edit-payment-method-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  const method = state.paymentMethods.find(m => m.id === id);
+  
+  if (method) {
+    openEditCategoryModal(method, 'payment');
+  }
+});
+});
+
+$$('.delete-payment-method-btn').forEach(btn => {
+btn.addEventListener('click', e => {
+  const id = e.currentTarget.dataset.id;
+  deletePaymentMethod(id);
+});
+});
+};
+
+// Funções para modais
+const openNewIncomeModal = () => {
+// Resetar formulário
+$('#incomeForm').reset();
+
+// Definir data padrão (hoje)
+const today = new Date();
+setDateInputValue('incomeDate', today);
+
+// Atualizar seletor de categorias
+updateCategorySelects();
+
+// Mostrar modal
+openModal('incomeModal');
+};
+
+const openNewExpenseModal = () => {
+// Resetar formulário
+$('#expenseForm').reset();
+
+// Definir datas padrão (hoje)
+const today = new Date();
+setDateInputValue('expenseDate', today);
+setDateInputValue('expenseDueDate', today);
+
+// Atualizar seletor de categorias
+updateCategorySelects();
+
+// Mostrar modal
+openModal('expenseModal');
+};
+
+const openEditTransactionModal = (transaction) => {
+state.currentTransaction = transaction;
+
+// Limpar e configurar o formulário
+const form = $('#editForm');
+if (!form) return;
+
+// Definir título do modal
+$('#editModalTitle').textContent = `Editar ${transaction.type === 'income' ? 'Receita' : 'Despesa'}`;
+
+// Definir campos ocultos
+$('#editTransactionId').value = transaction.id;
+$('#editTransactionType').value = transaction.type;
+
+// Configurar campos visíveis
+$('#editName').value = transaction.name;
+$('#editAmount').value = transaction.amount;
+
+// Configurar categoria
+const editCategory = $('#editCategory');
+editCategory.dataset.type = transaction.type;
+updateCategorySelects();
+editCategory.value = transaction.category;
+
+// Definir datas
+setDateInputValue('editDate', transaction.date);
+
+if (transaction.dueDate) {
+  $('#editDueDateGroup').style.display = transaction.type === 'expense' ? 'block' : 'none';
+  setDateInputValue('editDueDate', transaction.dueDate);
+}
+
+// Configurar status
+const statusGroup = $('#editStatusGroup');
+statusGroup.innerHTML = '';
+
+if (transaction.type === 'income') {
+  // Opções para receita
+  statusGroup.innerHTML = `
+    <div class="radio-wrapper">
+      <input type="radio" class="radio" id="editStatusReceived" name="editStatus" value="received" ${transaction.status === 'received' ? 'checked' : ''}>
+      <label class="radio-label" for="editStatusReceived">
+        <span class="radio-circle"></span>
+        Recebido
+      </label>
+    </div>
+    
+    <div class="radio-wrapper">
+      <input type="radio" class="radio" id="editStatusPending" name="editStatus" value="pending" ${transaction.status !== 'received' ? 'checked' : ''}>
+      <label class="radio-label" for="editStatusPending">
+        <span class="radio-circle"></span>
+        A Receber
+      </label>
+    </div>
+  `;
+} else {
+  // Opções para despesa
+  statusGroup.innerHTML = `
+    <div class="radio-wrapper">
+      <input type="radio" class="radio" id="editStatusPaid" name="editStatus" value="paid" ${transaction.status === 'paid' ? 'checked' : ''}>
+      <label class="radio-label" for="editStatusPaid">
+        <span class="radio-circle"></span>
+        Pago
+      </label>
+    </div>
+    
+    <div class="radio-wrapper">
+      <input type="radio" class="radio" id="editStatusPending" name="editStatus" value="pending" ${transaction.status === 'pending' ? 'checked' : ''}>
+      <label class="radio-label" for="editStatusPending">
+        <span class="radio-circle"></span>
+        Pendente
+      </label>
+    </div>
+    
+    <div class="radio-wrapper">
+      <input type="radio" class="radio" id="editStatusScheduled" name="editStatus" value="scheduled" ${transaction.status === 'scheduled' ? 'checked' : ''}>
+      <label class="radio-label" for="editStatusScheduled">
+        <span class="radio-circle"></span>
+        Agendado
+      </label>
+    </div>
+  `;
+  
+  // Event listener para mostrar/ocultar campo de data de agendamento
+  const scheduledRadio = $('#editStatusScheduled');
+  if (scheduledRadio) {
+    scheduledRadio.addEventListener('change', e => {
+      $('#editScheduledDateGroup').style.display = e.target.checked ? 'block' : 'none';
+    });
+  }
+  
+  // Mostrar campo de data de agendamento se necessário
+  const scheduledDateGroup = $('#editScheduledDateGroup');
+  if (scheduledDateGroup) {
+    scheduledDateGroup.style.display = transaction.status === 'scheduled' ? 'block' : 'none';
+    
+    if (transaction.scheduledDate) {
+      setDateInputValue('editScheduledDate', transaction.scheduledDate);
+    }
+  }
+}
+
+// Configurar forma de pagamento
+const paymentMethodSelect = $('#editPaymentMethod');
+updatePaymentMethodSelects();
+paymentMethodSelect.value = transaction.paymentMethod;
+
+// Mostrar campo de cartão se for crédito
+const creditCardGroup = $('#editCreditCardGroup');
+if (creditCardGroup) {
+  creditCardGroup.style.display = transaction.paymentMethod === 'credito' ? 'block' : 'none';
+  
+  if (transaction.creditCardId) {
+    const creditCardSelect = $('#editCreditCard');
+    updateCreditCardSelects();
+    creditCardSelect.value = transaction.creditCardId;
+  }
+  
+  // Event listener para mostrar/ocultar campo de cartão
+  paymentMethodSelect.addEventListener('change', e => {
+    creditCardGroup.style.display = e.target.value === 'credito' ? 'block' : 'none';
+  });
+}
+
+// Configurar recorrência
+$('#editIsRecurrent').checked = transaction.isRecurrent || false;
+
+const recurrenceGroup = $('#editRecurrenceGroup');
+if (recurrenceGroup) {
+  recurrenceGroup.style.display = transaction.isRecurrent ? 'block' : 'none';
+  
+  if (transaction.installments) {
+    $('#editInstallments').value = transaction.installments;
+  }
+  
+  // Event listener para mostrar/ocultar campos de recorrência
+  $('#editIsRecurrent').addEventListener('change', e => {
+    recurrenceGroup.style.display = e.target.checked ? 'block' : 'none';
+  });
+}
+
+// Configurar observação
+if (transaction.notes) {
+  $('#editNotes').value = transaction.notes;
+}
+
+// Abrir modal
+openModal('editModal');
+};
+
+const openEditCardModal = (card) => {
+state.currentCard = card;
+
+// Preencher campos
+$('#cardName').value = card.name;
+$('#cardLimit').value = card.limit;
+$('#cardClosingDay').value = card.closingDay;
+$('#cardDueDay').value = card.dueDay;
+
+// Alterar título do modal
+const modalTitle = $('.modal-title', $('#newCardModal'));
+if (modalTitle) {
+  modalTitle.textContent = 'Editar Cartão';
+}
+
+// Abrir modal
+openModal('newCardModal');
+};
+
+const openEditCategoryModal = (category, type) => {
+state.currentCategory = category;
+
+// Preencher campos
+$('#editCategoryId').value = category.id;
+$('#editCategoryType').value = type;
+$('#editCategoryName').value = category.name;
+
+// Título do modal
+const title = type === 'income' ? 'Editar Categoria de Receita' :
+             type === 'expense' ? 'Editar Categoria de Despesa' :
+             'Editar Forma de Pagamento';
+
+$('#editCategoryTitle').textContent = title;
+
+// Ícone
+if (category.icon) {
+  $('#editCategoryIconInput').value = category.icon;
+  $('#editCategoryIconPreview').innerHTML = category.icon;
+}
+
+// Abrir modal
+openModal('editCategoryModal');
+};
+
+const openDeleteConfirmModal = (transaction) => {
+state.currentTransaction = transaction;
+
+// Verificar se é transação recorrente
+const isRecurrent = transaction.isRecurrent && transaction.installments > 1;
+
+// Mostrar opções de recorrência, se aplicável
+$('#recurrenceDeleteOptions').style.display = isRecurrent ? 'block' : 'none';
+
+// Garantir que a opção padrão está selecionada
+const singleRadio = $('#deleteSingle');
+if (singleRadio) {
+  singleRadio.checked = true;
+}
+
+// Abrir modal
+openModal('deleteConfirmModal');
+};
+
+// Event handlers
+const handleSaveIncome = async () => {
+// Validar campos obrigatórios
+const name = $('#incomeName').value.trim();
+const amount = parseFloat($('#incomeAmount').value);
+const category = $('#incomeCategory').value;
+const date = getDateInputValue('incomeDate');
+
+if (!name || !amount || isNaN(amount) || amount <= 0 || !category || !date) {
+  showToast('Preencha os campos obrigatórios.', 'error');
+  return;
+}
+
+// Obter dados do formulário
+const status = $('input[name="incomeStatus"]:checked').value;
+const paymentMethod = $('#incomePaymentMethod').value;
+const isRecurrent = $('#incomeIsRecurrent').checked;
+const installments = isRecurrent ? parseInt($('#incomeInstallments').value) : 1;
+const notes = $('#incomeNotes').value.trim();
+
+// Criar objeto da transação
+const incomeData = {
+  name,
+  amount,
+  category,
+  date: date, // Manter como objeto Date em vez de converter para ISO
+  status,
+  paymentMethod,
+  isRecurrent,
+  installments,
+  notes,
+  type: 'income'
+};
+
+// Salvar transação
+await addTransaction(incomeData);
+
+// Fechar modal
+closeModal('incomeModal');
+};
+
+const handleSaveExpense = async () => {
+// Validar campos obrigatórios
+const name = $('#expenseName').value.trim();
+const amount = parseFloat($('#expenseAmount').value);
+const category = $('#expenseCategory').value;
+const date = getDateInputValue('expenseDate');
+const dueDate = getDateInputValue('expenseDueDate');
+
+if (!name || !amount || isNaN(amount) || amount <= 0 || !category || !date || !dueDate) {
+  showToast('Preencha os campos obrigatórios.', 'error');
+  return;
+}
+
+// Obter dados do formulário
+const status = $('input[name="expenseStatus"]:checked').value;
+const paymentMethod = $('#expensePaymentMethod').value;
+const isRecurrent = $('#expenseIsRecurrent').checked;
+const installments = isRecurrent ? parseInt($('#expenseInstallments').value) : 1;
+const notes = $('#expenseNotes').value.trim();
+
+// Verificar se é cartão de crédito
+let creditCardId = null;
+if (paymentMethod === 'credito') {
+  creditCardId = $('#expenseCreditCard').value;
+  
+  if (!creditCardId) {
+    showToast('Selecione um cartão de crédito.', 'error');
+    return;
+  }
+}
+
+// Verificar data de agendamento, se aplicável
+let scheduledDate = null;
+if (status === 'scheduled') {
+  scheduledDate = getDateInputValue('expenseScheduledDate');
+  
+  if (!scheduledDate) {
+    showToast('Informe a data de agendamento.', 'error');
+    return;
+  }
+}
+
+// Criar objeto da transação
+const expenseData = {
+  name,
+  amount,
+  category,
+  date: date,
+  dueDate: dueDate,
+  status,
+  paymentMethod,
+  creditCardId,
+  isRecurrent,
+  installments,
+  notes,
+  scheduledDate: scheduledDate,
+  type: 'expense'
+};
+
+// Salvar transação
+await addTransaction(expenseData);
+
+// Fechar modal
+closeModal('expenseModal');
+};
+
+const handleSaveEdit = async () => {
+if (!state.currentTransaction) return;
+
+// Validar campos obrigatórios
+const name = $('#editName').value.trim();
+const amount = parseFloat($('#editAmount').value);
+const category = $('#editCategory').value;
+const date = getDateInputValue('editDate');
+
+if (!name || !amount || isNaN(amount) || amount <= 0 || !category || !date) {
+  showToast('Preencha os campos obrigatórios.', 'error');
+  return;
+}
+
+// Obter dados do formulário
+const type = $('#editTransactionType').value;
+const status = $('input[name="editStatus"]:checked').value;
+const paymentMethod = $('#editPaymentMethod').value;
+const isRecurrent = $('#editIsRecurrent').checked;
+const installments = isRecurrent ? parseInt($('#editInstallments').value) : 1;
+const notes = $('#editNotes').value.trim();
+
+// Verificar data de vencimento, para despesas
+let dueDate = null;
+if (type === 'expense') {
+  dueDate = getDateInputValue('editDueDate');
+  
+  if (!dueDate) {
+    showToast('Informe a data de vencimento.', 'error');
+    return;
+  }
+}
+
+// Verificar se é cartão de crédito
+let creditCardId = null;
+if (paymentMethod === 'credito' && type === 'expense') {
+  creditCardId = $('#editCreditCard').value;
+  
+  if (!creditCardId) {
+    showToast('Selecione um cartão de crédito.', 'error');
+    return;
+  }
+}
+
+// Verificar data de agendamento, se aplicável
+let scheduledDate = null;
+if (status === 'scheduled' && type === 'expense') {
+  scheduledDate = getDateInputValue('editScheduledDate');
+  
+  if (!scheduledDate) {
+    showToast('Informe a data de agendamento.', 'error');
+    return;
+  }
+}
+
+// Criar objeto de atualizações
+const updates = {
+  name,
+  amount,
+  category,
+  date: date, // Manter como objeto Date em vez de converter para ISO
+  status,
+  paymentMethod,
+  creditCardId,
+  isRecurrent,
+  installments,
+  notes,
+};
+
+// Adicionar campos específicos por tipo
+if (type === 'expense') {
+  updates.dueDate = dueDate; // Manter como objeto Date
+  updates.scheduledDate = scheduledDate ? scheduledDate : null; // Manter como objeto Date
+}
+
+// Aplicar atualizações
+const success = await updateTransaction(state.currentTransaction.id, updates);
+
+if (success) {
+  // Fechar modal
+  closeModal('editModal');
+}
+};
+
+const handleSaveCard = async () => {
+// Validar campos obrigatórios
+const name = $('#cardName').value.trim();
+const limit = parseFloat($('#cardLimit').value);
+const closingDay = parseInt($('#cardClosingDay').value);
+const dueDay = parseInt($('#cardDueDay').value);
+
+if (!name || !limit || isNaN(limit) || limit <= 0 || 
+    !closingDay || isNaN(closingDay) || closingDay < 1 || closingDay > 31 || 
+    !dueDay || isNaN(dueDay) || dueDay < 1 || dueDay > 31) {
+  showToast('Preencha os campos obrigatórios corretamente.', 'error');
+  return;
+}
+
+// Criar objeto do cartão
+const cardData = {
+  name,
+  limit,
+  closingDay,
+  dueDay
+};
+
+// Se for edição, atualizar cartão existente
+if (state.currentCard) {
+  await updateCard(state.currentCard.id, cardData);
+  state.currentCard = null;
+} else {
+  // Caso contrário, adicionar novo cartão
+  await addCard(cardData);
+}
+
+// Fechar modal
+closeModal('newCardModal');
+};
+
+const handleSaveEditCategory = async () => {
+if (!state.currentCategory) return;
+
+// Validar campo obrigatório
+const name = $('#editCategoryName').value.trim();
+
+if (!name) {
+  showToast('Informe o nome.', 'error');
+  return;
+}
+
+// Obter ícone personalizado
+const icon = $('#editCategoryIconInput').value.trim();
+
+// Criar objeto de atualizações
+const updates = {
+  name,
+  icon: icon || state.currentCategory.icon
+};
+
+const type = $('#editCategoryType').value;
+
+// Aplicar atualizações
+if (type === 'payment') {
+  await updatePaymentMethod(state.currentCategory.id, updates);
+} else {
+  await updateCategory(state.currentCategory.id, updates);
+}
+
+state.currentCategory = null;
+
+// Fechar modal
+closeModal('editCategoryModal');
+};
+
+const handleDeleteTransaction = async () => {
+if (!state.currentTransaction) return;
+
+// Verificar se deve excluir todas as parcelas futuras
+const deleteRecurrence = $('#deleteAllFuture') && $('#deleteAllFuture').checked;
+
+// Excluir transação
+await deleteTransaction(state.currentTransaction.id, deleteRecurrence);
+
+state.currentTransaction = null;
+
+// Fechar modal
+closeModal('deleteConfirmModal');
+};
+
+const handleToggleCategoryTab = (tabId) => {
+// Desativar todas as abas
+$$('.nav-link').forEach(tab => {
+  tab.classList.remove('active');
+});
+
+// Ocultar todos os painéis
+$$('.tab-pane').forEach(pane => {
+  pane.classList.remove('show', 'active');
+});
+
+// Ativar aba desejada
+$(`#${tabId}-tab`).classList.add('active');
+
+// Mostrar painel desejado
+$(`#${tabId}`).classList.add('show', 'active');
+};
+
+// Função para configurar todos os event listeners
+const setupEventListeners = () => {
+// Event listeners para seletores de mês/ano
+const yearSelect = $('#yearSelect');
+const monthSelect = $('#monthSelect');
+
+if (yearSelect) {
+  yearSelect.addEventListener('change', e => {
+    state.year = parseInt(e.target.value);
+    filterTransactionsByMonth();
+    updateMonthYearTitle();
+  });
+}
+
+if (monthSelect) {
+  monthSelect.addEventListener('change', e => {
+    state.month = parseInt(e.target.value);
+    filterTransactionsByMonth();
+    updateMonthYearTitle();
+  });
+}
+
+// Event listeners para botões de ação
+$('#newIncomeBtn')?.addEventListener('click', openNewIncomeModal);
+$('#newExpenseBtn')?.addEventListener('click', openNewExpenseModal);
+$('#cardsBtn')?.addEventListener('click', () => openModal('cardsListModal'));
+$('#categoriesBtn')?.addEventListener('click', () => openModal('categoriesModal'));
+
+// Event listeners para checkbox de recorrência
+$('#incomeIsRecurrent')?.addEventListener('change', e => {
+  $('#incomeRecurrenceGroup').style.display = e.target.checked ? 'block' : 'none';
+});
+
+$('#expenseIsRecurrent')?.addEventListener('change', e => {
+  $('#expenseRecurrenceGroup').style.display = e.target.checked ? 'block' : 'none';
+});
+
+// Event listener para forma de pagamento (mostrar cartão)
+$('#expensePaymentMethod')?.addEventListener('change', e => {
+  $('#creditCardGroup').style.display = e.target.value === 'credito' ? 'block' : 'none';
+});
+
+// Event listener para status (mostrar data de agendamento)
+$$('input[name="expenseStatus"]').forEach(radio => {
+  radio.addEventListener('change', e => {
+    $('#scheduledDateGroup').style.display = e.target.value === 'scheduled' ? 'block' : 'none';
+  });
+});
+
+// Event listeners para botões de modal
+$('#saveIncomeBtn')?.addEventListener('click', handleSaveIncome);
+$('#cancelIncomeBtn')?.addEventListener('click', () => closeModal('incomeModal'));
+$('#closeIncomeModal')?.addEventListener('click', () => closeModal('incomeModal'));
+
+$('#saveExpenseBtn')?.addEventListener('click', handleSaveExpense);
+$('#cancelExpenseBtn')?.addEventListener('click', () => closeModal('expenseModal'));
+$('#closeExpenseModal')?.addEventListener('click', () => closeModal('expenseModal'));
+
+$('#saveEditBtn')?.addEventListener('click', handleSaveEdit);
+$('#cancelEditBtn')?.addEventListener('click', () => closeModal('editModal'));
+$('#closeEditModal')?.addEventListener('click', () => closeModal('editModal'));
+
+$('#saveCardBtn')?.addEventListener('click', handleSaveCard);
+$('#cancelCardBtn')?.addEventListener('click', () => {
+  state.currentCard = null;
+  closeModal('newCardModal');
+});
+$('#closeNewCardModal')?.addEventListener('click', () => {
+  state.currentCard = null;
+  closeModal('newCardModal');
+});
+
+$('#backToCardsBtn')?.addEventListener('click', () => {
+  closeModal('cardInvoiceModal');
+  openModal('cardsListModal');
+});
+$('#closeCardInvoiceModal')?.addEventListener('click', () => closeModal('cardInvoiceModal'));
+
+// Navegação de cartões
+$('#newCardBtn')?.addEventListener('click', () => {
+  // Resetar formulário
+  $('#cardForm').reset();
+  
+  // Alterar título do modal
+  const modalTitle = $('.modal-title', $('#newCardModal'));
+  if (modalTitle) {
+    modalTitle.textContent = 'Novo Cartão';
+  }
+  
+  closeModal('cardsListModal');
+  openModal('newCardModal');
+});
+
+$('#closeCardsListModal')?.addEventListener('click', () => closeModal('cardsListModal'));
+
+// Event listeners para categorias
+$('#closeCategoriesModal')?.addEventListener('click', () => closeModal('categoriesModal'));
+$('#closeCategoriesBtn')?.addEventListener('click', () => closeModal('categoriesModal'));
+
+// Navegação de abas de categorias
+$('#income-cat-tab')?.addEventListener('click', () => handleToggleCategoryTab('income-cat'));
+$('#expense-cat-tab')?.addEventListener('click', () => handleToggleCategoryTab('expense-cat'));
+$('#payment-methods-tab')?.addEventListener('click', () => handleToggleCategoryTab('payment-methods'));
+
+// Adicionar nova categoria
+$('#addIncomeCategoryBtn')?.addEventListener('click', () => {
+  const name = $('#newIncomeCategoryInput').value.trim();
+  const icon = $('#newIncomeCategoryIconInput').value.trim();
+  
+  if (name) {
+    addCategory({
+      type: 'income',
+      name,
+      icon
+    });
+    
+    $('#newIncomeCategoryInput').value = '';
+    $('#newIncomeCategoryIconInput').value = '';
+  }
+});
+
+$('#addExpenseCategoryBtn')?.addEventListener('click', () => {
+  const name = $('#newExpenseCategoryInput').value.trim();
+  const icon = $('#newExpenseCategoryIconInput').value.trim();
+  
+  if (name) {
+    addCategory({
+      type: 'expense',
+      name,
+      icon
+    });
+    
+    $('#newExpenseCategoryInput').value = '';
+    $('#newExpenseCategoryIconInput').value = '';
+  }
+});
+
+$('#addPaymentMethodBtn')?.addEventListener('click', () => {
+  const name = $('#newPaymentMethodInput').value.trim();
+  const icon = $('#newPaymentMethodIconInput').value.trim();
+  
+  if (name) {
+    addPaymentMethod({
+      name,
+      icon
+    });
+    
+    $('#newPaymentMethodInput').value = '';
+    $('#newPaymentMethodIconInput').value = '';
+  }
+});
+
+// Edição de categorias
+$('#saveEditCategoryBtn')?.addEventListener('click', handleSaveEditCategory);
+$('#cancelEditCategoryBtn')?.addEventListener('click', () => {
+  state.currentCategory = null;
+  closeModal('editCategoryModal');
+});
+$('#closeEditCategoryModal')?.addEventListener('click', () => {
+  state.currentCategory = null;
+  closeModal('editCategoryModal');
+});
+
+// Exclusão de transação
+$('#confirmDeleteBtn')?.addEventListener('click', handleDeleteTransaction);
+$('#cancelDeleteBtn')?.addEventListener('click', () => {
+  state.currentTransaction = null;
+  closeModal('deleteConfirmModal');
+});
+$('#closeDeleteConfirmModal')?.addEventListener('click', () => {
+  state.currentTransaction = null;
+  closeModal('deleteConfirmModal');
+});
+
+// Pagamento de fatura
+$('#payInvoiceBtn')?.addEventListener('click', () => {
+  if (!state.currentCard) return;
+  
+  openModal('payInvoiceConfirmModal');
+});
+
+$('#confirmPayInvoiceBtn')?.addEventListener('click', () => {
+  if (!state.currentCard) return;
+  
+  payCardInvoice(state.currentCard.id);
+});
+
+$('#cancelPayInvoiceBtn')?.addEventListener('click', () => closeModal('payInvoiceConfirmModal'));
+$('#closePayInvoiceConfirmModal')?.addEventListener('click', () => closeModal('payInvoiceConfirmModal'));
+
+// Listener para toggle de compromissos
+$('#commitmentsHeader')?.addEventListener('click', toggleCommitments);
+
+// Preview de ícones
+$$('input[id$="IconInput"]').forEach(input => {
+  input.addEventListener('input', e => {
+    const previewId = e.target.id.replace('Input', 'Preview');
+    const preview = $(`#${previewId}`);
+    
+    if (preview && e.target.value.trim()) {
+      preview.innerHTML = e.target.value.trim();
+    } else if (preview) {
+      // Restaurar ícone padrão
+      const defaultIcon = e.target.id.includes('income') ? 'icon-money' :
+                        e.target.id.includes('expense') ? 'icon-shopping' :
+                        e.target.id.includes('payment') ? 'icon-money' : 'icon-default';
+      
+      preview.innerHTML = `
+        <svg width="24" height="24">
+          <use href="#${defaultIcon}"></use>
+        </svg>
+      `;
+    }
+  });
+});
+
+// Ordenação e filtros de transações
+$$('.sortable').forEach(header => {
+  const column = header.dataset.sort;
+  if (column) {
+    header.addEventListener('click', () => {
+      // Atualizar estado de ordenação
+      if (state.sortColumn === column) {
+        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.sortColumn = column;
+        state.sortDirection = 'asc';
+      }
+      
+      // Atualizar UI
+      updateTransactionsTable();
+    });
+  }
+});
+};
+
+// Função para inicialização
+const init = async () => {
+console.log('Inicializando Calculadora da Família...');
+
+// Inicializar o tema
+initTheme();
+
+// Configurar event listeners
+setupEventListeners();
+
+// Carregar dados do Firebase
+try {
+  await loadCategoriesAndPaymentMethods();
+  await loadCards();
+  await loadTransactions();
+  
+  // Criar filtros para a tabela de transações
+  createTransactionFilters();
+  
+  // Atualizar UI inicial
+  updateMonthYearTitle();
+  
+  // Mostrar mensagem de boas-vindas
+  showToast('Bem-vindo à Calculadora da Família!', 'success');
+  
+} catch (error) {
+  console.error('Erro na inicialização:', error);
+  showToast('Erro ao carregar dados. Verifique sua conexão e tente novamente.', 'error');
+}
+};
+
+// Iniciar a aplicação quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
 
