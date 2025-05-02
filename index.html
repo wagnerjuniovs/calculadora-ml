@@ -105,6 +105,7 @@
       --color-on-surface: #f5f5f7;
       --color-on-surface-variant: #8e8e93;
       --color-outline: #38383a;
+      color: var(--color-on-surface);
     }
     
     /* Reset básico */
@@ -240,6 +241,7 @@
     .commitments-content {
       overflow: hidden;
       transition: max-height var(--transition-normal);
+      max-height: 0;
     }
     
     .commitment-item {
@@ -381,6 +383,17 @@
       
       .select-date-container .select-wrapper {
         flex: 1;
+      }
+      
+      /* Ajuste para filtros de transações no mobile */
+      .transaction-filters {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .transaction-filters .select-wrapper {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
       }
     }
 
@@ -1299,7 +1312,7 @@
       </div>
       
       <div class="kpi-card kpi-card-invoice">
-        <div class="kpi-title">Fatura Atual</div>
+        <div class="kpi-title">Fatura do Mês</div>
         <div class="kpi-value" id="invoiceValue">R$ 0,00</div>
         <div class="kpi-subtitle">
           <svg width="16" height="16">
@@ -1338,9 +1351,6 @@
     <div class="commitments">
       <div class="commitments-header" id="commitmentsHeader">
         <h3>Compromissos Longos</h3>
-        <svg width="20" height="20">
-          <use href="#icon-chevron-down"></use>
-        </svg>
       </div>
       
       <div class="commitments-content" id="commitmentsContent">
@@ -2890,69 +2900,36 @@
    if ($('#expensePaidValue')) $('#expensePaidValue').textContent = `${formatCurrency(expensePaid)} pagos`;
    if ($('#expensePendingValue')) $('#expensePendingValue').textContent = `${formatCurrency(expensePending)} pendentes`;
     
-   // Se houver cartões, mostrar informações da fatura atual
+   // Calcular o total de faturas de cartão de crédito para o mês selecionado
+   let monthlyInvoiceTotal = 0;
+   const targetYear = state.year;
+   const targetMonth = state.month;
+   
    if (state.cards.length > 0) {
-     const today = new Date();
-     const currentMonth = today.getMonth();
-     const currentYear = today.getFullYear();
+     // Filtrar transações do mês atual que são despesas de cartão de crédito
+     const creditCardExpenses = state.filteredTransactions.filter(t => 
+       t.type === 'expense' && 
+       t.paymentMethod === 'credito' && 
+       t.status !== 'paid'
+     );
      
-     // Calcular o total das faturas do mês atual
-     let currentMonthInvoice = 0;
+     // Somar o valor dessas despesas
+     monthlyInvoiceTotal = creditCardExpenses.reduce((total, t) => total + parseFloat(t.amount), 0);
      
-     state.cards.forEach(card => {
-       // Cálculo da data de vencimento mais próxima
-       let dueDate = new Date(currentYear, currentMonth, card.dueDay);
+     // Obter o primeiro cartão para a data de vencimento (ou poderíamos pegar o mais próximo)
+     if (state.cards.length > 0) {
+       const firstCard = state.cards[0];
+       const dueDate = new Date(targetYear, targetMonth, firstCard.dueDay);
        
-       // Se hoje é após o dia de vencimento, a data de vencimento será no próximo mês
-       if (today.getDate() > card.dueDay) {
-         dueDate.setMonth(dueDate.getMonth() + 1);
+       if ($('#invoiceDueDate')) {
+         $('#invoiceDueDate').textContent = formatDate(dueDate);
        }
-       
-       // Encontrar a data de fechamento anterior
-       let closingDate = new Date(dueDate);
-       closingDate.setDate(card.closingDay);
-       
-       // Ajustar se o fechamento for depois do vencimento
-       if (card.closingDay > card.dueDay) {
-         closingDate.setMonth(closingDate.getMonth() - 1);
-       }
-       
-       // Data de fechamento anterior
-       const previousClosing = new Date(closingDate);
-       previousClosing.setMonth(previousClosing.getMonth() - 1);
-       
-       // Calcular o total das despesas neste período para este cartão
-       const cardMonthInvoice = state.transactions
-         .filter(t => {
-           const tDate = parseLocalDateString(t.date);
-           return tDate && 
-                 t.type === 'expense' && 
-                 t.paymentMethod === 'credito' && 
-                 t.creditCardId === card.id &&
-                 t.status !== 'paid' &&
-                 tDate >= previousClosing &&
-                 tDate < closingDate;
-         })
-         .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-       
-       currentMonthInvoice += cardMonthInvoice;
-     });
-     
-     if ($('#invoiceValue')) $('#invoiceValue').textContent = formatCurrency(currentMonthInvoice);
-     
-     // Usar o primeiro cartão para a data de vencimento (ou poderia ser o mais próximo)
-     const card = state.cards[0];
-     let dueDate = new Date(today.getFullYear(), today.getMonth(), card.dueDay);
-     
-     // Se hoje é após o dia de vencimento, a data de vencimento será no próximo mês
-     if (today.getDate() > card.dueDay) {
-       dueDate.setMonth(dueDate.getMonth() + 1);
      }
-     
-     if ($('#invoiceDueDate')) $('#invoiceDueDate').textContent = formatDate(dueDate);
-   } else {
-     if ($('#invoiceValue')) $('#invoiceValue').textContent = formatCurrency(0);
-     if ($('#invoiceDueDate')) $('#invoiceDueDate').textContent = '--/--/----';
+   }
+   
+   // Atualizar o KPI da Fatura do Mês
+   if ($('#invoiceValue')) {
+     $('#invoiceValue').textContent = formatCurrency(monthlyInvoiceTotal);
    }
  };
 
@@ -3372,7 +3349,7 @@ if (areaCtx) {
       labels: [],
       datasets: [
         {
-          label: 'Fatura',
+          label: 'Limite Utilizado',
           data: [],
           fill: true,
           backgroundColor: 'rgba(255, 59, 48, 0.2)',
@@ -3527,45 +3504,23 @@ if (state.cards.length === 0) {
   return;
 }
 
-// Combinar dados de todos os cartões
-const combinedInvoice = {};
+// Calcular o total do limite disponível e utilizado de todos os cartões
 const combinedLimit = state.cards.reduce((sum, card) => sum + card.limit, 0);
 const combinedAvailable = state.cards.reduce((sum, card) => sum + card.availableLimit, 0);
+const combinedUsed = combinedLimit - combinedAvailable;
 
 // Obter os dias do mês atual
 const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
 const daysLabels = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-// Calcular a fatura acumulada para cada dia, somando todos os cartões
-daysLabels.forEach(day => {
-  const dayDate = new Date(today.getFullYear(), today.getMonth(), day);
-  combinedInvoice[day] = 0;
-  
-  // Para cada cartão, adicionar suas transações ao dia correspondente
-  state.cards.forEach(card => {
-    const cardInvoiceForDay = state.transactions
-      .filter(t => {
-        const tDate = parseLocalDateString(t.date);
-        return tDate && t.type === 'expense' && 
-              t.paymentMethod === 'credito' && 
-              t.creditCardId === card.id &&
-              tDate.getDate() <= day &&
-              tDate.getMonth() === today.getMonth() &&
-              tDate.getFullYear() === today.getFullYear();
-      })
-      .reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    
-    combinedInvoice[day] += cardInvoiceForDay;
-  });
-});
-
-// Linhas constantes para os limites
+// Criar dados para o gráfico
+const limitUsedLine = daysLabels.map(() => combinedUsed);
 const limitTotalLine = daysLabels.map(() => combinedLimit);
 const limitAvailableLine = daysLabels.map(() => combinedAvailable);
 
 // Atualizar dados do gráfico de área
 areaChart.data.labels = daysLabels;
-areaChart.data.datasets[0].data = daysLabels.map(day => combinedInvoice[day]);
+areaChart.data.datasets[0].data = limitUsedLine;
 areaChart.data.datasets[1].data = limitTotalLine;
 areaChart.data.datasets[2].data = limitAvailableLine;
 areaChart.update();
@@ -3583,10 +3538,8 @@ if (!content || !header) return;
 
 if (content.style.maxHeight) {
 content.style.maxHeight = null;
-header.querySelector('svg').innerHTML = '<use href="#icon-chevron-down"></use>';
 } else {
 content.style.maxHeight = content.scrollHeight + 'px';
-header.querySelector('svg').innerHTML = '<use href="#icon-chevron-up"></use>';
 }
 };
 
@@ -5906,4 +5859,3 @@ document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
-
