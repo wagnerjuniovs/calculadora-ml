@@ -2756,20 +2756,24 @@
   };
 
   const updateKPIs = () => {
-    const currentMonthTransactions = state.filteredTransactions; 
+    // 1. Filtrar transações pelo mês/ano de VENCIMENTO EFETIVO (como já estava)
+    filterTransactionsByMonth(); // Garante que state.filteredTransactions está atualizado
+    const currentMonthTransactions = state.filteredTransactions;
 
+    // 2. Calcular KPIs de Receita, Despesa e Saldo (usando as transações filtradas pelo mês de vencimento)
     const totalIncome = currentMonthTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-    const totalExpense = currentMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+    const totalExpense = currentMonthTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0); // Total de TODAS as despesas do mês
     const incomeReceived = currentMonthTransactions.filter(t => t.type === 'income' && t.status === 'received').reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const incomePending = totalIncome - incomeReceived;
     const expensePaid = currentMonthTransactions.filter(t => t.type === 'expense' && t.status === 'paid').reduce((sum, t) => sum + parseFloat(t.amount), 0);
     const expensePending = totalExpense - expensePaid;
-    
-    const saldoReal = incomeReceived - expensePaid; 
-    const saldoComprometido = totalIncome - totalExpense; 
 
+    const saldoReal = incomeReceived - expensePaid;
+    const saldoComprometido = totalIncome - totalExpense;
+
+    // Atualizar os elementos HTML dos KPIs de Receita, Despesa e Saldo
     $('#incomeValue').textContent = formatCurrency(totalIncome);
-    $('#expenseValue').textContent = formatCurrency(totalExpense);
+    $('#expenseValue').textContent = formatCurrency(totalExpense); // Mostra o total de despesas (incluindo cartão e outras)
     $('#balanceValue').textContent = formatCurrency(saldoReal);
     $('.kpi-balance .kpi-subtitle span').textContent = `Saldo comprometido: ${formatCurrency(saldoComprometido)}`;
     $('#incomeReceivedValue').textContent = `${formatCurrency(incomeReceived)} recebidos`;
@@ -2777,34 +2781,36 @@
     $('#expensePaidValue').textContent = `${formatCurrency(expensePaid)} pagos`;
     $('#expensePendingValue').textContent = `${formatCurrency(expensePending)} pendentes`;
 
-    // KPI "Fatura do Mês"
-    let monthlyInvoiceTotal = 0;
-    let nextOverallDueDate = null; 
-    
-    state.cards.forEach(card => {
-        const faturaVencimentoNoMesSelecionado = new Date(Date.UTC(state.year, state.month, card.dueDay));
-        const { previousClosing, currentClosingDate } = getInvoicePeriod(card, faturaVencimentoNoMesSelecionado);
+    // 3. Calcular KPI "Fatura do Mês" (Total APENAS de Despesas de CARTÃO com Vencimento Efetivo no Mês/Ano Selecionado)
+    let totalCardDueThisMonth = 0; // Renomeado para clareza
+    let earliestCardDueDateThisMonth = null; // Renomeado para clareza
 
-        if (previousClosing && currentClosingDate) {
-            const invoiceTransactionsForThisCardAndMonth = state.transactions.filter(t => {
-                const tLaunchDate = parseLocalDateString(t.date);
-                return t.type === 'expense' &&
-                       t.paymentMethod === 'credito' &&
-                       t.creditCardId === card.id &&
-                       tLaunchDate >= previousClosing &&
-                       tLaunchDate < currentClosingDate;
-            });
-            
-            monthlyInvoiceTotal += invoiceTransactionsForThisCardAndMonth.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-            
-            if (!nextOverallDueDate || faturaVencimentoNoMesSelecionado < nextOverallDueDate) {
-                nextOverallDueDate = faturaVencimentoNoMesSelecionado;
+    // Iteramos por TODAS as transações para encontrar as despesas de CARTÃO que VENCEM no mês/ano selecionado
+    state.transactions.forEach(t => {
+        // *** CONDIÇÃO ADICIONADA AQUI: ***
+        if (t.type === 'expense' && t.paymentMethod === 'credito') {
+            // Determina a data de vencimento efetiva da despesa de cartão
+            const effectiveDueDate = getEffectiveDueDateForSort(t); // Esta função já calcula corretamente para cartão
+
+            // Verifica se a data de vencimento efetiva existe e pertence ao mês/ano selecionado
+            if (effectiveDueDate &&
+                effectiveDueDate.getUTCMonth() === state.month &&
+                effectiveDueDate.getUTCFullYear() === state.year) {
+
+                // Soma o valor ao total de cartão devido no mês
+                totalCardDueThisMonth += parseFloat(t.amount);
+
+                // Guarda a data de vencimento mais próxima DENTRE AS FATURAS DE CARTÃO do mês
+                if (!earliestCardDueDateThisMonth || effectiveDueDate < earliestCardDueDateThisMonth) {
+                    earliestCardDueDateThisMonth = effectiveDueDate;
+                }
             }
         }
     });
-    
-    $('#invoiceValue').textContent = formatCurrency(monthlyInvoiceTotal);
-    $('#invoiceDueDate').textContent = nextOverallDueDate ? formatDate(nextOverallDueDate) : '--/--/----';
+
+    // Atualiza os elementos HTML do KPI "Fatura do Mês"
+    $('#invoiceValue').textContent = formatCurrency(totalCardDueThisMonth); // Usa o total APENAS de cartão
+    $('#invoiceDueDate').textContent = earliestCardDueDateThisMonth ? formatDate(earliestCardDueDateThisMonth) : '--/--/----';
   };
 
   const updateCardsList = () => {
@@ -2872,38 +2878,56 @@
   const openCardInvoice = (cardId) => {
     const card = state.cards.find(c => c.id === cardId);
     if (!card) return;
-    state.currentCard = card;
+    state.currentCard = card; // Guarda o cartão atual
 
+    // 1. Determina a data de VENCIMENTO da fatura deste cartão para o MÊS/ANO selecionado nos filtros
     const faturaVencimentoNoMesSelecionado = new Date(Date.UTC(state.year, state.month, card.dueDay));
+
+    // 2. Calcula o PERÍODO DE COMPRAS (data início e fim) que corresponde a essa fatura específica
+    //    Ex: Se a fatura vence em Junho, o período de compras pode ser de 21/Abr a 20/Mai
     const { previousClosing, currentClosingDate } = getInvoicePeriod(card, faturaVencimentoNoMesSelecionado);
-    
+
+    // Define o título do Modal
     $('#cardInvoiceTitle').textContent = `Fatura ${card.name} - Venc. ${formatDate(faturaVencimentoNoMesSelecionado)}`;
-    
-    const endOfPurchasePeriod = new Date(currentClosingDate.getTime());
-    endOfPurchasePeriod.setUTCDate(currentClosingDate.getUTCDate() -1);
+
+    // Calcula a data final do período para exibição (um dia antes do fechamento)
+    let endOfPurchasePeriod = null;
+    if (currentClosingDate) {
+        endOfPurchasePeriod = new Date(currentClosingDate.getTime());
+        endOfPurchasePeriod.setUTCDate(currentClosingDate.getUTCDate() - 1);
+    }
+
 
     let currentInvoiceSum = 0;
-    let invoiceTransactions = [];
+    let invoiceTransactions = []; // Array para guardar as transações desta fatura
 
-    if (previousClosing && currentClosingDate) {
+    // 3. Filtra TODAS as transações para encontrar as que pertencem a ESTA fatura
+    if (previousClosing && currentClosingDate) { // Só continua se o período foi calculado corretamente
         invoiceTransactions = state.transactions.filter(t => {
-            const tLaunchDate = parseLocalDateString(t.date);
-            return t.type === 'expense' && 
-                   t.paymentMethod === 'credito' && 
-                   t.creditCardId === cardId &&
-                   tLaunchDate >= previousClosing && 
-                   tLaunchDate < currentClosingDate;
-        }).sort((a,b) => parseLocalDateString(a.date) - parseLocalDateString(b.date));
+            const tLaunchDate = parseLocalDateString(t.date); // Pega a DATA DA COMPRA da transação
+
+            // CONDIÇÕES PARA PERTENCER À FATURA:
+            return t.type === 'expense' &&                   // Ser uma despesa
+                   t.paymentMethod === 'credito' &&          // Paga com cartão
+                   t.creditCardId === cardId &&              // Ser DESTE cartão específico
+                   tLaunchDate &&                            // Garantir que a data de lançamento é válida
+                   tLaunchDate >= previousClosing &&         // A DATA DA COMPRA ser maior ou igual ao início do período
+                   tLaunchDate < currentClosingDate;         // A DATA DA COMPRA ser menor que o fim do período (exclusive)
+        }).sort((a,b) => parseLocalDateString(a.date) - parseLocalDateString(b.date)); // Ordena por data de compra
+
+        // 4. Soma o valor das transações encontradas
         currentInvoiceSum = invoiceTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
     }
-    
+
+    // 5. Atualiza os detalhes no modal (cabeçalho da fatura)
     $('#cardInvoiceDetails').innerHTML = `
-        <p><strong>Período de Compras:</strong> ${formatDate(previousClosing)} - ${formatDate(endOfPurchasePeriod)}</p>
+        <p><strong>Período de Compras:</strong> ${previousClosing ? formatDate(previousClosing) : 'N/A'} - ${endOfPurchasePeriod ? formatDate(endOfPurchasePeriod) : 'N/A'}</p>
         <p><strong>Vencimento desta Fatura:</strong> ${formatDate(faturaVencimentoNoMesSelecionado)}</p>
         <p><strong>Limite Total:</strong> ${formatCurrency(card.limit)} | <strong>Disponível:</strong> ${formatCurrency(card.availableLimit)}</p>
         <p><strong>Valor desta Fatura:</strong> <span id="currentInvoiceValueDisplay">${formatCurrency(currentInvoiceSum)}</span></p>
-    `;
+    `; // <-- Textos ajustados conforme solicitado
 
+    // 6. Preenche a tabela de transações no modal
     const tableBody = $('#cardInvoiceTableBody');
     tableBody.innerHTML = '';
 
@@ -2918,20 +2942,25 @@
           <td>${formatCurrency(t.amount)}</td>
           <td>
             <div class="checkbox-wrapper">
-              <input type="checkbox" class="checkbox invoice-paid-checkbox" id="invoice-paid-${t.id}" 
+              <input type="checkbox" class="checkbox invoice-paid-checkbox" id="invoice-paid-${t.id}"
                      data-id="${t.id}" ${t.status === 'paid' ? 'checked' : ''}>
               <label class="checkbox-label" for="invoice-paid-${t.id}"></label>
             </div>
           </td>`;
       });
+      // Adiciona listeners aos checkboxes de pagamento dentro do modal
       $$('.invoice-paid-checkbox').forEach(cb => cb.addEventListener('change', async (e) => {
           await updateTransactionStatus(e.target.dataset.id, e.target.checked ? 'paid' : 'pending');
-          openCardInvoice(cardId); 
+          // Reabre o modal da fatura para refletir a mudança de status e recalcular o total
+          openCardInvoice(cardId);
       }));
     }
-    $('#invoiceConfirmAmount').textContent = formatCurrency(currentInvoiceSum); 
 
-    closeModal('cardsListModal');
+    // Atualiza o valor no modal de confirmação de pagamento
+    $('#invoiceConfirmAmount').textContent = formatCurrency(currentInvoiceSum);
+
+    // Abre o modal da fatura (e fecha o de lista de cartões, se estiver aberto)
+    closeModal('cardsListModal'); // Garante que o modal anterior feche
     openModal('cardInvoiceModal');
   };
 
