@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
@@ -130,6 +131,8 @@
       --z-index-modal: 50;
       --z-index-popover: 60;
       --z-index-tooltip: 70;
+
+      --header-height: 65px; /* Altura inicial do header, pode ser ajustada */
     }
     
     /* Dark mode overrides - Estilo iOS Dark Mode */
@@ -189,8 +192,13 @@
       padding: 0;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      word-break: break-word; /* Adicionado para quebra de palavras globalmente */
     }
     
+    html, body { 
+      overflow-x: hidden; /* Para evitar rolagem horizontal da página */
+    }
+
     html {
       font-size: 16px;
       scroll-behavior: smooth;
@@ -203,14 +211,13 @@
       color: var(--color-on-surface);
       background-color: var(--color-background);
       transition: background-color var(--transition-normal), color var(--transition-normal);
-      overflow-x: hidden;
     }
     
     h1, h2, h3, h4, h5, h6 {
       font-family: var(--font-display);
       font-weight: var(--font-weight-semibold);
       line-height: var(--line-height-tight);
-      color: var(--color-on-surface); /* Garante que títulos sempre usem a cor principal do texto */
+      color: var(--color-on-surface); 
       margin-bottom: var(--spacing-4);
     }
     
@@ -223,10 +230,7 @@
     
     p {
       margin-bottom: var(--spacing-4);
-      color: var(--color-on-surface-variant); /* Padrão para parágrafos */
-    }
-    body p, body div { /* Garante que elementos filhos diretos herdem a cor do body se não especificado */
-        color: inherit; 
+      color: var(--color-on-surface-variant); 
     }
 
     a {
@@ -260,8 +264,8 @@
     select,
     textarea {
       width: 100%;
-      padding: var(--spacing-3) var(--spacing-4); /* Ajustado para mais padding */
-      background-color: var(--color-surface-variant); /* Usar surface-variant para inputs */
+      padding: var(--spacing-3) var(--spacing-4); 
+      background-color: var(--color-surface-variant); 
       border: 1px solid var(--color-outline);
       border-radius: var(--radius-lg);
       transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
@@ -272,20 +276,16 @@
     textarea:focus {
       outline: none;
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent); /* Estilo Apple Focus Ring */
-      background-color: var(--color-surface); /* Clareia no foco */
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent); 
+      background-color: var(--color-surface); 
     }
-    
-    input[type="date"] {
-      /* padding-right: var(--spacing-8); Estilo padrão do browser para date é melhor */
-    }
-    
+        
     select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236E6E73'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right var(--spacing-3) center;
-      background-size: 16px; /* Ajustado */
+      background-size: 16px; 
       padding-right: var(--spacing-8);
     }
     [data-theme="dark"] select {
@@ -303,7 +303,7 @@
     }
     
     textarea {
-      min-height: 120px; /* Aumentado */
+      min-height: 120px; 
       resize: vertical;
     }
     
@@ -322,8 +322,8 @@
       white-space: nowrap;
       text-decoration: none;
       line-height: 1.5;
-      min-height: 40px; /* Altura mínima para toque */
-      border: 1px solid transparent; /* Borda para consistência de tamanho */
+      min-height: 40px; 
+      border: 1px solid transparent; 
     }
     
     .btn-primary {
@@ -371,7 +371,7 @@
       border-color: var(--color-primary-dark);
     }
     [data-theme="dark"] .btn-outline {
-        color: var(--color-primary); /* Garante que a cor primária seja usada para o texto */
+        color: var(--color-primary); 
         border-color: var(--color-primary);
     }
     [data-theme="dark"] .btn-outline:hover {
@@ -391,8 +391,8 @@
     }
     
     .btn-icon {
-      width: 40px; /* Aumentado */
-      height: 40px; /* Aumentado */
+      width: 40px; 
+      height: 40px; 
       padding: 0;
       border-radius: var(--radius-full);
     }
@@ -400,21 +400,21 @@
     .btn-sm {
       padding: var(--spacing-1) var(--spacing-3);
       font-size: var(--font-size-sm);
-      min-height: 32px; /* Ajustado */
+      min-height: 32px; 
     }
     
     .btn-lg {
       padding: var(--spacing-3) var(--spacing-6);
       font-size: var(--font-size-lg);
-      min-height: 48px; /* Ajustado */
+      min-height: 48px; 
     }
     
     /* ---------- LAYOUT ---------- */
     .container {
       width: 100%;
-      max-width: 1200px; /* Aumentado para mais espaço */
+      max-width: 1200px; 
       margin: 0 auto;
-      padding: 0 var(--spacing-6); /* Aumentado */
+      padding: 0 var(--spacing-6); 
     }
     
     .row {
@@ -444,18 +444,22 @@
     .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
     .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
     .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-cols-5 { grid-template-columns: repeat(5, 1fr); } /* Adicionado para filtros */
     
     @media (max-width: 1024px) {
       .lg-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+      .lg-grid-cols-3 { grid-template-columns: repeat(3, 1fr); } /* Adicionado para filtros */
     }
     
     @media (max-width: 768px) {
       .md-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
       .md-grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+      .md-grid-cols-3 { grid-template-columns: repeat(3, 1fr); } /* Adicionado para filtros */
     }
     
     @media (max-width: 576px) {
       .sm-grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+      .sm-grid-cols-2 { grid-template-columns: repeat(2, 1fr); } /* Adicionado para filtros */
     }
     
     .flex { display: flex; }
@@ -479,15 +483,19 @@
     
     /* Header - Estilo iOS/macOS */
     .header {
-      background-color: color-mix(in srgb, var(--color-surface) 80%, transparent); /* Efeito translúcido */
+      background-color: color-mix(in srgb, var(--color-surface) 80%, transparent); 
       border-bottom: 1px solid var(--color-divider);
-      padding: var(--spacing-3) 0; /* Ajustado */
+      padding: var(--spacing-3) 0; 
       position: sticky;
       top: 0;
       z-index: var(--z-index-sticky);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      transition: all var(--transition-normal);
+      transition: transform 0.3s ease-out, background-color var(--transition-normal), border-color var(--transition-normal);
+      height: var(--header-height);
+    }
+    .header.header-hidden {
+        transform: translateY(-100%);
     }
     
     .header-container {
@@ -495,6 +503,7 @@
       justify-content: space-between;
       align-items: center;
       gap: var(--spacing-4);
+      height: 100%;
     }
     
     .header-filters {
@@ -504,39 +513,50 @@
     }
     
     .header-filters .filter-select {
-      min-width: 130px; /* Aumentado */
+      min-width: 130px; 
       background-color: var(--color-surface-variant);
       border-radius: var(--radius-lg);
     }
     
     .header-actions {
       display: flex;
-      gap: var(--spacing-2); /* Diminuído para caber mais */
+      gap: var(--spacing-2); 
       align-items: center;
     }
     
-    @media (max-width: 1024px) { /* Ajustado breakpoint */
+    @media (max-width: 1024px) { 
+      .header { height: auto; }
       .header-container {
         flex-direction: column;
-        gap: var(--spacing-4);
+        gap: var(--spacing-3); 
+        padding: var(--spacing-2) 0;
       }
       .header-actions {
         flex-wrap: wrap;
         justify-content: center;
+        gap: var(--spacing-2);
       }
     }
     
     @media (max-width: 768px) {
       .header-filters {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row; 
+        align-items: center; 
         width: 100%;
+        justify-content: space-around; 
       }
+      .header-filters .select-wrapper {
+        flex-grow: 1; 
+        max-width: calc(50% - var(--spacing-2)); 
+      }
+      .header-actions .btn span { display: none; } 
+      .header-actions .btn { padding: 0; width: 40px; height: 40px; } 
+      .header-actions .btn i { margin-right: 0; }
     }
     
     /* Hero */
     .hero {
-      padding: var(--spacing-10) 0 var(--spacing-8); /* Ajustado */
+      padding: var(--spacing-10) 0 var(--spacing-8); 
       text-align: center;
     }
     
@@ -565,12 +585,12 @@
     }
     
     .card:hover {
-      transform: translateY(-3px); /* Aumentado */
+      transform: translateY(-3px); 
       box-shadow: var(--shadow-lg);
     }
     
     .card-header {
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       border-bottom: 1px solid var(--color-divider);
       display: flex;
       justify-content: space-between;
@@ -585,7 +605,7 @@
     }
     
     .card-body {
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       color: var(--color-on-surface-variant);
     }
     .card-body > *:last-child {
@@ -593,11 +613,11 @@
     }
     
     .card-footer {
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       border-top: 1px solid var(--color-divider);
       display: flex;
       justify-content: flex-end;
-      gap: var(--spacing-3); /* Ajustado */
+      gap: var(--spacing-3); 
     }
     
     /* KPI cards */
@@ -608,17 +628,17 @@
     .kpi-card {
       background-color: var(--color-surface);
       border-radius: var(--radius-xl);
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       height: 100%;
       box-shadow: var(--shadow-md);
       transition: transform var(--transition-normal), box-shadow var(--transition-normal);
       display: flex;
       flex-direction: column;
-      border-top: 5px solid var(--color-primary); /* Aumentado */
+      border-top: 5px solid var(--color-primary); 
     }
     
     .kpi-card:hover {
-      transform: translateY(-3px); /* Aumentado */
+      transform: translateY(-3px); 
       box-shadow: var(--shadow-lg);
     }
     
@@ -641,7 +661,7 @@
       font-family: var(--font-display);
       font-size: var(--font-size-3xl);
       font-weight: var(--font-weight-bold);
-      color: var(--color-on-surface); /* Garante cor principal */
+      color: var(--color-on-surface); 
       margin-bottom: var(--spacing-2);
     }
     
@@ -654,7 +674,7 @@
       margin-top: auto;
       padding-top: var(--spacing-2);
     }
-    .kpi-subtitle span { /* Garante que o span no subtitle também use a cor muted */
+    .kpi-subtitle span { 
         color: var(--color-on-surface-muted);
     }
     
@@ -663,7 +683,7 @@
       background-color: var(--color-surface);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-md);
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       height: 100%;
       display: flex;
       flex-direction: column;
@@ -703,7 +723,7 @@
       padding: var(--spacing-1) var(--spacing-3);
       border-radius: var(--radius-full);
       background-color: var(--color-surface-variant);
-      color: var(--color-on-surface-variant); /* Adicionado */
+      color: var(--color-on-surface-variant); 
       transition: opacity var(--transition-fast), background-color var(--transition-fast);
       white-space: nowrap;
     }
@@ -713,7 +733,7 @@
     }
 
     .chart-legend-item.inactive {
-      opacity: 0.6; /* Aumentado para melhor visibilidade */
+      opacity: 0.6; 
     }
     
     .chart-legend-color {
@@ -738,8 +758,8 @@
     
     .limit-display {
       text-align: center;
-      width: 120px; /* Aumentado */
-      height: 120px; /* Aumentado */
+      width: 120px; 
+      height: 120px; 
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -747,7 +767,7 @@
     }
     
     .limit-value {
-      font-size: var(--font-size-3xl); /* Aumentado */
+      font-size: var(--font-size-3xl); 
       font-weight: var(--font-weight-bold);
       color: var(--color-on-surface);
       line-height: 1;
@@ -755,7 +775,7 @@
     }
     
     .limit-label {
-      font-size: var(--font-size-sm); /* Aumentado */
+      font-size: var(--font-size-sm); 
       color: var(--color-on-surface-variant);
     }
     
@@ -768,12 +788,12 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-4);
-      padding: var(--spacing-4) var(--spacing-5); /* Ajustado */
+      padding: var(--spacing-4) var(--spacing-5); 
       border-radius: var(--radius-xl);
       background-color: var(--color-surface);
       box-shadow: var(--shadow-sm);
       margin-bottom: var(--spacing-4);
-      border-left: 5px solid var(--color-primary); /* Aumentado */
+      border-left: 5px solid var(--color-primary); 
       transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     }
     
@@ -805,16 +825,12 @@
     .insight-content { flex: 1; }
     
     .insight-title {
-      font-size: var(--font-size-md); /* Ajustado */
-      font-weight: var(--font-weight-medium); /* Ajustado */
+      font-size: var(--font-size-md); 
+      font-weight: var(--font-weight-medium); 
       margin: 0;
       color: var(--color-on-surface);
     }
-    
-    .insight-text { /* Não usado no HTML atual, mas mantido */
-      color: var(--color-on-surface-variant);
-    }
-    
+        
     /* Commitments */
     .commitments {
       background-color: var(--color-surface);
@@ -825,7 +841,7 @@
     }
     
     .commitments-header {
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -854,25 +870,33 @@
     .commitments-content {
       max-height: 0;
       overflow: hidden;
-      transition: max-height var(--transition-slow) ease-in-out; /* Ajustado */
+      transition: max-height var(--transition-slow) ease-in-out; 
     }
     
     .commitments-content.expanded {
-      max-height: 1000px; /* Suficiente para conteúdo grande */
+      max-height: 1000px; 
     }
     
     .commitment-list {
       padding: 0 var(--spacing-6) var(--spacing-6);
+      overflow: hidden; /* Para conter os itens */
     }
     
     .commitment-item {
       display: flex;
-      align-items: center;
-      gap: var(--spacing-4);
+      flex-direction: column; 
+      gap: var(--spacing-2); /* Reduzido para mobile */
       padding: var(--spacing-4);
       border-radius: var(--radius-lg);
       background-color: var(--color-surface-variant);
-      margin-bottom: var(--spacing-3); /* Ajustado */
+      margin-bottom: var(--spacing-3); 
+      overflow: hidden; /* Para conter os filhos */
+    }
+    .commitment-item-main { 
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-3); /* Ajustado */
+        width: 100%;
     }
     
     .commitment-icon {
@@ -887,27 +911,36 @@
       font-size: var(--font-size-lg);
     }
     
-    /* .commitment-content dentro do item, não o expansível */
-    .commitment-item .commitment-content {
+    .commitment-item .commitment-content { 
       flex: 1;
-      max-height: none; /* Reseta max-height para este contexto */
+      max-height: none; 
+      width: 100%; 
+      overflow: hidden; /* Para conter os filhos */
     }
     
     .commitment-info {
       display: flex;
       justify-content: space-between;
-      align-items: center; /* Alinhado */
-      margin-bottom: var(--spacing-1); /* Ajustado */
+      align-items: center; 
+      margin-bottom: var(--spacing-1); 
+      flex-wrap: wrap; /* Permitir quebra em telas pequenas */
+      gap: var(--spacing-2);
     }
     
     .commitment-name {
       font-weight: var(--font-weight-medium);
       color: var(--color-on-surface);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: normal; /* Permitir quebra de linha */
+      flex-grow: 1; /* Para ocupar espaço */
     }
     
     .commitment-amount {
       font-weight: var(--font-weight-semibold);
       color: var(--color-on-surface);
+      white-space: nowrap;
+      flex-shrink: 0; /* Não encolher */
     }
     
     .commitment-details {
@@ -916,22 +949,53 @@
       font-size: var(--font-size-sm);
       color: var(--color-on-surface-muted);
       margin-bottom: var(--spacing-2);
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
     }
     
+    .commitment-progress-wrapper { 
+        width: 100%;
+        margin-top: var(--spacing-2);
+        display: block; /* Visível por padrão (mobile-first) */
+    }
     .commitment-progress {
       height: 8px;
-      background-color: var(--color-surface); /* Fundo mais claro que o item */
+      background-color: var(--color-surface); 
       border-radius: var(--radius-full);
       overflow: hidden;
+      width: 100%;
     }
     [data-theme="dark"] .commitment-progress {
-        background-color: var(--color-background); /* No dark, usar um fundo mais escuro */
+        background-color: var(--color-background); 
     }
     
     .commitment-progress-bar {
       height: 100%;
       border-radius: var(--radius-full);
       transition: width var(--transition-normal);
+    }
+
+    /* Estilos para .commitment-item .commitment-content .commitment-progress (desktop) */
+    .commitment-item .commitment-content .commitment-progress {
+        display: none; /* Escondido por padrão, mostrado em telas maiores */
+        margin-top: var(--spacing-2);
+    }
+
+    @media (min-width: 600px) { 
+        .commitment-item {
+            flex-direction: row;
+            gap: var(--spacing-4);
+        }
+        .commitment-progress-wrapper {
+            display: none; 
+        }
+        .commitment-item .commitment-content .commitment-progress {
+            display: block; 
+        }
+         .commitment-name { 
+             white-space: nowrap; /* Evitar quebra em desktop se houver espaço */
+             max-width: 250px; /* Limitar para não empurrar demais */
+         }
     }
     
     /* Transactions */
@@ -943,11 +1007,11 @@
       background-color: var(--color-surface);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-md);
-      overflow: hidden;
+      overflow: hidden; 
     }
     
     .transactions-header {
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       border-bottom: 1px solid var(--color-divider);
     }
     
@@ -959,31 +1023,33 @@
     }
     
     .transactions-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--spacing-3); /* Ajustado */
+      display: grid; /* Usar grid para melhor distribuição */
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Colunas responsivas */
+      gap: var(--spacing-3); 
     }
-    .transactions-filters .select-wrapper select { /* Específico para filtros */
-        min-width: 150px;
+    .transactions-filters .select-wrapper select { 
+        min-width: 0; /* Permitir que o grid controle a largura */
         font-size: var(--font-size-sm);
     }
     
     .transactions-table-container {
-      overflow-x: auto;
+      overflow-x: auto; 
     }
     
     .transactions-table {
       width: 100%;
+      /* min-width: 700px; /* Removido para melhor responsividade */
       border-collapse: separate;
       border-spacing: 0;
     }
     
     .transactions-table th,
     .transactions-table td {
-      padding: var(--spacing-3) var(--spacing-4); /* Ajustado */
+      padding: var(--spacing-3) var(--spacing-4); 
       text-align: left;
       border-bottom: 1px solid var(--color-divider);
-      white-space: nowrap; /* Evitar quebra de linha em células */
+      white-space: normal; /* Permitir quebra de linha */
+      vertical-align: middle; /* Alinhar verticalmente ao centro */
     }
     
     .transactions-table th {
@@ -991,8 +1057,8 @@
       font-weight: var(--font-weight-semibold);
       color: var(--color-on-surface-variant);
       position: sticky;
-      top: 0; /* Para fixar o header da tabela ao rolar dentro do container */
-      z-index: 1; /* Para sobrepor o conteúdo da tabela */
+      top: 0; 
+      z-index: 1; 
       cursor: pointer;
       transition: background-color var(--transition-fast);
     }
@@ -1002,12 +1068,12 @@
     }
     
     .transactions-table th.sorted-asc::after {
-      content: " \2191"; /* Seta para cima */
+      content: " \2191"; 
       margin-left: var(--spacing-1);
     }
     
     .transactions-table th.sorted-desc::after {
-      content: " \2193"; /* Seta para baixo */
+      content: " \2193"; 
       margin-left: var(--spacing-1);
     }
     
@@ -1016,25 +1082,35 @@
     }
     
     .transactions-table td {
-      vertical-align: middle;
       color: var(--color-on-surface);
     }
-    .transactions-table td:nth-child(2), /* Pessoa */
-    .transactions-table td:nth-child(6), /* Status */
-    .transactions-table td:nth-child(7)  /* Pagamento */
+    .transactions-table td:nth-child(5), /* Status */
+    .transactions-table td:nth-child(6)  /* Pagamento */
     {
-        color: var(--color-on-surface-variant); /* Colunas com texto secundário */
+        color: var(--color-on-surface-variant); 
     }
-    .transactions-table td:nth-child(5) { /* Valor */
+    .transactions-table td:nth-child(4) { /* Valor */
         font-weight: var(--font-weight-medium);
+        white-space: nowrap; /* Manter valor sem quebra */
+    }
+    .transactions-table td:nth-child(7), /* Pago? */
+    .transactions-table td:nth-child(8)  /* Ações */
+    {
+        white-space: nowrap; /* Evitar quebra em colunas de ações/checkbox */
     }
 
     
     .transaction-name-cell {
       display: flex;
       align-items: center;
-      gap: var(--spacing-3); /* Aumentado */
+      gap: var(--spacing-3); 
       font-weight: var(--font-weight-medium);
+    }
+    .transaction-name-cell span { 
+        white-space: normal; 
+        word-break: break-word; /* Adicionado */
+        /* min-width: 100px; /* Ajustado para ser menor e permitir mais flexibilidade */
+        display: inline-block; 
     }
     
     .transaction-icon {
@@ -1043,16 +1119,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: var(--radius-md); /* Ajustado */
+      border-radius: var(--radius-md); 
       background-color: var(--color-surface-variant);
-      color: var(--color-primary); /* Cor padrão, será sobrescrita no JS */
+      color: var(--color-primary); 
       flex-shrink: 0;
       font-size: var(--font-size-lg);
     }
     
     .transaction-actions {
       display: flex;
-      gap: var(--spacing-2); /* Aumentado */
+      gap: var(--spacing-1); /* Reduzido para caber melhor */
       justify-content: flex-end;
     }
     
@@ -1060,12 +1136,12 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: var(--spacing-1) var(--spacing-2); /* Ajustado */
+      padding: var(--spacing-1) var(--spacing-2); 
       font-size: var(--font-size-xs);
-      font-weight: var(--font-weight-semibold); /* Aumentado */
-      text-transform: capitalize; /* Melhor que uppercase para status */
-      letter-spacing: 0.02em; /* Ajustado */
-      border-radius: var(--radius-md); /* Ajustado */
+      font-weight: var(--font-weight-semibold); 
+      text-transform: capitalize; 
+      letter-spacing: 0.02em; 
+      border-radius: var(--radius-md); 
       white-space: nowrap;
     }
     
@@ -1074,19 +1150,19 @@
     .badge-danger { background-color: var(--color-error-light); color: var(--color-error); }
     .badge-info { background-color: var(--color-info-light); color: var(--color-info); }
     
-    /* Checkbox and Radio - Estilos base. Ajustes específicos para modal abaixo. */
-    .form-check { /* Wrapper genérico para checkbox/radio se usado fora de modal-form-group */
+    /* Checkbox and Radio */
+    .form-check { 
       display: flex;
       align-items: center;
       gap: var(--spacing-2);
-      margin-bottom: var(--spacing-2); /* Menor margem se usado em lista */
+      margin-bottom: var(--spacing-2); 
       cursor: pointer;
     }
     
     .form-check input[type="checkbox"],
     .form-check input[type="radio"] {
-      width: 20px; /* Aumentado */
-      height: 20px; /* Aumentado */
+      width: 20px; 
+      height: 20px; 
       margin: 0;
       cursor: pointer;
       accent-color: var(--color-primary);
@@ -1098,13 +1174,24 @@
       cursor: pointer;
       color: var(--color-on-surface);
     }
+    .sr-only { 
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
     
     /* Theme toggle */
     .theme-toggle {
       background-color: transparent;
       border: none;
-      width: 40px; /* Consistente com .btn-icon */
-      height: 40px; /* Consistente com .btn-icon */
+      width: 40px; 
+      height: 40px; 
       border-radius: var(--radius-full);
       display: flex;
       align-items: center;
@@ -1130,14 +1217,14 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.3); /* Mais suave */
+      background-color: rgba(0, 0, 0, 0.3); 
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
-      display: none; /* Controlado por JS */
+      display: none; 
       align-items: center;
       justify-content: center;
       z-index: var(--z-index-modal-backdrop);
-      opacity: 0; /* Para transição */
+      opacity: 0; 
       transition: opacity var(--transition-normal);
     }
     
@@ -1155,22 +1242,20 @@
       display: flex;
       flex-direction: column;
       max-height: 90vh;
-      transform: scale(0.95); /* Para transição */
-      opacity: 0; /* Para transição */
+      transform: scale(0.95); 
+      opacity: 0; 
       transition: transform var(--transition-normal) ease-out, opacity var(--transition-normal) ease-out;
     }
     .modal-backdrop.active .modal {
         transform: scale(1);
         opacity: 1;
     }
-    
-    /* @keyframes modal-slide-in - Removido em favor de transform:scale */
-    
+        
     .modal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      padding: var(--spacing-5) var(--spacing-6); 
       border-bottom: 1px solid var(--color-divider);
     }
     
@@ -1184,9 +1269,9 @@
     .modal-close {
       background: transparent;
       border: none;
-      font-size: 1.25rem; /* Ajustado */
+      font-size: 1.25rem; 
       cursor: pointer;
-      color: var(--color-on-surface-muted); /* Mais suave */
+      color: var(--color-on-surface-muted); 
       transition: color var(--transition-fast), background-color var(--transition-fast);
       width: 36px;
       height: 36px;
@@ -1202,13 +1287,12 @@
     }
     
     .modal-body {
-      padding: var(--spacing-6); /* Aumentado */
+      padding: var(--spacing-6); 
       overflow-y: auto;
-      flex-grow: 1; /* Para ocupar espaço disponível */
+      flex-grow: 1; 
     }
-    /* Estilos para formulários dentro de modais */
     .modal-body .form-group {
-      margin-bottom: var(--spacing-5); /* Mais espaçamento entre campos */
+      margin-bottom: var(--spacing-5); 
     }
     .modal-body .form-group:last-child {
       margin-bottom: 0;
@@ -1223,19 +1307,19 @@
     }
 
     .modal-body .radio-group,
-    .modal-body .checkbox-wrapper { /* Antigo .form-check */
+    .modal-body .checkbox-wrapper { 
       margin-top: var(--spacing-2);
       display: flex;
-      gap: var(--spacing-4); /* Espaçamento entre radios */
+      gap: var(--spacing-4); 
       flex-wrap: wrap;
-      align-items: center; /* Alinhar itens no checkbox-wrapper */
+      align-items: center; 
     }
     .modal-body .checkbox-wrapper {
-        gap: var(--spacing-2); /* Menor gap para label do checkbox */
+        gap: var(--spacing-2); 
     }
 
 
-    .modal-body .radio-wrapper { /* Wrapper individual para cada radio+label */
+    .modal-body .radio-wrapper { 
       display: flex;
       align-items: center;
       gap: var(--spacing-2);
@@ -1259,13 +1343,13 @@
     .modal-footer {
       display: flex;
       justify-content: flex-end;
-      gap: var(--spacing-3); /* Ajustado */
-      padding: var(--spacing-5) var(--spacing-6); /* Ajustado */
+      gap: var(--spacing-3); 
+      padding: var(--spacing-5) var(--spacing-6); 
       border-top: 1px solid var(--color-divider);
-      background-color: var(--color-surface-variant); /* Fundo sutil */
+      background-color: var(--color-surface-variant); 
     }
     [data-theme="dark"] .modal-footer {
-        background-color: var(--color-surface); /* No dark, o surface já é escuro */
+        background-color: var(--color-surface); 
     }
     
     /* Toast notifications */
@@ -1276,38 +1360,36 @@
       z-index: var(--z-index-tooltip);
       display: flex;
       flex-direction: column;
-      gap: var(--spacing-3); /* Ajustado */
-      max-width: 350px; /* Aumentado */
+      gap: var(--spacing-3); 
+      max-width: 350px; 
     }
     
     .toast {
       background-color: var(--color-surface);
-      border-radius: var(--radius-lg); /* Consistente */
-      padding: var(--spacing-3) var(--spacing-4); /* Ajustado */
+      border-radius: var(--radius-lg); 
+      padding: var(--spacing-3) var(--spacing-4); 
       box-shadow: var(--shadow-lg);
       display: flex;
       align-items: center;
-      gap: var(--spacing-3); /* Ajustado */
+      gap: var(--spacing-3); 
       opacity: 0;
       transform: translateX(100%);
       transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-      border-left: 5px solid var(--color-primary); /* Aumentado */
+      border-left: 5px solid var(--color-primary); 
       color: var(--color-on-surface);
     }
     .toast.show {
         opacity: 1;
         transform: translateX(0);
     }
-    
-    /* @keyframes toast-in - Removido em favor de transition */
-    
+        
     .toast-success { border-left-color: var(--color-success); }
     .toast-error { border-left-color: var(--color-error); }
     .toast-warning { border-left-color: var(--color-warning); }
     .toast-info { border-left-color: var(--color-info); }
     
     .toast-icon {
-      font-size: 1.5rem; /* Aumentado */
+      font-size: 1.5rem; 
       flex-shrink: 0;
     }
     .toast-success .toast-icon { color: var(--color-success); }
@@ -1333,21 +1415,17 @@
         color: var(--color-on-surface);
     }
     
-    /* Select wrapper - já bem definido, talvez não precise de .select-wrapper::after global */
     .select-wrapper {
       position: relative;
-      display: block; /* Para ocupar a largura total no form-group */
+      display: block; 
     }
-    
-    /* .select-wrapper select { padding-right: 2.5rem; } - Já definido em input, select, textarea */
-    
-    /* .select-wrapper::after { ... } - Removido se o estilo de select global for suficiente */
-    
+        
     /* Modal de Categorias - Estilos específicos */
     .categories-container .nav-tabs {
       display: flex;
       border-bottom: 1px solid var(--color-divider);
       margin-bottom: var(--spacing-4);
+      flex-wrap: wrap; /* Permitir quebra em telas menores */
     }
     .categories-container .nav-item {
       list-style: none;
@@ -1361,6 +1439,7 @@
       font-weight: var(--font-weight-medium);
       transition: color var(--transition-fast), border-color var(--transition-fast);
       display: block;
+      white-space: nowrap;
     }
     .categories-container .nav-link:hover {
       color: var(--color-on-surface);
@@ -1373,7 +1452,7 @@
       padding-top: var(--spacing-2);
     }
     .categories-container .tab-pane {
-      display: none; /* Controlado por JS/classe active */
+      display: none; 
     }
     .categories-container .tab-pane.fade.show.active {
       display: block;
@@ -1383,7 +1462,7 @@
       max-height: 250px; 
       overflow-y: auto;
       margin-bottom: var(--spacing-4);
-      padding-right: var(--spacing-2); /* Espaço para scrollbar */
+      padding-right: var(--spacing-2); 
     }
     .category-item {
       display: flex;
@@ -1399,43 +1478,57 @@
       display: flex;
       align-items: center;
       gap: var(--spacing-3);
+      flex-grow: 1; /* Para ocupar espaço */
+      min-width: 0; /* Para permitir encolhimento */
+    }
+    .category-item-content > div:last-child { /* Nome da categoria */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .category-item-icon { 
       font-size: var(--font-size-lg); 
       width: 24px; text-align: center;
+      flex-shrink: 0;
     }
     .category-item-actions {
       display: flex;
       gap: var(--spacing-1);
+      flex-shrink: 0;
     }
 
     .add-category-form {
       display: flex;
       gap: var(--spacing-2);
-      align-items: stretch; /* Para inputs terem mesma altura */
+      align-items: stretch; 
       margin-top: var(--spacing-4);
       padding-top: var(--spacing-4);
       border-top: 1px solid var(--color-divider);
+      flex-wrap: wrap; /* Permitir quebra */
     }
     .add-category-form .custom-icon-input {
         flex-shrink: 0;
+        margin-bottom: var(--spacing-2); /* Espaçamento se quebrar linha */
     }
     .add-category-form input[type="text"] {
       flex-grow: 1;
+      min-width: 150px; /* Para não ficar muito pequeno */
+      margin-bottom: var(--spacing-2); /* Espaçamento se quebrar linha */
     }
     .add-category-form .btn {
         flex-shrink: 0;
+        margin-bottom: var(--spacing-2); /* Espaçamento se quebrar linha */
     }
 
     .custom-icon-input { 
       display: flex;
       align-items: center;
       gap: var(--spacing-2);
-      padding: 0 var(--spacing-3); /* Padding interno */
+      padding: 0 var(--spacing-3); 
       background-color: var(--color-surface);
       border: 1px solid var(--color-outline);
       border-radius: var(--radius-lg);
-      height: 40px; /* Mesma altura dos botões e inputs */
+      height: 40px; 
     }
     .custom-icon-preview { 
       font-size: var(--font-size-lg);
@@ -1446,11 +1539,27 @@
       padding: 0; 
       box-shadow: none; 
       background: transparent;
-      width: 80px; /* Largura para o input de emoji */
+      width: 80px; 
     }
     .custom-icon-input input:focus {
         box-shadow: none;
     }
+    /* Modal de Contas Vencidas/A Vencer */
+    #dueTransactionsModal .modal {
+        max-width: 800px; 
+    }
+    #dueTransactionsModal .transactions-table-container {
+        max-height: 450px; 
+        overflow-y: auto;
+    }
+    #dueTransactionsModal .transactions-table {
+        min-width: auto; 
+    }
+    #dueTransactionsModal .transactions-table th,
+    #dueTransactionsModal .transactions-table td {
+        white-space: normal; 
+    }
+
 
     /* Utility classes */
     .mt-1 { margin-top: var(--spacing-1); }
@@ -1492,17 +1601,47 @@
     @media (max-width: 768px) {
       .hide-on-mobile { display: none; }
       .container { padding: 0 var(--spacing-4); }
-      .header-actions .btn span { display: none; } /* Esconde texto dos botões, mantém ícone */
-      .header-actions .btn { padding: 0; width: 40px; height: 40px; } /* Torna botões apenas ícones */
-      .header-actions .btn i { margin-right: 0; }
       .transactions-table th, .transactions-table td { padding: var(--spacing-2) var(--spacing-3); }
-      .transactions-table th:nth-child(2), /* Pessoa */
-      .transactions-table td:nth-child(2),
-      .transactions-table th:nth-child(7), /* Pagamento */
-      .transactions-table td:nth-child(7) {
-          display: none; /* Esconde colunas menos críticas */
+      
+      /* Esconder colunas menos essenciais na tabela de transações em telas menores */
+      .transactions-table th:nth-child(3), /* Vencimento */
+      .transactions-table td:nth-child(3),
+      .transactions-table th:nth-child(6), /* Pagamento */
+      .transactions-table td:nth-child(6) {
+          /* display: none; /* Descomente se quiser esconder completamente */
+      }
+      .transactions-filters { /* Ajuste para filtros em mobile */
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       }
     }
+    @media (max-width: 600px) { 
+        .header-actions .btn span { display: none; } 
+        .header-actions .btn { padding: 0; width: 40px; height: 40px; } 
+        .header-actions .btn i { margin-right: 0; }
+
+        .commitment-item {
+            flex-direction: column;
+            align-items: flex-start; 
+        }
+        .commitment-item-main {
+            width: 100%; 
+        }
+        .commitment-name {
+            max-width: none; 
+            white-space: normal; 
+        }
+        .commitment-progress-wrapper {
+            display: block; 
+            width: 100%;
+        }
+        .commitment-item .commitment-content .commitment-progress {
+            display: none; 
+        }
+        .transactions-filters { /* Mais colunas para filtros em telas pequenas */
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+    }
+
     @media (max-width: 480px) {
         .hero-title { font-size: var(--font-size-3xl); }
         .hero-subtitle { font-size: var(--font-size-md); }
@@ -1510,24 +1649,73 @@
         .modal { max-width: 100%; width: 95%; border-radius: var(--radius-lg); }
         .modal-body .radio-group { flex-direction: column; align-items: flex-start; gap: var(--spacing-3); }
         .add-category-form { flex-direction: column; align-items: stretch; }
+        .add-category-form .custom-icon-input,
+        .add-category-form input[type="text"],
+        .add-category-form .btn {
+            width: 100%; /* Ocupar largura total */
+        }
+        .transactions-filters { /* Filtros em 2 colunas em telas muito pequenas */
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
+    /* Estilos para ApexCharts Tooltip */
+    .apexcharts-tooltip {
+      background: var(--color-surface) !important;
+      color: var(--color-on-surface) !important;
+      border: 1px solid var(--color-divider) !important;
+      box-shadow: var(--shadow-md) !important;
+      border-radius: var(--radius-md) !important;
+      padding: var(--spacing-2) var(--spacing-3) !important;
+    }
+    .apexcharts-tooltip .apexcharts-tooltip-title {
+      background: var(--color-surface-variant) !important;
+      color: var(--color-on-surface) !important;
+      border-bottom: 1px solid var(--color-divider) !important;
+      font-weight: var(--font-weight-semibold) !important;
+      padding: var(--spacing-2) var(--spacing-3) !important;
+      margin: 0 !important;
+    }
+    .apexcharts-tooltip .apexcharts-tooltip-series-group {
+      padding: var(--spacing-2) var(--spacing-3) !important;
+    }
+    .apexcharts-tooltip .apexcharts-tooltip-text-value,
+    .apexcharts-tooltip .apexcharts-tooltip-text-label {
+      color: var(--color-on-surface-variant) !important;
+    }
+    .apexcharts-tooltip .apexcharts-tooltip-text-value {
+        font-weight: var(--font-weight-medium);
+    }
+    .apexcharts-tooltip.apexcharts-theme-dark { 
+        background: var(--color-surface) !important;
+        color: var(--color-on-surface) !important;
+        border-color: var(--color-divider) !important;
+    }
+    .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title {
+        background: var(--color-surface-variant) !important;
+        color: var(--color-on-surface) !important;
+        border-bottom-color: var(--color-divider) !important;
+    }
+    .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-text-value,
+    .apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-text-label {
+      color: var(--color-on-surface-variant) !important;
+    }
   </style>
 </head>
 <body>
   <!-- Header -->
-  <header class="header">
+  <header class="header" id="appHeader">
     <div class="container">
       <div class="header-container">
         <div class="header-filters">
           <div class="select-wrapper">
-            <select id="yearSelect" class="filter-select">
+            <select id="yearSelect" class="filter-select" aria-label="Selecionar Ano">
               <!-- Options will be populated by JS -->
             </select>
           </div>
           
           <div class="select-wrapper">
-            <select id="monthSelect" class="filter-select">
+            <select id="monthSelect" class="filter-select" aria-label="Selecionar Mês">
               <option value="0">Janeiro</option>
               <option value="1">Fevereiro</option>
               <option value="2">Março</option>
@@ -1748,7 +1936,6 @@
             <thead>
               <tr>
                 <th class="sortable" data-sort="name">Nome</th>
-                <th class="sortable" data-sort="person">Pessoa</th>
                 <th class="sortable" data-sort="date">Data</th>
                 <th class="sortable" data-sort="dueDate">Vencimento</th>
                 <th class="sortable" data-sort="amount" style="text-align: right;">Valor</th>
@@ -1863,7 +2050,7 @@
              <select id="expensePaymentMethod"></select>
            </div>
          </div>
-         <div class="form-group" id="creditCardGroup" style="display: none;">
+         <div class="form-group" id="expenseCreditCardGroup" style="display: none;">
            <label class="form-label" for="expenseCreditCard">Cartão de Crédito</label>
            <div class="select-wrapper">
              <select id="expenseCreditCard"></select>
@@ -2112,7 +2299,7 @@
       </button>
     </div>
     <div class="modal-body">
-      <div class="card mb-6"> <!-- Usando card para agrupar detalhes -->
+      <div class="card mb-6"> 
         <div id="cardInvoiceDetails" class="card-body">
           <!-- Detalhes da fatura serão inseridos aqui dinamicamente -->
         </div>
@@ -2201,7 +2388,7 @@
 
  <!-- Modal de Categorias -->
  <div class="modal-backdrop" id="categoriesModal">
-  <div class="modal" style="max-width: 650px;"> <!-- Aumentado max-width -->
+  <div class="modal" style="max-width: 650px;"> 
     <div class="modal-header">
       <h2 class="modal-title">Gerenciar Itens</h2>
       <button class="modal-close" id="closeCategoriesModal" aria-label="Fechar">
@@ -2494,7 +2681,7 @@
 
  <!-- Modal para detalhes de contas vencidas/a vencer -->
  <div class="modal-backdrop" id="dueTransactionsModal">
-  <div class="modal" style="max-width: 700px;">
+  <div class="modal" style="max-width: 800px;"> 
     <div class="modal-header">
       <h2 class="modal-title" id="dueTransactionsModalTitle" style="display: flex; align-items: center; gap: var(--spacing-2);">
         <i class="fas fa-exclamation-triangle" id="dueTransactionsModalIcon" style="margin-right: 8px;"></i>
@@ -2505,8 +2692,8 @@
       </button>
     </div>
     <div class="modal-body">
-      <div class="transactions-table-container" style="max-height: 400px; overflow-y: auto;">
-        <table class="transactions-table" id="dueTransactionsTable">
+      <div class="transactions-table-container" style="max-height: 450px; overflow-y: auto;"> 
+        <table class="transactions-table" id="dueTransactionsTable" style="min-width: auto;"> 
           <thead>
             <tr>
               <th>Nome</th>
@@ -2547,7 +2734,7 @@
       category: '',
       status: '',
       paymentMethod: '',
-      person: '',
+      person: '', // Filtro de pessoa reativado na lógica
       transactionType: '' 
     },
     categories: {
@@ -2601,7 +2788,8 @@
     currentCategory: null,
     currentInvestment: null,
     currentContribution: null,
-    themePreference: 'light'
+    themePreference: 'light',
+    lastScrollTop: 0 
   };
 
   const formatCurrency = value => {
@@ -2648,12 +2836,11 @@
     $('#themeToggle').addEventListener('click', toggleTheme);
   };
 
-  // SUBSTITUÍDO PELA CONFIGURAÇÃO CORRETA FORNECIDA
   const firebaseConfig = {
-    apiKey: "AIzaSyD9Q0TO8JVj9XN8gANWFndbRQ6QMUVkURs",
+    apiKey: "AIzaSyD9Q0TO8JVj9XN8gANWFndbRQ6QMUVkURs", // Substitua pela sua chave de API
     authDomain: "sistema-financeiro-teste.firebaseapp.com",
     projectId: "sistema-financeiro-teste",
-    storageBucket: "sistema-financeiro-teste.appspot.com", // Corrigido para .appspot.com se for o padrão
+    storageBucket: "sistema-financeiro-teste.appspot.com", 
     messagingSenderId: "177026780096",
     appId: "1:177026780096:web:c1fcf41675036b2f3f9625"
   };
@@ -2661,11 +2848,10 @@
 
   let db;
   try {
-    if (!firebase.apps.length) { // Evita reinicialização
+    if (!firebase.apps.length) { 
         firebase.initializeApp(firebaseConfig);
     }
     db = firebase.firestore();
-    // Tentativa de habilitar persistência, pode não funcionar em todos os navegadores/modos
     db.enablePersistence({experimentalForceOwningTab: true}).catch(err => {
         if (err.code == 'failed-precondition') {
             console.warn('Firebase persistence failed: Multiple tabs open or other issue.');
@@ -2679,7 +2865,6 @@
   } catch (error) {
     console.error('Erro Firebase:', error);
     showToast('Erro de conexão com o Firebase.', 'error');
-    // Fallback para um objeto 'db' mockado se a inicialização falhar
     db = { 
         collection: (name) => ({ 
             get: () => Promise.resolve({ docs: [], empty: true, forEach: () => {} }), 
@@ -2700,7 +2885,7 @@
     };
   }
 
-  const generateId = () => db.collection('any').doc().id; // Usa o gerador de ID do Firebase
+  const generateId = () => db.collection('any').doc().id; 
 
   const showToast = (message, type = 'success') => {
     const container = $('#toastContainer');
@@ -2724,8 +2909,6 @@
     `;
     
     container.appendChild(toast);
-    // Força reflow para a animação funcionar na adição
-    // eslint-disable-next-line no-unused-expressions
     toast.offsetHeight; 
     toast.classList.add('show');
     
@@ -2734,7 +2917,7 @@
     const removeToast = () => {
         toast.classList.remove('show');
         toast.addEventListener('transitionend', () => {
-            if (toast.parentNode) { // Verifica se o toast ainda está no DOM
+            if (toast.parentNode) { 
                  toast.remove();
             }
         }, { once: true });
@@ -2748,15 +2931,13 @@
   const openModal = modalId => {
     const modalBackdrop = $(`#${modalId}`);
     if (modalBackdrop) {
-      modalBackdrop.style.display = 'flex'; // Ativa o display flex antes da opacidade
-      // eslint-disable-next-line no-unused-expressions
-      modalBackdrop.offsetHeight; // Força reflow
+      modalBackdrop.style.display = 'flex'; 
+      modalBackdrop.offsetHeight; 
       modalBackdrop.classList.add('active');
       
       const modalContent = modalBackdrop.querySelector('.modal');
       if(modalContent) {
-        // eslint-disable-next-line no-unused-expressions
-        modalContent.offsetHeight; // Força reflow para a animação do modal
+        modalContent.offsetHeight; 
         modalContent.style.transform = 'scale(1)';
         modalContent.style.opacity = '1';
       }
@@ -2773,7 +2954,6 @@
         modalContent.style.transform = 'scale(0.95)';
         modalContent.style.opacity = '0';
       }
-      // Espera a transição terminar para esconder o backdrop
       modalBackdrop.addEventListener('transitionend', function handler(e) {
           if (e.propertyName === 'opacity' && !modalBackdrop.classList.contains('active')) {
               modalBackdrop.style.display = 'none';
@@ -2836,7 +3016,7 @@
     let mesVencimentoFinal = mesFechamentoFatura;
     let anoVencimentoFinal = anoFechamentoFatura;
 
-    if (cartao.dueDay < cartao.closingDay) { // Se vencimento é no mês seguinte ao fechamento
+    if (cartao.dueDay < cartao.closingDay) { 
         mesVencimentoFinal++;
         if (mesVencimentoFinal > 11) {
             mesVencimentoFinal = 0;
@@ -2850,7 +3030,7 @@
     if (!cartao || !cartao.closingDay) return null;
     const dataFechamentoNoMesAtual = new Date(Date.UTC(state.year, state.month, cartao.closingDay));
     const dataMelhorDia = new Date(dataFechamentoNoMesAtual);
-    dataMelhorDia.setUTCDate(dataFechamentoNoMesAtual.getUTCDate() + 1); // Dia seguinte ao fechamento
+    dataMelhorDia.setUTCDate(dataFechamentoNoMesAtual.getUTCDate() + 1); 
     return dataMelhorDia.getUTCDate();
   };
 
@@ -2858,8 +3038,7 @@
     const paymentMethodEl = $(`#${formPrefix}PaymentMethod`);
     const isRecurrentEl = $(`#${formPrefix}IsRecurrent`);
     const statusGroupEl = $(`#${formPrefix}StatusGroup`);
-    const statusPendingRadio = $(`#${formPrefix}StatusPending`); // Para despesas
-    const statusPendingIncomeRadio = $(`#${formPrefix}StatusPending`); // Para receitas (mesmo ID, pode causar confusão se ambos modais abertos)
+    const statusPendingRadio = $(`#${formPrefix}StatusPending`);
 
 
     if (!paymentMethodEl || !statusGroupEl ) return;
@@ -2880,7 +3059,7 @@
     } else if (formPrefix.includes('income')) {
         if (isRecurrent) {
              statusGroupEl.style.display = 'none';
-             const incomePendingRadio = $(`#incomeStatusPending`); // Específico para income modal
+             const incomePendingRadio = $(`#incomeStatusPending`); 
              if(incomePendingRadio) incomePendingRadio.checked = true;
         } else {
             statusGroupEl.style.display = 'block';
@@ -2943,18 +3122,17 @@
             state[coll.stateKey] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           }
         } else if (state[coll.stateKey] && Object.keys(state[coll.stateKey]).length > 0) { 
-            // Se a coleção no Firebase estiver vazia mas tivermos defaults no state, popular o Firebase
           const batch = db.batch();
           if (coll.defaultKey) {
             Object.values(state[coll.stateKey]).flat().forEach(item => {
-              if(item.id) { // Garantir que o item tenha um ID
+              if(item.id) { 
                 const docRef = db.collection(coll.name).doc(item.id);
                 batch.set(docRef, item); 
               }
             });
           } else {
             state[coll.stateKey].forEach(item => {
-              if(item.id) { // Garantir que o item tenha um ID
+              if(item.id) { 
                 const docRef = db.collection(coll.name).doc(item.id);
                 batch.set(docRef, item);
               }
@@ -2977,8 +3155,9 @@
     updatePeopleSelects();
     updateInvestmentCategorySelects(); 
     renderCategoriesList(); 
-    renderExpenseCategoriesList(); // Adicionado
+    renderExpenseCategoriesList(); 
     renderInvestmentCategoriesList();
+    renderPaymentMethodsList(); // Adicionado para renderizar a lista de métodos de pagamento
     updatePeopleList();
   };
 
@@ -2996,7 +3175,7 @@
         if (categories.find(c => c.id === currentValue)) {
             selectEl.value = currentValue;
         } else {
-            selectEl.value = ""; // Reseta se valor anterior não existe mais
+            selectEl.value = ""; 
         }
       }
     };
@@ -3167,7 +3346,6 @@
       state.transactions.forEach(t => {
         if (t.type === 'expense' && t.paymentMethod === 'credito' && t.creditCardId === cardId) {
           const dataCompra = parseLocalDateString(t.date);
-          // Inclui transações do período da fatura que não estão pagas
           if (dataCompra >= previousClosing && dataCompra < currentClosingDate && t.status !== 'paid') {
             const docRef = db.collection('transactions').doc(t.id);
             batch.update(docRef, { status: 'paid' });
@@ -3178,12 +3356,6 @@
       });
       
       if (totalFaturaPagaEsteMes > 0) {
-        // O currentInvoice do cartão já reflete o total gasto. Ao pagar, não alteramos o currentInvoice,
-        // pois ele representa o gasto total no cartão, não o saldo devedor de faturas anteriores.
-        // A lógica de `updateCardLimits` já cuida disso ao adicionar/remover transações.
-        // O que precisamos é garantir que as transações individuais sejam marcadas como pagas.
-        // Se o `currentInvoice` no cartão representa o "saldo devedor da fatura atual + compras recentes",
-        // então ele deveria ser reduzido. Assumindo que `currentInvoice` é o total de compras não faturadas/pagas.
         card.currentInvoice = Math.max(0, (parseFloat(card.currentInvoice) || 0) - totalFaturaPagaEsteMes);
         card.availableLimit = parseFloat(card.limit) - parseFloat(card.currentInvoice);
         batch.update(db.collection('cards').doc(card.id), {
@@ -3422,7 +3594,7 @@
       await fullUIRefresh(); 
       if ($('#investmentDetailModal').classList.contains('active') && state.currentInvestment?.id === data.investmentId) {
         renderInvestmentContributions(data.investmentId); 
-        openInvestmentDetail(data.investmentId); // Reabre para atualizar totais
+        openInvestmentDetail(data.investmentId); 
       }
       showToast('Aporte adicionado!', 'success'); return contribution;
     } catch (e) { console.error(e); showToast('Erro ao adicionar aporte.', 'error'); return null; }
@@ -3435,7 +3607,7 @@
       await fullUIRefresh(); 
       if ($('#investmentDetailModal').classList.contains('active') && state.currentInvestment?.id === data.investmentId) {
         renderInvestmentContributions(data.investmentId);
-        openInvestmentDetail(data.investmentId); // Reabre para atualizar totais
+        openInvestmentDetail(data.investmentId); 
       }
       showToast('Aporte atualizado!', 'success'); return true;
     } catch (e) { console.error(e); showToast('Erro ao atualizar aporte.', 'error'); return false; }
@@ -3449,7 +3621,7 @@
       await fullUIRefresh(); 
       if ($('#investmentDetailModal').classList.contains('active') && state.currentInvestment?.id === contribToDelete.investmentId) {
         renderInvestmentContributions(contribToDelete.investmentId);
-        openInvestmentDetail(contribToDelete.investmentId); // Reabre para atualizar totais
+        openInvestmentDetail(contribToDelete.investmentId); 
       }
       showToast('Aporte excluído!', 'success');
     } catch (e) { console.error(e); showToast('Erro ao excluir aporte.', 'error'); }
@@ -3457,7 +3629,7 @@
 
   const openNewInvestmentModal = () => {
     $('#investmentForm').reset();
-    setDateInputValue('investmentTargetDate', null); // Sem data padrão
+    setDateInputValue('investmentTargetDate', null); 
     $('#newInvestmentModalTitle').textContent = 'Novo Objetivo Financeiro';
     $('#saveInvestmentBtn').textContent = 'Salvar Objetivo';
     $('#saveInvestmentBtn').dataset.action = 'add';
@@ -3524,30 +3696,23 @@
     const refDate = parseLocalDateString(invoiceDueDateRef);
     if (!refDate || !card) return { previousClosing: null, currentClosingDate: null };
 
-    let closingDay = parseInt(card.closingDay); // Garantir que é número
-    let dueDay = parseInt(card.dueDay); // Garantir que é número
+    let closingDay = parseInt(card.closingDay); 
+    let dueDay = parseInt(card.dueDay); 
 
     let currentClosingYear = refDate.getUTCFullYear();
     let currentClosingMonth = refDate.getUTCMonth(); 
 
-    // Se o dia de vencimento for menor que o dia de fechamento, o fechamento refere-se ao mês anterior ao vencimento.
-    // Ex: Vence dia 05/JUL, fecha dia 28/JUN. Se estamos em JUL, fechamento foi JUN.
-    // Ex: Vence dia 28/JUL, fecha dia 20/JUL. Se estamos em JUL, fechamento foi JUL.
     if (dueDay < closingDay) {
-        currentClosingMonth--; // O fechamento é no mês anterior ao mês de vencimento
+        currentClosingMonth--; 
         if (currentClosingMonth < 0) {
             currentClosingMonth = 11;
             currentClosingYear--;
         }
     }
-    // Se dueDay >= closingDay, o fechamento é no mesmo mês do vencimento
-    // (ex: fecha dia 20, vence dia 28 do mesmo mês)
     
     const currentClosingDate = new Date(Date.UTC(currentClosingYear, currentClosingMonth, closingDay));
-    currentClosingDate.setUTCHours(0,0,0,0); // Zera hora para comparações
+    currentClosingDate.setUTCHours(0,0,0,0); 
 
-    // O período de compras da fatura anterior começa no dia seguinte ao fechamento anterior
-    // e vai até o dia do fechamento atual (exclusive).
     let previousClosingMonth = currentClosingMonth - 1;
     let previousClosingYear = currentClosingYear;
     if (previousClosingMonth < 0) {
@@ -3555,7 +3720,7 @@
         previousClosingYear--;
     }
     const previousClosing = new Date(Date.UTC(previousClosingYear, previousClosingMonth, closingDay));
-    previousClosing.setUTCHours(0,0,0,0); // Zera hora
+    previousClosing.setUTCHours(0,0,0,0); 
     
     return { previousClosing, currentClosingDate }; 
   };
@@ -3658,8 +3823,8 @@
                 return t.type === 'expense' &&
                        t.paymentMethod === 'credito' &&
                        t.creditCardId === card.id &&
-                       tLaunchDate >= previousClosing && // Compra feita após o fechamento anterior
-                       tLaunchDate < currentClosingDate; // Compra feita antes do fechamento atual
+                       tLaunchDate >= previousClosing && 
+                       tLaunchDate < currentClosingDate; 
             });
             currentInvoiceAmountForMonth = currentInvoiceTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
         }
@@ -3732,7 +3897,7 @@
     let endOfPurchasePeriod = null;
     if (currentClosingDate) {
         endOfPurchasePeriod = new Date(currentClosingDate.getTime());
-        endOfPurchasePeriod.setUTCDate(currentClosingDate.getUTCDate() - 1); // Um dia antes do fechamento atual
+        endOfPurchasePeriod.setUTCDate(currentClosingDate.getUTCDate() - 1); 
     }
 
     $('#cardInvoiceDetails').innerHTML = `
@@ -3764,7 +3929,7 @@
       });
       $$('.invoice-paid-checkbox').forEach(cb => cb.addEventListener('change', async (e) => {
           await updateTransactionStatus(e.target.dataset.id, e.target.checked ? 'paid' : 'pending');
-          openCardInvoice(cardId); // Reabre para atualizar a UI
+          openCardInvoice(cardId); 
       }));
     }
     $('#invoiceConfirmAmount').textContent = formatCurrency(currentInvoiceSum);
@@ -3773,7 +3938,7 @@
         payInvoiceBtn.style.display = 'inline-flex';
         payInvoiceBtn.disabled = false;
     } else {
-        payInvoiceBtn.disabled = true; // Ou payInvoiceBtn.style.display = 'none';
+        payInvoiceBtn.disabled = true; 
     }
     closeModal('cardsListModal'); 
     openModal('cardInvoiceModal');
@@ -3806,7 +3971,27 @@
     const commonChartOptions = {
         fontFamily: 'var(--font-sans)',
         foreColor: textColor,
-        tooltip: { theme: isDarkTheme ? 'dark' : 'light' },
+        tooltip: { 
+            theme: isDarkTheme ? 'dark' : 'light',
+            style: {
+                fontSize: '12px',
+                fontFamily: 'var(--font-sans)',
+            },
+            x: { show: true },
+            y: { // Default y formatter, can be overridden
+                formatter: function(val, opts) {
+                    const seriesName = opts.w.globals.seriesNames[opts.seriesIndex];
+                    let percentageString = '';
+                    if (opts.w.globals.seriesTotals && opts.w.globals.seriesTotals.length > 0) {
+                        const totalOfAllSeries = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                        if (totalOfAllSeries > 0) {
+                            percentageString = ` (${Math.round((val / totalOfAllSeries) * 100)}%)`;
+                        }
+                    }
+                    return `${seriesName}: ${formatCurrency(val)}${percentageString}`;
+                }
+            }
+        },
         grid: { borderColor: gridColor, strokeDashArray: 3, padding: { left: 0, right: 0 } },
         xaxis: { labels: { style: { colors: textColor, fontFamily: 'var(--font-sans)' } }, axisBorder: { show: false }, axisTicks: { show: false } },
         yaxis: { labels: { style: { colors: textColor, fontFamily: 'var(--font-sans)' }, formatter: val => 'R$ ' + val.toFixed(0) } }
@@ -3815,16 +4000,24 @@
     const categoryExpensesOptions = {
       series: [{ name: 'Valor', data: [] }],
       chart: { type: 'bar', height: 350, toolbar: { show: false }, ...commonChartOptions.chart },
-      plotOptions: { bar: { borderRadius: 6, columnWidth: '55%', distributed: true, dataLabels: { position: 'top' } } },
-      dataLabels: { enabled: true, formatter: (val, opts) => {
-          const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-          return total > 0 ? Math.round((val / total) * 100) + '%' : '0%';
-        }, offsetY: -20, style: { fontSize: '11px', fontFamily: 'var(--font-sans)', colors: [textColor] }
-      },
+      plotOptions: { bar: { borderRadius: 6, columnWidth: '55%', distributed: true } },
+      dataLabels: { enabled: false }, // Removido conforme Ponto 2
       colors: chartPalette,
-      xaxis: { ...commonChartOptions.xaxis, categories: [] },
+      xaxis: { ...commonChartOptions.xaxis, categories: [], labels: { show: false } }, // Removido conforme Ponto 2
       yaxis: { ...commonChartOptions.yaxis, title: { text: 'Valor (R$)', style: { color: textColor, fontFamily: 'var(--font-sans)' } } },
-      grid: commonChartOptions.grid, tooltip: commonChartOptions.tooltip,
+      grid: commonChartOptions.grid, 
+      tooltip: { 
+          theme: isDarkTheme ? 'dark' : 'light',
+          y: {
+            formatter: function(val, opts) {
+              const categoryName = opts.w.globals.initialSeries[0].data[opts.dataPointIndex].x; // Pega o nome da categoria do dado original
+              const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+              const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+              return `${categoryName}: ${formatCurrency(val)} (${percentage}%)`;
+            }
+          }
+      },
+      legend: { show: false } // Confirmado Ponto 2
     };
     
     const cardUsageDonutOptions = {
@@ -3834,9 +4027,13 @@
       colors: [style.getPropertyValue('--color-error').trim(), style.getPropertyValue('--color-primary').trim()],
       plotOptions: { pie: { donut: { size: '70%', labels: { show: false } } } },
       dataLabels: { enabled: false }, legend: { show: false }, stroke: { width: 0 },
-      tooltip: { ...commonChartOptions.tooltip, y: { formatter: (val, opts) => {
+      tooltip: { 
+          theme: isDarkTheme ? 'dark' : 'light',
+          y: { formatter: (val, opts) => {
+            const label = opts.w.globals.labels[opts.seriesIndex];
             const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-            return `${formatCurrency(val)} (${total > 0 ? Math.round((val / total) * 100) : 0}%)`;
+            const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+            return `${label}: ${formatCurrency(val)} (${percentage}%)`;
       }}},
       responsive: [{ breakpoint: 480, options: { chart: { height: 300 } } }],
     };
@@ -3849,14 +4046,19 @@
       plotOptions: { pie: { donut: { size: '65%', labels: { show: true, name: { show: true, color: textColor }, 
             value: { show: true, color: onSurfaceColor, formatter: (val, opts) => {
                 const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                return total > 0 ? Math.round((val / total) * 100) + '%' : '0%';
+                const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+                return `${formatCurrency(val)} (${percentage}%)`; // Adicionado R$
             }},
             total: { show: true, label: 'Total', color: onSurfaceColor, formatter: w => formatCurrency(w.globals.seriesTotals.reduce((a, b) => a + b, 0)) }
       }}}},
       dataLabels: { enabled: false }, legend: { show: false }, stroke: { width: 0 },
-      tooltip: { ...commonChartOptions.tooltip, y: { formatter: (val, opts) => {
-        const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-        return `${formatCurrency(val)} (${total > 0 ? Math.round((val / total) * 100) : 0}%)`;
+      tooltip: { 
+          theme: isDarkTheme ? 'dark' : 'light',
+          y: { formatter: (val, opts) => {
+            const label = opts.w.globals.labels[opts.seriesIndex];
+            const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+            const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+            return `${label}: ${formatCurrency(val)} (${percentage}%)`;
       }}},
       responsive: [{ breakpoint: 480, options: { chart: { height: 300 } } }],
     };
@@ -3864,15 +4066,26 @@
     const personAnalysisOptions = {
       series: [{ name: 'Valor', data: [] }],
       chart: { type: 'bar', height: 350, toolbar: { show: false }, ...commonChartOptions.chart },
-      plotOptions: { bar: { horizontal: true, borderRadius: 6, dataLabels: { position: 'top' } } }, // position: 'top' for horizontal
-      colors: chartPalette.slice(0,4), // Use a subset of the palette
+      plotOptions: { bar: { horizontal: true, borderRadius: 6, dataLabels: { position: 'top' } } }, 
+      colors: chartPalette.slice(0,4), 
       dataLabels: { enabled: true, formatter: (val, opts) => {
           const total = opts.w.globals.seriesTotals.reduce((a,b) => a+b,0); return total > 0 ? Math.round((val/total)*100) + '%' : '0%';
         }, offsetX: 5, style: { fontSize: '11px', fontFamily: 'var(--font-sans)', colors: [onSurfaceColor] }
       },
       xaxis: { ...commonChartOptions.xaxis, labels: { ...commonChartOptions.xaxis.labels, formatter: val => 'R$ ' + val.toFixed(0) }},
       yaxis: { ...commonChartOptions.yaxis, labels: { ...commonChartOptions.yaxis.labels, style: { ...commonChartOptions.yaxis.labels.style, colors: onSurfaceColor } } },
-      grid: commonChartOptions.grid, tooltip: commonChartOptions.tooltip,
+      grid: commonChartOptions.grid, 
+      tooltip: { 
+          theme: isDarkTheme ? 'dark' : 'light',
+          y: {
+            formatter: function(val, opts) {
+              const personName = opts.w.globals.labels[opts.dataPointIndex]; 
+              const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+              const percentage = total > 0 ? Math.round((val / total) * 100) : 0;
+              return `${personName}: ${formatCurrency(val)} (${percentage}%)`;
+            }
+          }
+      },
     };
     
     const annualBarsOptions = {
@@ -3885,7 +4098,14 @@
       labels: [], markers: { size: 4, hover: { size: 6 } }, legend: { show: false },
       xaxis: { ...commonChartOptions.xaxis },
       yaxis: { ...commonChartOptions.yaxis, title: { text: 'Valor (R$)', style: { color: textColor, fontFamily: 'var(--font-sans)' } } },
-      tooltip: { ...commonChartOptions.tooltip, shared: true, intersect: false, y: { formatter: y => typeof y !== "undefined" ? "R$ " + y.toFixed(2) : y } },
+      tooltip: { 
+          theme: isDarkTheme ? 'dark' : 'light',
+          shared: true, 
+          intersect: false, 
+          y: { formatter: (val, opts) => {
+            const seriesName = opts.w.globals.seriesNames[opts.seriesIndex];
+            return `${seriesName}: ${formatCurrency(val)}`;
+      }}},
       grid: commonChartOptions.grid
     };
     
@@ -3925,11 +4145,12 @@
         item.chart.updateOptions({
           ...item.options,
           grid: { borderColor: gridColor },
-          tooltip: { theme: isDarkTheme ? 'dark' : 'light' }
+          tooltip: { 
+            theme: isDarkTheme ? 'dark' : 'light',
+          }
         });
       }
     });
-    // Atualiza o texto central do donut de uso do cartão
     if (cardUsageDonutChart && cardUsageDonutChart.w && cardUsageDonutChart.w.globals && cardUsageDonutChart.w.globals.series) {
         const usado = cardUsageDonutChart.w.globals.series[0] !== undefined ? cardUsageDonutChart.w.globals.series[0] : 0;
         const total = cardUsageDonutChart.w.globals.series.reduce((a, b) => a + b, 0);
@@ -3946,14 +4167,13 @@
   };
 
   const updateCharts = () => {
-    if (!categoryExpensesChart) { // Se não existem, cria
+    if (!categoryExpensesChart) { 
         createCharts();
-        // A primeira chamada a updateChartColors é feita dentro de createCharts implicitamente pelos temas
     }
     const currentMonthTransactions = state.filteredTransactions;
 
     // 1. Despesas por Categoria
-    const expenseCategories = currentMonthTransactions
+    const expenseCategoriesData = currentMonthTransactions
       .filter(t => t.type === 'expense')
       .reduce((acc, t) => {
         const cat = state.categories.expense.find(c => c.id === t.category);
@@ -3961,11 +4181,12 @@
         acc[displayName] = (acc[displayName] || 0) + parseFloat(t.amount);
         return acc;
       }, {});
-    const sortedCategories = Object.entries(expenseCategories).sort((a, b) => b[1] - a[1]);
+    const sortedCategories = Object.entries(expenseCategoriesData)
+        .sort((a, b) => b[1] - a[1])
+        .map(item => ({ x: item[0], y: item[1] })); // Formato para ApexCharts
 
     if (categoryExpensesChart) {
-      categoryExpensesChart.updateOptions({ xaxis: { categories: sortedCategories.map(item => item[0]) } });
-      categoryExpensesChart.updateSeries([{ data: sortedCategories.map(item => item[1]) }]);
+      categoryExpensesChart.updateSeries([{ data: sortedCategories }]);
     }
 
     // 2. Uso do Limite (Cartões)
@@ -3974,8 +4195,7 @@
     const totalUsedAllCards = totalLimitAllCards - totalAvailableAllCards;
     
     if (cardUsageDonutChart) {
-      cardUsageDonutChart.updateSeries(totalLimitAllCards > 0 ? [totalUsedAllCards, totalAvailableAllCards] : [1, 0]); // Evita erro com 0 total
-      // O texto central é atualizado em updateChartColors
+      cardUsageDonutChart.updateSeries(totalLimitAllCards > 0 ? [totalUsedAllCards, totalAvailableAllCards] : [1, 0]); 
     }
     
     // 3. Despesas Fixas vs Variáveis
@@ -3997,7 +4217,12 @@
     const sortedPersons = Object.entries(personExpenses).sort((a, b) => b[1] - a[1]);
     
     if (personAnalysisChart) {
-      personAnalysisChart.updateOptions({ yaxis: { categories: sortedPersons.map(item => item[0]) } });
+      personAnalysisChart.updateOptions({ 
+          yaxis: { 
+              categories: sortedPersons.map(item => item[0]),
+              labels: { style: { colors: getComputedStyle(document.documentElement).getPropertyValue('--color-on-surface').trim() }} // Garante cor correta
+          } 
+      }); 
       personAnalysisChart.updateSeries([{ data: sortedPersons.map(item => item[1]) }]);
     }
     
@@ -4045,7 +4270,7 @@
         { name: 'Saldo', data: annualData.map(d => d.income - d.expense) }
       ]);
     }
-    updateChartColors(); // Garante que as cores sejam aplicadas após a atualização dos dados
+    updateChartColors(); 
   };
 
   const toggleCommitments = () => {
@@ -4074,7 +4299,7 @@
 
     const overdue = state.transactions.filter(t => {
         if (t.type !== 'expense' || t.status === 'paid') return false;
-        let effectiveDueDate = getEffectiveDueDateForSort(t); // Usa a função de data efetiva
+        let effectiveDueDate = getEffectiveDueDateForSort(t); 
         if (!effectiveDueDate) return false;
         return effectiveDueDate < today;
     });
@@ -4112,7 +4337,6 @@
           actionText: 'Ver Cartão', 
           action: () => { 
             openModal('cardsListModal'); 
-            // Não é possível abrir diretamente a fatura, pois openCardInvoice pode depender de contexto não presente
           } 
         });
     });
@@ -4135,7 +4359,7 @@
       const insight = state.insights.find(i => i.id === e.currentTarget.dataset.id);
       if (insight && insight.action) insight.action();
     }));
-  };
+  }; 
   
   const openDueTransactionsModal = (transactions, title, type) => {
     $('#dueTransactionsModalTitleText').textContent = title;
@@ -4184,7 +4408,7 @@
     }
     $('#payAllDueBtn').style.display = transactions.some(t => t.status !== 'paid') ? 'inline-flex' : 'none';
     openModal('dueTransactionsModal');
-  };
+  }; 
 
 
   const renderCommitments = () => {
@@ -4194,7 +4418,6 @@
     const recurrent = state.transactions.filter(t => t.isRecurrent && t.installments && t.installmentNumber && parseInt(t.installments) > parseInt(t.installmentNumber));
     if (recurrent.length === 0) {
       content.innerHTML = '<p class="text-center text-muted p-6">Nenhum compromisso longo ativo.</p>';
-      // Se estiver expandido e ficar vazio, recolhe
       if (content.classList.contains('expanded')) toggleCommitments();
       return;
     }
@@ -4216,31 +4439,37 @@
       const item = document.createElement('div');
       item.className = 'commitment-item';
       item.innerHTML = `
-        <div class="commitment-icon" style="background-color: ${c.type==='income'?'var(--color-income)':'var(--color-expense)'};">
-          ${cat?.icon ? cat.icon : (c.type === 'income' ? '💰' : '💸')}
+        <div class="commitment-item-main">
+            <div class="commitment-icon" style="background-color: ${c.type==='income'?'var(--color-income)':'var(--color-expense)'};">
+            ${cat?.icon ? cat.icon : (c.type === 'income' ? '💰' : '💸')}
+            </div>
+            <div class="commitment-item-content"> 
+                <div class="commitment-info">
+                    <span class="commitment-name">${c.name}</span>
+                    <span class="commitment-amount">${formatCurrency(c.amount)}</span>
+                </div>
+                <div class="commitment-details">
+                    <span>${cat?.name || c.categoryName || c.category}</span>
+                    <span>Parcela ${c.installmentNumber}/${c.installments}</span>
+                </div>
+                <div class="commitment-progress">
+                    <div class="commitment-progress-bar" style="width:${progress.toFixed(2)}%; background-color:${c.type==='income'?'var(--color-income)':'var(--color-expense)'};"></div>
+                </div>
+            </div>
         </div>
-        <div class="commitment-item .commitment-content"> <!-- Corrigido nome da classe -->
-          <div class="commitment-info">
-            <span class="commitment-name">${c.name}</span>
-            <span class="commitment-amount">${formatCurrency(c.amount)}</span>
-          </div>
-          <div class="commitment-details">
-            <span>${cat?.name || c.categoryName || c.category}</span>
-            <span>Parcela ${c.installmentNumber}/${c.installments}</span>
-          </div>
-          <div class="commitment-progress">
-            <div class="commitment-progress-bar" style="width:${progress}%; background-color:${c.type==='income'?'var(--color-income)':'var(--color-expense)'};"></div>
-          </div>
+        <div class="commitment-progress-wrapper">
+            <div class="commitment-progress">
+                <div class="commitment-progress-bar" style="width:${progress.toFixed(2)}%; background-color:${c.type==='income'?'var(--color-income)':'var(--color-expense)'};"></div>
+            </div>
         </div>`;
       commitmentList.appendChild(item);
     });
     
     content.appendChild(commitmentList);
-    // Se estava expandido, recalcula a altura
     if (content.classList.contains('expanded')) {
         content.style.maxHeight = content.scrollHeight + "px";
     }
-  };
+  }; 
 
   const createTransactionFilters = () => {
     const container = $('#transaction-filters');
@@ -4275,10 +4504,11 @@
         state.paymentMethods.map(p => ({value: p.id, text: `${p.icon||''} ${p.name}`}))
     ).addEventListener('change', e => { state.filters.paymentMethod = e.target.value; updateTransactionsTable(); });
     
+    // Filtro de Pessoa reativado
     createSelect('filter-person', 'Todas Pessoas', 
         state.people.map(p => ({value: p.id, text: `${p.icon||''} ${p.name}`}))
     ).addEventListener('change', e => { state.filters.person = e.target.value; updateTransactionsTable(); });
-  };
+  }; 
 
   const setupSortableColumns = () => {
     $$('#transactionsTable th.sortable').forEach(header => {
@@ -4299,7 +4529,7 @@
         updateTransactionsTable();
       });
     });
-  };
+  }; 
 
   const getEffectiveDueDateForSort = (transaction) => {
     let effectiveDate = parseLocalDateString(transaction.date); 
@@ -4317,7 +4547,7 @@
         }
     }
     return effectiveDate;
-  };
+  }; 
 
 
   const updateTransactionsTable = () => {
@@ -4329,11 +4559,9 @@
     if (sortableHeaders.length > 0 && !sortableHeaders[0].classList.contains('has-listener')) { 
         setupSortableColumns();
         sortableHeaders.forEach(h => h.classList.add('has-listener'));
-         // Set initial sort indicator for dueDate
         const dueDateHeader = Array.from(sortableHeaders).find(h => h.dataset.sort === 'dueDate');
         if(dueDateHeader) dueDateHeader.classList.add('sorted-asc');
     }
-
 
     let transactionsToDisplay = [...state.filteredTransactions]; 
     if (state.filters.transactionType) transactionsToDisplay = transactionsToDisplay.filter(t => t.type === state.filters.transactionType);
@@ -4342,14 +4570,11 @@
     if (state.filters.paymentMethod) transactionsToDisplay = transactionsToDisplay.filter(t => t.paymentMethod === state.filters.paymentMethod);
     if (state.filters.person) transactionsToDisplay = transactionsToDisplay.filter(t => t.person === state.filters.person);
 
+
     transactionsToDisplay.sort((a, b) => {
       let valA, valB;
       switch(state.sortColumn) {
         case 'name': valA = (a.name || '').toLowerCase(); valB = (b.name || '').toLowerCase(); break;
-        case 'person': 
-            valA = (state.people.find(p=>p.id===a.person)?.name || '').toLowerCase(); 
-            valB = (state.people.find(p=>p.id===b.person)?.name || '').toLowerCase(); 
-            break;
         case 'date': valA = parseLocalDateString(a.date); valB = parseLocalDateString(b.date); break; 
         case 'dueDate': 
             valA = getEffectiveDueDateForSort(a); valB = getEffectiveDueDateForSort(b);
@@ -4371,14 +4596,13 @@
 
     tableBody.innerHTML = '';
     if (transactionsToDisplay.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="9" class="text-center text-muted p-6">Nenhuma transação encontrada para este mês ou filtros aplicados.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-muted p-6">Nenhuma transação encontrada para este mês ou filtros aplicados.</td></tr>`;
       return;
     }
     
     transactionsToDisplay.forEach(t => {
       const row = tableBody.insertRow();
       const cat = t.type === 'income' ? state.categories.income.find(c=>c.id===t.category) : state.categories.expense.find(c=>c.id===t.category);
-      const person = state.people.find(p=>p.id===t.person);
       const payment = state.paymentMethods.find(p=>p.id===t.paymentMethod);
       
       let statusText, statusClass;
@@ -4403,7 +4627,6 @@
             <span>${t.name} ${t.isRecurrent && t.installments > 1 ? `(${t.installmentNumber}/${t.installments})` : ''}</span>
           </div>
         </td>
-        <td>${person ? `${person.icon||''} ${person.name}` : '-'}</td>
         <td>${formatDate(t.date)}</td> 
         <td>${effectiveDueDateForDisplay ? formatDate(effectiveDueDateForDisplay) : '-'}</td> 
         <td style="text-align: right;">${formatCurrency(t.amount)}</td>
@@ -4430,7 +4653,7 @@
     $$('.transaction-paid-checkbox').forEach(cb => cb.addEventListener('change', e => updateTransactionStatus(e.target.dataset.id, e.target.checked ? (e.target.dataset.type === 'income' ? 'received' : 'paid') : 'pending')));
     $$('.edit-transaction-btn').forEach(btn => btn.addEventListener('click', e => openEditModal(state.transactions.find(t => t.id === e.currentTarget.dataset.id))));
     $$('.delete-transaction-btn').forEach(btn => btn.addEventListener('click', e => openDeleteConfirmModal(state.transactions.find(t => t.id === e.currentTarget.dataset.id))));
-  };
+  }; 
 
   const updateTransactionStatus = async (id, status) => {
     try {
@@ -4441,31 +4664,16 @@
       transaction.status = status; 
       
       await db.collection('transactions').doc(id).update({ status });
-
-      // Lógica de atualização de limite do cartão se a transação for de cartão e o status mudou para/de 'paid'
-      if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId) {
-        const card = state.cards.find(c => c.id === transaction.creditCardId);
-        if (card) {
-            // Esta lógica pode ser complexa. Assumimos que 'currentInvoice' do cartão reflete o saldo devedor.
-            // Se uma despesa de cartão é marcada como paga, ela não deveria mais impactar o currentInvoice
-            // da mesma forma que uma despesa pendente.
-            // Por simplicidade, vamos apenas refazer o cálculo do cartão.
-            // Idealmente, a transação paga sairia do cômputo de 'currentInvoice'.
-            // Esta parte pode precisar de uma revisão mais profunda da lógica de 'currentInvoice'.
-            // Por ora, vamos focar na mudança de status e no refresh da UI.
-        }
-      }
       await fullUIRefresh(); 
       showToast('Status da transação atualizado!', 'success');
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
       showToast('Erro ao atualizar status.', 'error');
-      // Reverter a mudança no estado local se o DB falhar
       const transactionOnError = state.transactions.find(t => t.id === id);
       if(transactionOnError) transactionOnError.status = oldStatus;
       await fullUIRefresh();
     }
-  };
+  }; 
 
   const addTransaction = async (transactionData) => {
     try {
@@ -4483,8 +4691,6 @@
       }
 
       if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId && !transaction.isRecurrent) {
-        // Apenas adiciona ao limite se NÃO for uma parcela de uma compra já registrada
-        // (a lógica de `addRecurrentTransactions` já lida com o valor total da compra parcelada)
         await updateCardLimits(transaction.creditCardId, parseFloat(transaction.amount), 'add');
         const card = state.cards.find(c => c.id === transaction.creditCardId);
         if (card) transaction.creditCardName = card.name;
@@ -4497,32 +4703,35 @@
       showToast(`${transaction.type === 'income' ? 'Receita' : 'Despesa'} adicionada!`, 'success');
       return transaction;
     } catch (e) { console.error(e); showToast('Erro ao adicionar transação.', 'error'); return null; }
-  };
+  }; 
 
   const addRecurrentTransactions = async (baseTransaction, installments) => {
     try {
       const recurrenceId = generateId();
       const batch = db.batch();
       const transactionsToAdd = [];
-      // O valor da baseTransaction é o valor TOTAL da compra/despesa recorrente.
-      // Cada parcela terá amount = baseTransaction.amount / installments
       const installmentValue = parseFloat(baseTransaction.amount) / installments; 
       const totalPurchaseAmount = parseFloat(baseTransaction.amount);
 
 
       for (let i = 0; i < installments; i++) {
         const currentInstallmentLaunchDate = parseLocalDateString(baseTransaction.date);
-        currentInstallmentLaunchDate.setUTCMonth(currentInstallmentLaunchDate.getUTCMonth() + i);
+        let launchDateForInstallment = currentInstallmentLaunchDate;
+        if (baseTransaction.paymentMethod === 'credito') {
+            launchDateForInstallment = parseLocalDateString(baseTransaction.date); 
+        } else {
+            launchDateForInstallment.setUTCMonth(launchDateForInstallment.getUTCMonth() + i);
+        }
         
         let currentEffectiveDueDate = null;
         if (baseTransaction.paymentMethod === 'credito' && baseTransaction.creditCardId) {
             const card = state.cards.find(c => c.id === baseTransaction.creditCardId);
             if (card) {
-                // Para parcelas de cartão, a data de lançamento é a data da compra. O vencimento de cada parcela será calculado.
-                // O importante é que a data da transação (compra) seja a original.
-                currentEffectiveDueDate = calcularVencimentoReal(currentInstallmentLaunchDate, card); 
+                const effectivePurchaseDateForInstallment = parseLocalDateString(baseTransaction.date);
+                effectivePurchaseDateForInstallment.setUTCMonth(effectivePurchaseDateForInstallment.getUTCMonth() + i);
+                currentEffectiveDueDate = calcularVencimentoReal(effectivePurchaseDateForInstallment, card); 
             }
-        } else if (baseTransaction.dueDate) { // Para boletos, etc.
+        } else if (baseTransaction.dueDate) { 
             currentEffectiveDueDate = parseLocalDateString(baseTransaction.dueDate);
             currentEffectiveDueDate.setUTCMonth(currentEffectiveDueDate.getUTCMonth() + i);
         }
@@ -4530,16 +4739,16 @@
 
         const installment = { 
           ...baseTransaction, 
-          amount: installmentValue, // Valor da parcela
-          date: localDateToISOString(parseLocalDateString(baseTransaction.date)), // Data da compra original para todas as parcelas
+          amount: installmentValue, 
+          date: localDateToISOString(launchDateForInstallment), 
           dueDate: currentEffectiveDueDate ? localDateToISOString(currentEffectiveDueDate) : null, 
           recurrenceId, 
           installmentNumber: i + 1, 
           installments,
           isRecurrent: true,
-          status: (baseTransaction.paymentMethod === 'credito') ? 'pending' : (baseTransaction.status || 'pending') // Cartão sempre pendente
+          status: (baseTransaction.paymentMethod === 'credito') ? 'pending' : (baseTransaction.status || 'pending') 
         };
-        delete installment.id; // Firebase gera novo ID
+        delete installment.id; 
 
         const docRef = db.collection('transactions').doc(); 
         batch.set(docRef, installment);
@@ -4548,7 +4757,6 @@
       }
       
       if (baseTransaction.type === 'expense' && baseTransaction.paymentMethod === 'credito' && baseTransaction.creditCardId) {
-          // Atualiza o limite do cartão com o VALOR TOTAL da compra parcelada
           await updateCardLimits(baseTransaction.creditCardId, totalPurchaseAmount, 'add'); 
       }
 
@@ -4558,7 +4766,7 @@
       showToast('Transação parcelada adicionada!', 'success');
       return transactionsToAdd;
     } catch (e) { console.error(e); showToast('Erro ao adicionar parcelas.', 'error'); return null; }
-  };
+  }; 
 
   const updateTransaction = async (id, updates) => {
     try {
@@ -4568,7 +4776,6 @@
       const oldAmount = parseFloat(transaction.amount);
       const oldPaymentMethod = transaction.paymentMethod;
       const oldCardId = transaction.creditCardId;
-      const oldIsRecurrent = transaction.isRecurrent; // Se ERA recorrente (parcela individual)
       const oldRecurrenceId = transaction.recurrenceId;
 
 
@@ -4594,11 +4801,8 @@
       const newAmount = updates.amount !== undefined ? parseFloat(updates.amount) : oldAmount;
       const newPaymentMethod = updates.paymentMethod || oldPaymentMethod;
       const newCardId = updates.creditCardId || oldCardId;
-      const newIsRecurrent = updates.isRecurrent !== undefined ? updates.isRecurrent : oldIsRecurrent;
+      const newIsRecurrent = updates.isRecurrent !== undefined ? updates.isRecurrent : transaction.isRecurrent;
 
-      // Lógica de atualização de limite de cartão
-      // Só mexer no limite se a transação NÃO for uma parcela de uma série já existente
-      // E se não estiver se tornando uma nova série (isso é tratado em addRecurrentTransactions)
       if (!oldRecurrenceId && !newIsRecurrent) { 
         if (transaction.type === 'expense') {
             if (oldPaymentMethod === 'credito' && newPaymentMethod === 'credito') { 
@@ -4621,12 +4825,6 @@
         }
       }
       
-      // Se está se tornando recorrente AGORA (e não era antes), não fazemos nada aqui.
-      // A UI não permite editar uma transação para se tornar recorrente (ela só permite criar nova recorrente).
-      // Se a transação já é parte de uma série (tem recurrenceId), a edição de valor/parcelas é complexa e não está implementada.
-      // O checkbox 'isRecurrent' é desabilitado na edição se transaction.recurrenceId existe.
-      // Então, a lógica de updateCardLimits acima é principalmente para transações únicas.
-
       if (updates.date && updates.date instanceof Date) updates.date = localDateToISOString(updates.date);
       if (updates.dueDate && updates.dueDate instanceof Date) updates.dueDate = localDateToISOString(updates.dueDate);
       if (updates.scheduledDate && updates.scheduledDate instanceof Date) updates.scheduledDate = localDateToISOString(updates.scheduledDate);
@@ -4638,7 +4836,7 @@
       showToast('Transação atualizada!', 'success');
       return transaction;
     } catch (e) { console.error(e); showToast('Erro ao atualizar transação.', 'error'); return null; }
-  };
+  }; // Fim da função updateTransaction
 
   const deleteTransaction = async (id, options = {}) => {
     try {
@@ -4651,7 +4849,6 @@
       if (isRecurrentSeries && options.deleteOption === 'future') {
         const futureParcels = state.transactions.filter(t => t.recurrenceId === transaction.recurrenceId && parseInt(t.installmentNumber) >= parseInt(transaction.installmentNumber));
         
-        // Se for cartão de crédito, precisamos ajustar o limite pelo valor total das parcelas excluídas.
         if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId) {
             const totalAmountOfFutureParcels = futureParcels.reduce((sum, p) => sum + parseFloat(p.amount), 0);
             await updateCardLimits(transaction.creditCardId, totalAmountOfFutureParcels, 'subtract');
@@ -4663,10 +4860,8 @@
         await batch.commit();
         state.transactions = state.transactions.filter(t => !(t.recurrenceId === transaction.recurrenceId && parseInt(t.installmentNumber) >= parseInt(transaction.installmentNumber)));
       
-      } else { // Excluir apenas esta parcela ou uma transação única
+      } else { 
         if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId) {
-            // Se é uma parcela de uma série, subtrai apenas o valor desta parcela.
-            // Se é uma transação única, subtrai o valor total.
             await updateCardLimits(transaction.creditCardId, parseFloat(transaction.amount), 'subtract');
         }
         await db.collection('transactions').doc(id).delete();
@@ -4676,7 +4871,7 @@
       showToast('Transação excluída!', 'success');
       return true;
     } catch (e) { console.error(e); showToast('Erro ao excluir transação.', 'error'); return false; }
-  };
+  }; // Fim da função deleteTransaction
 
   const openEditModal = (transaction) => {
     if (!transaction) return;
@@ -4692,8 +4887,8 @@
     categorySelect.value = transaction.category || "";
 
     $('#editPerson').value = transaction.person || '';
-    updatePeopleSelects(); // Garante que as opções de pessoa estejam atualizadas
-    $('#editPerson').value = transaction.person || ''; // Seta o valor novamente após popular
+    updatePeopleSelects(); 
+    $('#editPerson').value = transaction.person || ''; 
     
     const expenseTypeGroup = $('#editExpenseTypeGroup');
     if (transaction.type === 'expense') {
@@ -4707,8 +4902,6 @@
     setDateInputValue('editDate', transaction.date); 
     
     const dueDateGroup = $('#editDueDateGroup');
-    // const dueDateInput = $('#editDueDate'); // Não usado diretamente para desabilitar
-
     let effectiveDueDateForEdit = transaction.dueDate ? parseLocalDateString(transaction.dueDate) : null; 
     if (transaction.type === 'expense' && transaction.paymentMethod === 'credito' && transaction.creditCardId) {
         const card = state.cards.find(c => c.id === transaction.creditCardId);
@@ -4723,8 +4916,6 @@
         dueDateGroup.style.display = 'block';
         setDateInputValue('editDueDate', effectiveDueDateForEdit);
     } else { 
-        // Para despesas não-cartão, permitir edição da data de vencimento.
-        // Para receitas, o campo de vencimento pode não ser relevante ou ser igual à data de lançamento.
         dueDateGroup.style.display = (transaction.type === 'expense' && transaction.paymentMethod !== 'credito') ? 'block' : 'none';
         if(transaction.type === 'expense' && transaction.paymentMethod !== 'credito') {
             setDateInputValue('editDueDate', transaction.dueDate || transaction.date);
@@ -4734,19 +4925,19 @@
 
 
     $('#editPaymentMethod').value = transaction.paymentMethod || "";
-    updatePaymentMethodSelects(); // Garante opções atualizadas
-    $('#editPaymentMethod').value = transaction.paymentMethod || ""; // Seta valor novamente
+    updatePaymentMethodSelects(); 
+    $('#editPaymentMethod').value = transaction.paymentMethod || ""; 
     
-    handleEditCreditCardVisibility(); // Mostra/esconde campo de cartão
+    handleEditCreditCardVisibility(); 
     if (transaction.paymentMethod === 'credito') {
-        updateCreditCardSelects(); // Garante opções de cartão atualizadas
+        updateCreditCardSelects(); 
         $('#editCreditCard').value = transaction.creditCardId || '';
         handleEditDueDateForCard(); 
     }
     
     const isParcelOfSeries = !!transaction.recurrenceId;
     $('#editIsRecurrent').checked = transaction.isRecurrent || false;
-    $('#editIsRecurrent').disabled = isParcelOfSeries; // Não pode mudar se já é parte de uma série
+    $('#editIsRecurrent').disabled = isParcelOfSeries; 
     
     handleEditRecurrenceGroupVisibility();
     if (transaction.isRecurrent) {
@@ -4755,7 +4946,7 @@
     $('#editInstallments').disabled = !$('#editIsRecurrent').checked || isParcelOfSeries;
 
     const statusGroup = $('#editStatusGroup');
-    const statusOuterGroup = $('#editStatusOuterGroup'); // Renomeado para evitar conflito de nome
+    const statusOuterGroup = $('#editStatusOuterGroup'); 
     statusGroup.innerHTML = ''; 
     if (transaction.type === 'income') {
       statusOuterGroup.style.display = 'block';
@@ -4763,36 +4954,35 @@
         <div class="radio-wrapper"><input type="radio" class="radio" id="editStatusReceived" name="editStatus" value="received"><label class="radio-label" for="editStatusReceived">Recebido</label></div>
         <div class="radio-wrapper"><input type="radio" class="radio" id="editStatusPendingIncome" name="editStatus" value="pending"><label class="radio-label" for="editStatusPendingIncome">A Receber</label></div>`;
       if (transaction.status === 'received') $('#editStatusReceived').checked = true; else $('#editStatusPendingIncome').checked = true;
-    } else { // Expense
-      statusOuterGroup.style.display = transaction.paymentMethod === 'credito' ? 'none' : 'block'; // Esconde status para cartão de crédito
+    } else { 
+      statusOuterGroup.style.display = transaction.paymentMethod === 'credito' ? 'none' : 'block'; 
       statusGroup.innerHTML = `
         <div class="radio-wrapper"><input type="radio" class="radio" id="editStatusPaid" name="editStatus" value="paid"><label class="radio-label" for="editStatusPaid">Pago</label></div>
         <div class="radio-wrapper"><input type="radio" class="radio" id="editStatusPendingExpense" name="editStatus" value="pending"><label class="radio-label" for="editStatusPendingExpense">Pendente</label></div>
         <div class="radio-wrapper"><input type="radio" class="radio" id="editStatusScheduled" name="editStatus" value="scheduled"><label class="radio-label" for="editStatusScheduled">Agendado</label></div>`;
       if (transaction.status === 'paid') $('#editStatusPaid').checked = true;
       else if (transaction.status === 'scheduled') $('#editStatusScheduled').checked = true;
-      else $('#editStatusPendingExpense').checked = true; // Default para pendente
+      else $('#editStatusPendingExpense').checked = true; 
     }
     
-    // Listener para o status 'Agendado' no modal de edição
     if (transaction.type === 'expense') {
         const editStatusScheduledRadio = $('#editStatusScheduled');
         if (editStatusScheduledRadio) {
             editStatusScheduledRadio.addEventListener('change', handleEditScheduledDateVisibility);
         }
     }
-    handleEditScheduledDateVisibility(); // Chama para setar o estado inicial
+    handleEditScheduledDateVisibility(); 
 
     if (transaction.status === 'scheduled' && transaction.scheduledDate) {
       setDateInputValue('editScheduledDate', transaction.scheduledDate);
     } else {
-      $('#editScheduledDate').value = ''; // Limpa se não for agendado ou não tiver data
+      $('#editScheduledDate').value = ''; 
     }
 
     $('#editNotes').value = transaction.notes || '';
     $('#editModalTitle').textContent = transaction.type === 'income' ? 'Editar Receita' : 'Editar Despesa';
     openModal('editModal');
-  }; // Fim da função openEditModal
+  }; 
 
   const openDeleteConfirmModal = (transaction) => {
     if (!transaction) return;
@@ -4813,7 +5003,7 @@
     $('#cardDueDay').value = card.dueDay;
     $('.modal-title', $('#newCardModal')).textContent = 'Editar Cartão';
     $('#saveCardBtn').textContent = 'Salvar Alterações';
-    $('#saveCardBtn').dataset.id = card.id; // Adiciona ID para saber que é edição
+    $('#saveCardBtn').dataset.id = card.id; 
     closeModal('cardsListModal');
     openModal('newCardModal');
   };
@@ -4861,7 +5051,7 @@
     $('#editCategoryType').value = type; 
     $('#editCategoryName').value = item.name;
     $('#editCategoryIconInput').value = item.icon || '';
-    $('#editCategoryIconPreview').innerHTML = item.icon || '●'; // Usar innerHTML para renderizar emoji
+    $('#editCategoryIconPreview').innerHTML = item.icon || '●'; 
     const titles = {
         'income':'Editar Categoria de Receita', 
         'expense':'Editar Categoria de Despesa', 
@@ -4875,7 +5065,7 @@
 
   const addCategory = async (name, icon, type) => {
     if (!name.trim()) { showToast('Nome não pode ser vazio.', 'error'); return null; }
-    const id = generateId(); // Usar ID do Firebase
+    const id = generateId(); 
     const category = { id, name, icon, type }; 
     try {
       await db.collection('categories').doc(id).set(category);
@@ -4916,7 +5106,7 @@
       if (type === 'income') listToUpdate = state.categories.income;
       else if (type === 'expense') listToUpdate = state.categories.expense;
       else if (type === 'investment') listToUpdate = state.categories.investment;
-      else return false; // Tipo inválido
+      else return false; 
       
       const index = listToUpdate.findIndex(c => c.id === id);
       if (index !== -1) listToUpdate[index] = { ...listToUpdate[index], ...updates };
@@ -4924,7 +5114,7 @@
       const batch = db.batch();
       let transactionsUpdated = false;
       state.transactions.forEach(t => {
-        if (t.category === id && t.type === type) { // Garante que o tipo da transação corresponda ao tipo da categoria
+        if (t.category === id && t.type === type) { 
           batch.update(db.collection('transactions').doc(t.id), { categoryName: updates.name, categoryIcon: updates.icon });
           t.categoryName = updates.name; t.categoryIcon = updates.icon; 
           transactionsUpdated = true;
@@ -5092,30 +5282,28 @@
         }
     } else { 
         dueDateEl.disabled = false;
-        dueDateGroupEl.style.display = 'block'; // Mantém visível para outros tipos de pagamento
-        // Não preenche automaticamente para não sobrescrever entrada manual, a menos que explicitamente desejado
-        // if (!dueDateEl.value && formPrefix !== 'edit') { 
-        //     if (dateEl && dateEl.value) {
-        //         setDateInputValue(`${formPrefix}DueDate`, getDateInputValue(`${formPrefix}Date`));
-        //     }
-        // }
+        dueDateGroupEl.style.display = 'block'; 
     }
   }
   
-  function handleStatusFieldVisibility(formPrefix) { // Usado em Nova Despesa
+  function handleStatusFieldVisibility(formPrefix) { 
     const paymentMethodEl = $(`#${formPrefix}PaymentMethod`);
     const isRecurrentEl = $(`#${formPrefix}IsRecurrent`);
     const statusGroupEl = $(`#${formPrefix}StatusGroup`);
-    const statusPendingRadio = $(`#${formPrefix}StatusPending`); // Assume expense context
+    const statusPendingRadio = $(`#${formPrefix}StatusPending`); 
 
     if (!paymentMethodEl || !statusGroupEl) return;
     
     const isCreditCard = paymentMethodEl.value === 'credito';
     const isRecurrent = isRecurrentEl ? isRecurrentEl.checked : false;
 
-    if (isCreditCard || isRecurrent) { 
+    if (isCreditCard || (isRecurrent && formPrefix.includes('expense'))) { 
         statusGroupEl.style.display = 'none';
         if (statusPendingRadio) statusPendingRadio.checked = true;
+    } else if (isRecurrent && formPrefix.includes('income')) { 
+        statusGroupEl.style.display = 'none';
+        const incomePendingRadio = $(`#incomeStatusPending`);
+        if (incomePendingRadio) incomePendingRadio.checked = true; 
     } else {
         statusGroupEl.style.display = 'block'; 
     }
@@ -5130,7 +5318,7 @@
     recurrenceGroupEl.style.display = isRecurrentEl.checked ? 'block' : 'none';
   }
 
-  function handleEditRecurrenceGroupVisibility() { // Para o modal de edição
+  function handleEditRecurrenceGroupVisibility() { 
     const isRecurrentEl = $('#editIsRecurrent');
     const recurrenceGroupEl = $('#editRecurrenceGroup');
     
@@ -5139,12 +5327,11 @@
     recurrenceGroupEl.style.display = isRecurrentEl.checked ? 'block' : 'none';
   }
 
-  function handleEditDueDateForCard() { // Para o modal de edição
+  function handleEditDueDateForCard() { 
     const paymentMethodEl = $('#editPaymentMethod');
     const creditCardEl = $('#editCreditCard');
     const dateEl = $('#editDate');
     const dueDateEl = $('#editDueDate');
-    // const dueDateGroupEl = $('#editDueDateGroup'); // Já tratado em openEditModal
     
     if (!paymentMethodEl || !dueDateEl) return;
     
@@ -5168,28 +5355,25 @@
     }
   }
 
-  function handleEditCreditCardVisibility() { // Para o modal de edição
+  function handleEditCreditCardVisibility() { 
     const paymentMethodEl = $('#editPaymentMethod');
     const creditCardGroupEl = $('#editCreditCardGroup');
-    const dueDateGroupEl = $('#editDueDateGroup'); // Necessário para mostrar/esconder vencimento
+    const dueDateGroupEl = $('#editDueDateGroup'); 
     
     if (!paymentMethodEl || !creditCardGroupEl || !dueDateGroupEl) return;
     
     if (paymentMethodEl.value === 'credito') {
         creditCardGroupEl.style.display = 'block';
-        dueDateGroupEl.style.display = 'block'; // Vencimento é relevante para cartão
+        dueDateGroupEl.style.display = 'block'; 
         handleEditDueDateForCard();
     } else {
         creditCardGroupEl.style.display = 'none';
-        // Vencimento pode ou não ser relevante para outros métodos, openEditModal decide
-        // Aqui só garantimos que não está desabilitado se não for cartão
         $('#editDueDate').disabled = false; 
     }
   }
 
-  function handleEditStatusFieldVisibility() { // Para o modal de edição
+  function handleEditStatusFieldVisibility() { 
     const paymentMethodEl = $('#editPaymentMethod');
-    // const isRecurrentEl = $('#editIsRecurrent'); // Recorrência já tratada em openEditModal
     const statusOuterGroupEl = $('#editStatusOuterGroup');
     
     if (!paymentMethodEl || !statusOuterGroupEl) return;
@@ -5198,21 +5382,19 @@
     statusOuterGroupEl.style.display = isCreditCard ? 'none' : 'block';
   }
 
-  function handleEditScheduledDateVisibility() { // Para o modal de edição
-    const statusScheduledRadio = $('#editStatusScheduled'); // Assume que existe se for despesa
+  function handleEditScheduledDateVisibility() { 
+    const statusScheduledRadio = $('#editStatusScheduled'); 
     const scheduledDateGroupEl = $('#editScheduledDateGroup');
     
-    if (!scheduledDateGroupEl) return; // Se o grupo não existe, nada a fazer
-    
-    // Se o radio de agendado não existe (ex: receita), esconde o campo de data agendada
-    if (!statusScheduledRadio) {
+    if (!scheduledDateGroupEl) return; 
+    if (!statusScheduledRadio) { 
         scheduledDateGroupEl.style.display = 'none';
         return;
     }
     scheduledDateGroupEl.style.display = statusScheduledRadio.checked ? 'block' : 'none';
   }
 
-  function handleCreditCardGroupVisibility(formPrefix) { // Para modais de Nova Receita/Despesa
+  function handleCreditCardGroupVisibility(formPrefix) { 
     const paymentMethodEl = $(`#${formPrefix}PaymentMethod`);
     const creditCardGroupEl = $(`#${formPrefix}CreditCardGroup`);
     const dueDateGroupEl = $(`#${formPrefix}DueDateGroup`);
@@ -5221,21 +5403,21 @@
     
     const isCreditCard = paymentMethodEl.value === 'credito';
     creditCardGroupEl.style.display = isCreditCard ? 'block' : 'none';
-    dueDateGroupEl.style.display = 'block'; // Vencimento sempre visível para nova despesa
+    dueDateGroupEl.style.display = 'block'; 
     
     if (isCreditCard) {
         handleDueDateForCard(formPrefix);
     } else {
-        $(`#${formPrefix}DueDate`).disabled = false; // Garante que não está desabilitado
+        $(`#${formPrefix}DueDate`).disabled = false; 
     }
   }
 
-  function handleScheduledDateVisibility(formPrefix) { // Para modais de Nova Receita/Despesa
-    const statusScheduledRadio = $(`#${formPrefix}StatusScheduled`); // Assume que existe se for despesa
+  function handleScheduledDateVisibility(formPrefix) { 
+    const statusScheduledRadio = $(`#${formPrefix}StatusScheduled`); 
     const scheduledDateGroupEl = $(`#${formPrefix}ScheduledDateGroup`);
     
     if (!scheduledDateGroupEl) return;
-    if (!statusScheduledRadio) { // Se não é despesa, não há radio de agendado
+    if (!statusScheduledRadio) { 
         scheduledDateGroupEl.style.display = 'none';
         return;
     }
@@ -5254,9 +5436,9 @@
         $('#expenseForm').reset(); 
         setDateInputValue('expenseDate', new Date()); 
         setDateInputValue('expenseDueDate', new Date()); 
-        $('#expenseTypeVariable').checked = true; // Default
-        $('#expenseStatusPending').checked = true; // Default
-        handleCreditCardGroupVisibility('expense'); // Atualiza visibilidade inicial
+        $('#expenseTypeVariable').checked = true; 
+        $('#expenseStatusPending').checked = true; 
+        handleCreditCardGroupVisibility('expense'); 
         handleStatusFieldVisibility('expense');
         handleScheduledDateVisibility('expense');
         openModal('expenseModal'); 
@@ -5272,10 +5454,10 @@
     $('#closeIncomeModal').addEventListener('click', () => closeModal('incomeModal'));
     $('#cancelIncomeBtn').addEventListener('click', () => closeModal('incomeModal'));
     $('#saveIncomeBtn').addEventListener('click', handleSaveIncome);
-    $('#incomePaymentMethod').addEventListener('change', () => handleStatusField('income')); // Atualiza visibilidade do status
+    $('#incomePaymentMethod').addEventListener('change', () => handleStatusFieldVisibility('income')); 
     $('#incomeIsRecurrent').addEventListener('change', () => {
       handleRecurrenceGroupVisibility('income');
-      handleStatusField('income'); // Recorrência também afeta status
+      handleStatusFieldVisibility('income'); 
     });
     
     // Modal de Nova Despesa
@@ -5284,15 +5466,15 @@
     $('#saveExpenseBtn').addEventListener('click', handleSaveExpense);
     $('#expensePaymentMethod').addEventListener('change', () => {
       handleCreditCardGroupVisibility('expense');
-      handleStatusFieldVisibility('expense'); // Status da despesa
+      handleStatusFieldVisibility('expense'); 
     });
     $('#expenseIsRecurrent').addEventListener('change', () => {
       handleRecurrenceGroupVisibility('expense');
-      handleStatusFieldVisibility('expense'); // Status da despesa
+      handleStatusFieldVisibility('expense'); 
     });
     $('#expenseStatusScheduled').addEventListener('change', () => handleScheduledDateVisibility('expense'));
     $('#expenseCreditCard').addEventListener('change', () => handleDueDateForCard('expense'));
-    $('#expenseDate').addEventListener('change', () => handleDueDateForCard('expense')); // Se data de lançamento muda, recalcular venc. cartão
+    $('#expenseDate').addEventListener('change', () => handleDueDateForCard('expense')); 
     
     // Modal de Edição de Transação
     $('#closeEditModal').addEventListener('click', () => closeModal('editModal'));
@@ -5300,18 +5482,14 @@
     $('#saveEditBtn').addEventListener('click', handleSaveEdit);
     $('#editPaymentMethod').addEventListener('change', () => {
       handleEditCreditCardVisibility();
-      handleEditStatusFieldVisibility(); // Status da edição
+      handleEditStatusFieldVisibility(); 
     });
     $('#editIsRecurrent').addEventListener('change', () => {
       handleEditRecurrenceGroupVisibility();
-      handleEditStatusFieldVisibility(); // Status da edição
+      handleEditStatusFieldVisibility(); 
     });
     $('#editCreditCard').addEventListener('change', handleEditDueDateForCard);
-    $('#editDate').addEventListener('change', handleEditDueDateForCard); // Se data de lançamento muda na edição
-    // Listener para status agendado no modal de edição
-    // Precisa ser adicionado dinamicamente ou garantir que os elementos existem
-    // Adicionado dentro de openEditModal para garantir que os rádios existam
-
+    $('#editDate').addEventListener('change', handleEditDueDateForCard); 
     
     // Modal de Cartões
     $('#closeCardsListModal').addEventListener('click', () => closeModal('cardsListModal'));
@@ -5320,7 +5498,7 @@
       $('#cardForm').reset();
       $('.modal-title', $('#newCardModal')).textContent = 'Novo Cartão';
       $('#saveCardBtn').textContent = 'Salvar Cartão';
-      $('#saveCardBtn').removeAttribute('data-id'); // Garante que não está em modo edição
+      $('#saveCardBtn').removeAttribute('data-id'); 
       closeModal('cardsListModal');
       openModal('newCardModal');
     });
@@ -5479,7 +5657,21 @@
     $('#closeDueTransactionsModal').addEventListener('click', () => closeModal('dueTransactionsModal'));
     $('#closeDueTransactionsBtn').addEventListener('click', () => closeModal('dueTransactionsModal'));
     $('#payAllDueBtn').addEventListener('click', handlePayAllDue);
-  }
+
+    // Header scroll behavior
+    let lastScrollTop = 0;
+    const header = $('#appHeader');
+    window.addEventListener('scroll', function() {
+        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > header.offsetHeight) { 
+            header.classList.add('header-hidden');
+        } else { 
+            header.classList.remove('header-hidden');
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; 
+    }, false);
+
+  } // Fim da função setupEventListeners
 
   function handleSaveIncome() {
     const data = {
@@ -5506,7 +5698,7 @@
       addRecurrentTransactions(data, data.installments).then(() => {
         closeModal('incomeModal');
         $('#incomeForm').reset();
-        setDateInputValue('incomeDate', new Date()); // Reset date to today
+        setDateInputValue('incomeDate', new Date()); 
       });
     } else {
       data.status = $('input[name="incomeStatus"]:checked').value;
@@ -5514,7 +5706,7 @@
       addTransaction(data).then(() => {
         closeModal('incomeModal');
         $('#incomeForm').reset();
-        setDateInputValue('incomeDate', new Date()); // Reset date to today
+        setDateInputValue('incomeDate', new Date()); 
       });
     }
   }
@@ -5544,11 +5736,10 @@
         showToast('Selecione o cartão de crédito.', 'error');
         return;
       }
-      data.status = 'pending'; // Despesas de cartão são sempre pendentes inicialmente
-      // Data de vencimento já deve ter sido calculada por handleDueDateForCard
+      data.status = 'pending'; 
     } else {
       const statusChecked = $('input[name="expenseStatus"]:checked');
-      data.status = statusChecked ? statusChecked.value : 'pending'; // Default para pendente se nada selecionado
+      data.status = statusChecked ? statusChecked.value : 'pending'; 
     }
     
     if (data.status === 'scheduled') {
@@ -5593,7 +5784,7 @@
       category: $('#editCategory').value,
       date: getDateInputValue('editDate'),
       paymentMethod: $('#editPaymentMethod').value,
-      type // Manter o tipo original
+      type 
     };
     
     if (isNaN(updates.amount) || updates.amount <= 0 || !updates.name || !updates.category || !updates.date || !updates.paymentMethod) {
@@ -5602,7 +5793,7 @@
     }
     
     if (type === 'expense') {
-      updates.dueDate = getDateInputValue('editDueDate'); // Sempre pegar, mesmo que desabilitado para cartão
+      updates.dueDate = getDateInputValue('editDueDate'); 
       updates.person = $('#editPerson').value;
       updates.isFixed = $('input[name="editExpenseType"]:checked') ? $('input[name="editExpenseType"]:checked').value : null;
       
@@ -5612,12 +5803,12 @@
             showToast('Selecione o cartão de crédito.', 'error');
             return;
         }
-        updates.status = 'pending'; // Cartão sempre pendente
+        updates.status = 'pending'; 
       } else {
         const statusChecked = $('input[name="editStatus"]:checked');
         updates.status = statusChecked ? statusChecked.value : 'pending';
       }
-    } else { // Income
+    } else { 
       const statusChecked = $('input[name="editStatus"]:checked');
       updates.status = statusChecked ? statusChecked.value : 'pending';
     }
@@ -5629,26 +5820,17 @@
         return;
       }
     } else {
-        updates.scheduledDate = null; // Limpa se não for mais agendado
+        updates.scheduledDate = null; 
     }
     
-    // Edição de recorrência/parcelas é complexo.
-    // O checkbox editIsRecurrent é desabilitado se já for uma parcela.
-    // Se não for uma parcela, e o usuário marcar, idealmente deveria criar novas parcelas.
-    // Por simplicidade, a edição não transforma uma transação única em recorrente.
-    // Apenas permite editar os detalhes de uma transação única que PODE ser marcada como recorrente (mas sem efeito prático aqui sem lógica adicional).
     updates.isRecurrent = $('#editIsRecurrent').checked;
-    if (updates.isRecurrent && !state.currentTransaction.recurrenceId) { // Só se está tornando recorrente e não era parcela
+    if (updates.isRecurrent && !state.currentTransaction.recurrenceId) { 
       updates.installments = parseInt($('#editInstallments').value);
       if(isNaN(updates.installments) || updates.installments < 2) {
           showToast('Para recorrência, informe ao menos 2 parcelas.', 'error');
           return;
       }
-      // Aqui, a lógica deveria ser deletar a transação original e criar uma nova série.
-      // Por ora, a edição de 'isRecurrent' para uma transação não-parcelada não terá o efeito de criar parcelas.
-      // Ela apenas marca a flag, o que pode ser confuso.
-      // TODO: Revisar lógica de edição para 'isRecurrent'.
-    } else if (state.currentTransaction.recurrenceId) { // Se já era parcela, mantém os dados da série
+    } else if (state.currentTransaction.recurrenceId) { 
         updates.installments = state.currentTransaction.installments;
         updates.installmentNumber = state.currentTransaction.installmentNumber;
         updates.recurrenceId = state.currentTransaction.recurrenceId;
@@ -5679,7 +5861,7 @@
       return;
     }
     
-    const cardId = $('#saveCardBtn').dataset.id; // Pega o ID se estiver editando
+    const cardId = $('#saveCardBtn').dataset.id; 
     if (cardId) {
       updateCard(cardId, data).then(() => {
         closeModal('newCardModal');
@@ -5711,7 +5893,7 @@
     if (state.currentTransaction.isRecurrent && state.currentTransaction.recurrenceId) {
       const deleteOptionChecked = $('input[name="deleteOption"]:checked');
       if (deleteOptionChecked) options.deleteOption = deleteOptionChecked.value;
-      else { // Default para excluir apenas esta se nada for selecionado (não deveria acontecer com radio)
+      else { 
           options.deleteOption = 'single'; 
       }
     }
@@ -5758,7 +5940,7 @@
       amount: parseFloat($('#investmentAmount').value) || 0,
       goal: parseFloat($('#investmentGoal').value) || 0,
       category: $('#investmentCategorySelect').value,
-      targetDate: getDateInputValue('investmentTargetDate'), // Pode ser null
+      targetDate: getDateInputValue('investmentTargetDate'), 
       notes: $('#investmentNotes').value.trim()
     };
     
@@ -5787,7 +5969,7 @@
         if(success) {
             closeModal('newInvestmentModal');
             if ($('#investmentDetailModal').classList.contains('active')) {
-              openInvestmentDetail(id); // Reabre para atualizar
+              openInvestmentDetail(id); 
             } else {
               openModal('investmentsModal');
             }
@@ -5837,18 +6019,13 @@
         return;
     }
     
-    // Coleta todos os IDs das transações a serem pagas
     const transactionIdsToPay = dueTransactionRows.map(btn => btn.dataset.id);
-    
-    // Cria um array de promessas para atualizar o status de cada transação
     const paymentPromises = transactionIdsToPay.map(id => updateTransactionStatus(id, 'paid'));
     
     try {
         await Promise.all(paymentPromises);
         closeModal('dueTransactionsModal');
         showToast('Todas as contas selecionadas foram marcadas como pagas!', 'success');
-        // fullUIRefresh será chamado por cada updateTransactionStatus, mas podemos chamar uma vez no final
-        // para garantir, embora possa ser redundante.
         await fullUIRefresh(); 
     } catch (error) {
         console.error("Erro ao pagar todas as contas:", error);
@@ -5874,9 +6051,8 @@
       await loadCategoriesAndPaymentMethods();
       await loadCards();
       await loadInvestments();
-      await loadTransactions(); // Chama fullUIRefresh internamente após carregar
+      await loadTransactions(); 
       
-      // Configurar valores iniciais para inputs de data dos modais de "Novo"
       setDateInputValue('incomeDate', new Date());
       setDateInputValue('expenseDate', new Date());
       setDateInputValue('expenseDueDate', new Date());
@@ -5892,10 +6068,10 @@
 
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
     const newTheme = e.matches ? 'dark' : 'light';
-    if (!localStorage.getItem('themePreference')) { // Só muda se não houver preferência salva
+    if (!localStorage.getItem('themePreference')) { 
       document.documentElement.setAttribute('data-theme', newTheme);
-      state.themePreference = newTheme; // Atualiza o estado
-      updateChartColors(); // Atualiza cores dos gráficos
+      state.themePreference = newTheme; 
+      updateChartColors(); 
     }
   });
 
